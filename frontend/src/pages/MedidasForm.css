@@ -1,0 +1,257 @@
+/* ============================================================
+   MEDIDAS FORM — Mobile-First · Estilo alta costura
+   ============================================================ */
+
+.medidas-container {
+    min-height: 100vh;
+    background: linear-gradient(160deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: #e8e8e8;
+    padding-bottom: 3rem;
+}
+
+/* --- Header --- */
+.medidas-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(201, 169, 110, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.btn-volver {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+    padding: 0.5rem 0.85rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.3s;
+    white-space: nowrap;
+}
+
+.btn-volver:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.medidas-title {
+    font-family: 'Georgia', serif;
+    font-size: 1.1rem;
+    color: #c9a96e;
+    font-weight: 400;
+    letter-spacing: 1px;
+    margin: 0;
+}
+
+/* --- Contenido --- */
+.medidas-content {
+    padding: 1.5rem 1.25rem;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+/* --- Indicador de pasos --- */
+.pasos-indicador {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 2rem;
+}
+
+.paso {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.paso.activo {
+    background: rgba(201, 169, 110, 0.15);
+    border-color: #c9a96e;
+    color: #c9a96e;
+}
+
+.paso-linea {
+    width: 40px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.08);
+    margin: 0 8px;
+}
+
+/* --- Mensajes --- */
+.medidas-error {
+    background: rgba(220, 53, 69, 0.12);
+    border: 1px solid rgba(220, 53, 69, 0.25);
+    color: #f8a5a5;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    margin-bottom: 1.25rem;
+    text-align: center;
+}
+
+.medidas-exito {
+    background: rgba(40, 167, 69, 0.12);
+    border: 1px solid rgba(40, 167, 69, 0.25);
+    color: #8fd19e;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    margin-bottom: 1.25rem;
+    text-align: center;
+}
+
+/* --- Formulario --- */
+.medidas-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.medidas-subtitulo {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.8rem;
+    margin: 0.5rem 0;
+    font-style: italic;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.form-group label {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.78rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.form-group input[type="text"],
+.form-group input[type="tel"],
+.form-group input[type="email"],
+.form-group input[type="date"],
+.form-group input[type="number"] {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(201, 169, 110, 0.15);
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    color: #e8e8e8;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+    min-height: 48px;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #c9a96e;
+    box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.1);
+}
+
+.form-group input::placeholder {
+    color: rgba(255, 255, 255, 0.15);
+}
+
+.form-group input[type="date"] {
+    color-scheme: dark;
+}
+
+/* --- Grid de medidas --- */
+.medidas-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.form-group-medida {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.form-group-medida label {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.input-con-unidad {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-con-unidad input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(201, 169, 110, 0.15);
+    border-radius: 12px;
+    padding: 0.75rem 2.5rem 0.75rem 1rem;
+    color: #e8e8e8;
+    font-size: 0.95rem;
+    min-height: 48px;
+    transition: border-color 0.3s;
+}
+
+.input-con-unidad input:focus {
+    outline: none;
+    border-color: #c9a96e;
+    box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.1);
+}
+
+.input-con-unidad .unidad {
+    position: absolute;
+    right: 12px;
+    color: rgba(255, 255, 255, 0.25);
+    font-size: 0.75rem;
+    pointer-events: none;
+}
+
+/* --- Botón primario --- */
+.btn-primario {
+    background: linear-gradient(135deg, #c9a96e 0%, #b8944f 100%);
+    color: #1a1a2e;
+    border: none;
+    border-radius: 12px;
+    padding: 0.9rem;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.3s;
+    min-height: 50px;
+    margin-top: 0.5rem;
+}
+
+.btn-primario:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(201, 169, 110, 0.3);
+}
+
+.btn-primario:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* --- Full width en mobile chico --- */
+@media (max-width: 380px) {
+    .medidas-grid {
+        grid-template-columns: 1fr;
+    }
+}

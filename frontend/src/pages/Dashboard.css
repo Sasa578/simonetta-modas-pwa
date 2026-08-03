@@ -1,0 +1,245 @@
+/* ============================================================
+   DASHBOARD — Mobile-First · Estilo alta costura
+   ============================================================ */
+
+.dashboard-container {
+    min-height: 100vh;
+    background: linear-gradient(160deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: #e8e8e8;
+    padding-bottom: 6rem;
+}
+
+/* --- Header --- */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(201, 169, 110, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.header-title {
+    font-family: 'Georgia', serif;
+    font-size: 1.25rem;
+    color: #c9a96e;
+    font-weight: 400;
+    letter-spacing: 1.5px;
+    margin: 0;
+}
+
+.header-icon {
+    font-size: 1.3rem;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.header-rol {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.4);
+    background: rgba(201, 169, 110, 0.1);
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+}
+
+.btn-logout {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.5);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s;
+}
+
+.btn-logout:hover {
+    background: rgba(220, 53, 69, 0.2);
+    color: #f8a5a5;
+}
+
+/* --- Bienvenida --- */
+.dashboard-welcome {
+    padding: 1.5rem 1.25rem 0.5rem;
+}
+
+.dashboard-welcome h2 {
+    font-family: 'Georgia', serif;
+    font-size: 1.4rem;
+    color: #c9a96e;
+    font-weight: 400;
+    margin: 0 0 0.25rem;
+}
+
+.dashboard-welcome p {
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 0.8rem;
+    margin: 0;
+}
+
+/* --- Búsqueda --- */
+.dashboard-search {
+    padding: 1rem 1.25rem;
+}
+
+.dashboard-search input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(201, 169, 110, 0.15);
+    border-radius: 14px;
+    padding: 0.85rem 1.25rem;
+    color: #e8e8e8;
+    font-size: 0.95rem;
+    transition: border-color 0.3s;
+    min-height: 48px;
+    box-sizing: border-box;
+}
+
+.dashboard-search input:focus {
+    outline: none;
+    border-color: #c9a96e;
+    box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.1);
+}
+
+.dashboard-search input::placeholder {
+    color: rgba(255, 255, 255, 0.2);
+}
+
+/* --- Contenido --- */
+.dashboard-content {
+    padding: 0 1.25rem;
+}
+
+.dashboard-loading,
+.dashboard-error,
+.dashboard-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.9rem;
+}
+
+.dashboard-error {
+    color: #f8a5a5;
+}
+
+/* --- Tarjetas de clientes --- */
+.clientes-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.cliente-card {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(201, 169, 110, 0.08);
+    border-radius: 16px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s, border-color 0.3s;
+    min-height: 60px;
+}
+
+.cliente-card:hover {
+    background: rgba(201, 169, 110, 0.06);
+    border-color: rgba(201, 169, 110, 0.2);
+    transform: translateX(4px);
+}
+
+.cliente-card:active {
+    transform: scale(0.98);
+}
+
+.cliente-avatar {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #c9a96e, #b8944f);
+    color: #1a1a2e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.cliente-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.cliente-info h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #e8e8e8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cliente-telefono {
+    margin: 0.2rem 0 0;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.cliente-flecha {
+    color: rgba(201, 169, 110, 0.3);
+    font-size: 1.2rem;
+}
+
+/* --- FAB --- */
+.fab-agregar {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #c9a96e 0%, #b8944f 100%);
+    color: #1a1a2e;
+    border: none;
+    font-size: 1.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 25px rgba(201, 169, 110, 0.35);
+    transition: transform 0.2s, box-shadow 0.3s;
+    z-index: 20;
+}
+
+.fab-agregar:hover {
+    transform: scale(1.08);
+    box-shadow: 0 12px 35px rgba(201, 169, 110, 0.5);
+}
+
+.fab-agregar:active {
+    transform: scale(0.95);
+}
