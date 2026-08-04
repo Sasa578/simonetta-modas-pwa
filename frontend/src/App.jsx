@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import MedidasForm from './pages/MedidasForm';
+import PedidoForm from './pages/PedidoForm';
 
 // Ruta protegida: redirige a /login si no hay sesión
 const RutaProtegida = ({ children }) => {
@@ -34,6 +35,14 @@ const App = () => {
                         element={
                             <RutaProtegida>
                                 <MedidasForm />
+                            </RutaProtegida>
+                        }
+                    />
+                    <Route
+                        path="/pedidos/nuevo"
+                        element={
+                            <RutaProtegida>
+                                <PedidoForm />
                             </RutaProtegida>
                         }
                     />

@@ -243,3 +243,33 @@
 .fab-agregar:active {
     transform: scale(0.95);
 }
+
+/* --- FAB Pedido --- */
+.fab-pedido {
+    position: fixed;
+    bottom: 6rem;
+    right: 1.5rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: #fff;
+    border: none;
+    font-size: 1.4rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.35);
+    transition: transform 0.2s, box-shadow 0.3s;
+    z-index: 20;
+}
+
+.fab-pedido:hover {
+    transform: scale(1.08);
+    box-shadow: 0 12px 35px rgba(139, 92, 246, 0.5);
+}
+
+.fab-pedido:active {
+    transform: scale(0.95);
+}

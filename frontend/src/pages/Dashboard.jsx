@@ -111,6 +111,15 @@ const Dashboard = () => {
             >
                 +
             </button>
+
+            {/* FAB para nuevo pedido */}
+            <button
+                className="fab-pedido"
+                onClick={() => navigate('/pedidos/nuevo')}
+                title="Nuevo pedido"
+            >
+                📝
+            </button>
         </div>
     );
 };

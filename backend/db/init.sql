@@ -79,3 +79,36 @@ ON CONFLICT (nombre_rol) DO NOTHING;
 -- ============================================================
 -- FIN DEL SCRIPT
 -- ============================================================
+
+-- ============================================================
+-- ITERACIÓN 2 — Módulo Transaccional de Pedidos
+-- ============================================================
+
+-- TABLA: pedidos (HU-04)
+CREATE TABLE IF NOT EXISTS pedidos (
+    id_pedido SERIAL PRIMARY KEY,
+    id_cliente INTEGER NOT NULL,
+    fecha_pedido DATE NOT NULL DEFAULT CURRENT_DATE,
+    fecha_entrega DATE NOT NULL,
+    costo_total DECIMAL(10,2) NOT NULL CHECK (costo_total >= 0),
+    adelanto DECIMAL(10,2) NOT NULL DEFAULT 0 CHECK (adelanto >= 0),
+    saldo DECIMAL(10,2) NOT NULL,
+    estado VARCHAR(50) NOT NULL DEFAULT 'Pendiente',
+    CONSTRAINT fk_pedido_cliente FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE CASCADE
+);
+
+-- TABLA: detalle_pedido_material (HU-05)
+CREATE TABLE IF NOT EXISTS detalle_pedido_material (
+    id_detalle SERIAL PRIMARY KEY,
+    id_pedido INTEGER NOT NULL,
+    descripcion_tela VARCHAR(255) NOT NULL,
+    origen_material VARCHAR(50) NOT NULL,
+    cantidad_metros DECIMAL(5,2),
+    CONSTRAINT fk_detalle_pedido FOREIGN KEY (id_pedido) REFERENCES pedidos(id_pedido) ON DELETE CASCADE,
+    CONSTRAINT chk_origen CHECK (origen_material IN ('Taller', 'Cliente'))
+);
+
+-- Índices para pedidos
+CREATE INDEX IF NOT EXISTS idx_pedidos_id_cliente ON pedidos(id_cliente);
+CREATE INDEX IF NOT EXISTS idx_pedidos_estado ON pedidos(estado);
+CREATE INDEX IF NOT EXISTS idx_detalle_id_pedido ON detalle_pedido_material(id_pedido);

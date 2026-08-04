@@ -5,6 +5,7 @@ require('dotenv').config();
 const authRoutes = require('./routes/authRoutes');
 const clientesRoutes = require('./routes/clientesRoutes');
 const medidasRoutes = require('./routes/medidasRoutes');
+const pedidosRoutes = require('./routes/pedidosRoutes');
 
 const app = express();
 const PUERTO = process.env.PUERTO || 3000;
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/clientes', clientesRoutes);
 app.use('/api/medidas', medidasRoutes);
+app.use('/api/pedidos', pedidosRoutes);
 
 // --- Ruta de salud ---
 app.get('/api/salud', (req, res) => {
