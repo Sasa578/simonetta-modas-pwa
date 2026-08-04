@@ -48,7 +48,7 @@ const Dashboard = () => {
                 <div className="header-right">
                     <span className="header-rol">{usuario?.rol}</span>
                     <button className="btn-logout" onClick={handleLogout} title="Cerrar sesión">
-                        ✕
+                        Salir 🚪
                     </button>
                 </div>
             </header>

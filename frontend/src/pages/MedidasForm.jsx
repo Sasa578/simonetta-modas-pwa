@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import './MedidasForm.css';
@@ -12,6 +12,7 @@ const MedidasForm = () => {
     const [cargando, setCargando] = useState(false);
     const [error, setError] = useState('');
     const [exito, setExito] = useState('');
+    const [alertaCaducada, setAlertaCaducada] = useState(false);
 
     // Datos del cliente (paso 1)
     const [nombreCompleto, setNombreCompleto] = useState('');
@@ -25,6 +26,38 @@ const MedidasForm = () => {
         fecha_toma: new Date().toISOString().split('T')[0],
     });
 
+    // --- HU-03: Cargar medidas previas si el cliente ya existe ---
+    useEffect(() => {
+        if (!esNuevo) {
+            const cargarMedidas = async () => {
+                try {
+                    const { data } = await api.get(`/medidas/cliente/${id_cliente}`);
+                    if (data.length > 0) {
+                        const ultima = data[0];
+                        setMedidas({
+                            cortas: ultima.cortas ?? '',
+                            cintura: ultima.cintura ?? '',
+                            frente: ultima.frente ?? '',
+                            alto_cadera: ultima.alto_cadera ?? '',
+                            cadera: ultima.cadera ?? '',
+                            entre_busto: ultima.entre_busto ?? '',
+                            busto: ultima.busto ?? '',
+                            espalda: ultima.espalda ?? '',
+                            hombro: ultima.hombro ?? '',
+                            fecha_toma: new Date().toISOString().split('T')[0],
+                        });
+                        if (ultima.medidas_caducadas) {
+                            setAlertaCaducada(true);
+                        }
+                    }
+                } catch {
+                    // Silencio: si falla la carga, el formulario queda vacío
+                }
+            };
+            cargarMedidas();
+        }
+    }, [id_cliente, esNuevo]);
+
     // --- Paso 1: Crear cliente ---
     const handleCrearCliente = async (e) => {
         e.preventDefault();
@@ -37,10 +70,16 @@ const MedidasForm = () => {
             return;
         }
 
+        if (!telefonoWhatsapp.trim()) {
+            setError('El número de WhatsApp es obligatorio.');
+            setCargando(false);
+            return;
+        }
+
         try {
             const { data } = await api.post('/clientes', {
                 nombre_completo: nombreCompleto.trim(),
-                telefono_whatsapp: telefonoWhatsapp.trim() || null,
+                telefono_whatsapp: telefonoWhatsapp.trim(),
             });
             setClienteCreadoId(data.cliente.id_cliente);
             setPaso(2);
@@ -128,6 +167,13 @@ const MedidasForm = () => {
                 {error && <div className="medidas-error">{error}</div>}
                 {exito && <div className="medidas-exito">{exito}</div>}
 
+                {/* === HU-03: Alerta de caducidad === */}
+                {alertaCaducada && (
+                    <div className="alerta-caducada">
+                        Medidas Posiblemente Caducadas - Requiere Medición
+                    </div>
+                )}
+
                 {/* === PASO 1: Datos del cliente === */}
                 {paso === 1 && (
                     <form onSubmit={handleCrearCliente} className="medidas-form">
@@ -144,13 +190,14 @@ const MedidasForm = () => {
                         </div>
 
                         <div className="form-group">
-                            <label htmlFor="telefono">WhatsApp</label>
+                            <label htmlFor="telefono">WhatsApp *</label>
                             <input
                                 id="telefono"
                                 type="tel"
                                 value={telefonoWhatsapp}
                                 onChange={(e) => setTelefonoWhatsapp(e.target.value)}
                                 placeholder="+591 77712345"
+                                required
                             />
                         </div>
 
