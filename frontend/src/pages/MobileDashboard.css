@@ -1,0 +1,289 @@
+/* ============================================================
+   MOBILE DASHBOARD — 100% Mobile-First (Costurera / Cliente)
+   ============================================================ */
+
+.mobile-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: var(--color-fondo);
+    font-family: var(--font-primaria);
+}
+
+/* ============================================================
+   Header fijo
+   ============================================================ */
+.mobile-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--color-blanco);
+    border-bottom: 1px solid var(--color-borde);
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--sombra-suave);
+}
+
+.mobile-logo {
+    font-family: 'Georgia', serif;
+    font-size: 1rem;
+    color: var(--color-azul-oscuro);
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+.mobile-rol-badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--color-azul-oscuro);
+    background: var(--color-azul-claro);
+    padding: 0.25rem 0.6rem;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+}
+
+/* ============================================================
+   Panel central scrollable
+   ============================================================ */
+.mobile-main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.mobile-section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-texto-principal);
+    margin-bottom: 0.75rem;
+}
+
+.mobile-spacer {
+    height: 72px; /* espacio para bottom nav */
+}
+
+/* ============================================================
+   Tarjetas de pedidos
+   ============================================================ */
+.pedidos-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.pedido-card {
+    background: var(--color-blanco);
+    border-radius: var(--radio-borde);
+    padding: 1rem 1.15rem;
+    box-shadow: var(--sombra-suave);
+    border: 1px solid var(--color-borde);
+    transition: box-shadow var(--transicion);
+}
+
+.pedido-card:active {
+    box-shadow: var(--sombra-media);
+}
+
+.pedido-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.4rem;
+}
+
+.pedido-card-id {
+    font-family: 'SF Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--color-gris-azulado);
+}
+
+.pedido-estado-badge {
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.estado-corte {
+    background: var(--color-ambar-suave);
+    color: var(--color-ambar-texto);
+}
+
+.estado-confeccion {
+    background: var(--color-azul-claro);
+    color: var(--color-azul-oscuro);
+}
+
+.estado-acabados {
+    background: var(--color-verde-suave);
+    color: #166534;
+}
+
+.pedido-card-cliente {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-texto-principal);
+    margin: 0.15rem 0;
+}
+
+.pedido-card-prenda {
+    font-size: 0.78rem;
+    color: var(--color-texto-secundario);
+    font-style: italic;
+    margin: 0 0 0.65rem;
+}
+
+/* ── Barra de progreso ── */
+.progreso-bar-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+}
+
+.progreso-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--color-borde);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progreso-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+.fill-corte { background: var(--color-ambar-texto); }
+.fill-confeccion { background: var(--color-azul-oscuro); }
+.fill-acabados { background: #166534; }
+
+.progreso-texto {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--color-texto-secundario);
+    min-width: 32px;
+    text-align: right;
+}
+
+.pedido-card-fechas {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: var(--color-texto-secundario);
+    border-top: 1px solid var(--color-borde);
+    padding-top: 0.55rem;
+}
+
+/* ============================================================
+   Materiales (solo costurera)
+   ============================================================ */
+.materiales-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.material-item {
+    background: var(--color-blanco);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-borde-sm);
+    padding: 0.75rem 1rem;
+    box-shadow: var(--sombra-suave);
+}
+
+.material-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.2rem;
+}
+
+.material-nombre {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-texto-principal);
+}
+
+.material-stock {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-azul-oscuro);
+    background: var(--color-azul-claro);
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+}
+
+.material-ubicacion {
+    font-size: 0.68rem;
+    color: var(--color-texto-secundario);
+}
+
+/* ============================================================
+   Bottom Nav Bar
+   ============================================================ */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: var(--color-azul-oscuro);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0.4rem 0.5rem;
+    padding-bottom: max(0.4rem, env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.15);
+    z-index: 30;
+}
+
+.bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    padding: 0.35rem 0.8rem;
+    border-radius: var(--radio-borde-sm);
+    transition: all var(--transicion);
+    min-width: 64px;
+}
+
+.bottom-nav-item.active {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.bottom-nav-item:hover {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.nav-icon {
+    font-size: 1.3rem;
+    line-height: 1;
+}
+
+.nav-icon-plus {
+    font-size: 1.5rem;
+    font-weight: 300;
+}
+
+.nav-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}

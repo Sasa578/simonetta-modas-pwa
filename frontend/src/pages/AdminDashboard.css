@@ -1,0 +1,562 @@
+/* ============================================================
+   ADMIN DASHBOARD — CSS Grid · Desktop-First · Premium
+   ============================================================ */
+
+/* ── Layout Grid ── */
+.admin-layout {
+    display: grid;
+    grid-template-columns: 250px 1fr 300px;
+    grid-template-rows: 70px 1fr;
+    grid-template-areas:
+        "sidebar-left topbar topbar"
+        "sidebar-left main-content sidebar-right";
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* ============================================================
+   ÁREA 1: Sidebar Izquierdo
+   ============================================================ */
+.sidebar-left {
+    grid-area: sidebar-left;
+    background: var(--color-azul-oscuro);
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.sidebar-brand {
+    padding: 1.75rem 1.5rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.brand-icon {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.4rem;
+}
+
+.brand-name {
+    font-family: 'Georgia', serif;
+    font-size: 1.25rem;
+    font-weight: 400;
+    letter-spacing: 3px;
+    color: #ffffff;
+    margin: 0;
+}
+
+.brand-subtitle {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.45);
+    margin: 0.3rem 0 0;
+}
+
+/* ── Sección usuarios ── */
+.sidebar-section {
+    flex: 1;
+    padding: 1.25rem 1.25rem 0;
+}
+
+.sidebar-heading {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.usuarios-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.usuario-mini {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.55rem 0.7rem;
+    border-radius: var(--radio-borde-sm);
+    transition: background var(--transicion);
+    cursor: pointer;
+}
+
+.usuario-mini:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.usuario-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.usuario-detalle {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.usuario-nombre {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.usuario-rol {
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* ── Botón logout ── */
+.sidebar-logout {
+    margin: 1rem 1.25rem 1.5rem;
+    padding: 0.7rem;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+    border-radius: var(--radio-borde-sm);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background var(--transicion), color var(--transicion);
+    text-align: center;
+}
+
+.sidebar-logout:hover {
+    background: rgba(220, 53, 69, 0.25);
+    color: #f8a5a5;
+}
+
+/* ============================================================
+   ÁREA 2: Topbar
+   ============================================================ */
+.topbar {
+    grid-area: topbar;
+    background: var(--color-blanco);
+    border-bottom: 1px solid var(--color-borde);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.75rem;
+    box-shadow: var(--sombra-suave);
+    z-index: 10;
+}
+
+.topbar-nav {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.nav-item {
+    background: none;
+    border: none;
+    padding: 0.6rem 1.15rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--color-texto-secundario);
+    border-radius: var(--radio-borde-sm);
+    cursor: pointer;
+    transition: all var(--transicion);
+}
+
+.nav-item:hover {
+    background: var(--color-azul-claro);
+    color: var(--color-azul-oscuro);
+}
+
+.nav-item.active {
+    background: var(--color-azul-oscuro);
+    color: #ffffff;
+    font-weight: 600;
+}
+
+/* ── Perfil ── */
+.topbar-perfil {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+
+.perfil-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--color-azul-oscuro);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.perfil-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.perfil-nombre {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-texto-principal);
+}
+
+.perfil-rol {
+    font-size: 0.7rem;
+    color: var(--color-texto-secundario);
+}
+
+/* ============================================================
+   ÁREA 3: Panel Central
+   ============================================================ */
+.main-content {
+    grid-area: main-content;
+    background: var(--color-fondo);
+    padding: 1.75rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* ── Cards ── */
+.card {
+    background: var(--color-blanco);
+    border-radius: var(--radio-borde);
+    box-shadow: var(--sombra-suave);
+    overflow: hidden;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.15rem 1.5rem;
+    border-bottom: 1px solid var(--color-borde);
+}
+
+.card-header h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-texto-principal);
+    margin: 0;
+}
+
+.card-subtitle {
+    font-size: 0.75rem;
+    color: var(--color-texto-secundario);
+}
+
+.card-badge {
+    background: var(--color-azul-claro);
+    color: var(--color-azul-oscuro);
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+}
+
+.card-badge.entregado {
+    background: var(--color-verde-suave);
+    color: #166534;
+}
+
+.card-body {
+    padding: 0.75rem 1.5rem 1.25rem;
+}
+
+/* ── Filas de pedidos ── */
+.fila-pedido {
+    display: grid;
+    grid-template-columns: 80px 1fr 1fr 100px 100px;
+    align-items: center;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--color-borde);
+    font-size: 0.85rem;
+    gap: 0.5rem;
+}
+
+.fila-pedido:last-child {
+    border-bottom: none;
+}
+
+.fila-pedido.entregado {
+    grid-template-columns: 80px 1fr 1fr 100px;
+}
+
+.fila-id {
+    font-family: 'SF Mono', 'Cascadia Code', monospace;
+    font-weight: 600;
+    color: var(--color-gris-azulado);
+    font-size: 0.8rem;
+}
+
+.fila-cliente {
+    font-weight: 500;
+    color: var(--color-texto-principal);
+}
+
+.fila-prenda {
+    color: var(--color-texto-secundario);
+    font-style: italic;
+}
+
+.fila-fecha {
+    color: var(--color-texto-secundario);
+    font-size: 0.8rem;
+    text-align: right;
+}
+
+.fila-estado {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.25rem 0.6rem;
+    border-radius: 20px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.estado-en-corte {
+    background: var(--color-ambar-suave);
+    color: var(--color-ambar-texto);
+}
+
+.estado-confección {
+    background: var(--color-azul-claro);
+    color: var(--color-azul-oscuro);
+}
+
+.estado-acabados {
+    background: var(--color-verde-suave);
+    color: #166534;
+}
+
+/* ── Filas de almacén ── */
+.fila-stock {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--color-borde);
+    font-size: 0.85rem;
+}
+
+.fila-stock:last-child {
+    border-bottom: none;
+}
+
+.fila-stock.alerta-bajo {
+    background: rgba(220, 38, 38, 0.04);
+    margin: 0 -1.5rem;
+    padding: 0.75rem 1.5rem;
+}
+
+.stock-producto {
+    font-weight: 500;
+    color: var(--color-texto-principal);
+    flex: 1;
+}
+
+.stock-cantidad {
+    font-weight: 600;
+    color: var(--color-texto-secundario);
+    margin: 0 1rem;
+}
+
+.stock-alerta {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--color-rojo-texto);
+    background: var(--color-rojo-suave);
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+/* ============================================================
+   ÁREA 4: Sidebar Derecho
+   ============================================================ */
+.sidebar-right {
+    grid-area: sidebar-right;
+    background: linear-gradient(180deg, #f0f3f8 0%, var(--color-blanco) 100%);
+    border-left: 1px solid var(--color-borde);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.sidebar-right-header {
+    padding: 1.5rem 1.25rem 1rem;
+    border-bottom: 1px solid var(--color-borde);
+    text-align: center;
+}
+
+.sidebar-right-header h2 {
+    font-family: 'Georgia', serif;
+    font-size: 1rem;
+    font-weight: 400;
+    letter-spacing: 2px;
+    color: var(--color-azul-oscuro);
+    margin: 0;
+}
+
+.sidebar-right-sub {
+    font-size: 0.7rem;
+    color: var(--color-texto-secundario);
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* ── Mini cards ── */
+.mini-cards-lista {
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.mini-card {
+    background: var(--color-blanco);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-borde-sm);
+    padding: 0.8rem 1rem;
+    box-shadow: var(--sombra-suave);
+    transition: transform var(--transicion), box-shadow var(--transicion);
+    cursor: pointer;
+}
+
+.mini-card:hover {
+    transform: translateX(3px);
+    box-shadow: var(--sombra-media);
+    border-color: var(--color-azul-oscuro);
+}
+
+.mini-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.3rem;
+}
+
+.mini-id {
+    font-family: 'SF Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-gris-azulado);
+}
+
+.mini-fecha {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--color-azul-oscuro);
+    background: var(--color-azul-claro);
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+}
+
+.mini-cliente {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--color-texto-principal);
+}
+
+/* ============================================================
+   RESPONSIVE: Tablet / Móvil
+   ============================================================ */
+@media (max-width: 1024px) {
+    .admin-layout {
+        grid-template-columns: 220px 1fr;
+        grid-template-rows: 60px 1fr;
+        grid-template-areas:
+            "sidebar-left topbar"
+            "sidebar-left main-content";
+    }
+    .sidebar-right {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: 60px 1fr auto;
+        grid-template-areas:
+            "topbar"
+            "main-content"
+            "sidebar-left";
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .sidebar-left {
+        order: 3;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 1rem;
+        gap: 0.5rem;
+    }
+
+    .sidebar-brand {
+        border-bottom: none;
+        padding: 0.5rem;
+    }
+
+    .sidebar-section {
+        display: none;
+    }
+
+    .sidebar-logout {
+        margin: 0;
+        padding: 0.5rem 1rem;
+    }
+
+    .topbar {
+        padding: 0 1rem;
+        overflow-x: auto;
+    }
+
+    .topbar-nav {
+        gap: 0;
+    }
+
+    .nav-item {
+        padding: 0.45rem 0.7rem;
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+
+    .main-content {
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .fila-pedido {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.25rem;
+        font-size: 0.78rem;
+    }
+
+    .fila-id,
+    .fila-fecha,
+    .fila-estado {
+        grid-column: span 1;
+    }
+
+    .perfil-info {
+        display: none;
+    }
+}

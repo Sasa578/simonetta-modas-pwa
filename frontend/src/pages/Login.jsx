@@ -11,14 +11,20 @@ const Login = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
 
+    const redirigirPorRol = (rol) => {
+        if (rol === 'Admin') navigate('/admin');
+        else if (rol === 'Secretaria') navigate('/secretaria');
+        else navigate('/mobile'); // Costurera, Cliente
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setCargando(true);
 
         try {
-            await login(correo, password);
-            navigate('/dashboard');
+            const data = await login(correo, password);
+            redirigirPorRol(data.usuario.rol);
         } catch (err) {
             setError(err.response?.data?.error || 'Error al iniciar sesión.');
         } finally {

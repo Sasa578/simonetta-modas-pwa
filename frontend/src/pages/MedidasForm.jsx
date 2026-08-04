@@ -148,7 +148,7 @@ const MedidasForm = () => {
         <div className="medidas-container">
             {/* Header */}
             <header className="medidas-header">
-                <button className="btn-volver" onClick={() => navigate('/dashboard')}>
+                <button className="btn-volver" onClick={() => navigate('/')}>
                     ← Volver
                 </button>
                 <h1 className="medidas-title">

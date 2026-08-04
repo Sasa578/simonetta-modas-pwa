@@ -1,7 +1,33 @@
 /* ============================================================
    SIMONETTA MODAS — Estilos globales
-   Mobile-First · Alta costura · Dark theme elegante
    ============================================================ */
+
+:root {
+  /* Paleta del cliente */
+  --color-verde-suave: #A3FC9A;
+  --color-azul-oscuro: #455E8B;
+  --color-azul-claro: #E1F0FE;
+  --color-gris-azulado: #8290B0;
+
+  /* Complementos minimalistas */
+  --color-fondo: #F4F7F6;
+  --color-blanco: #FFFFFF;
+  --color-texto-principal: #333333;
+  --color-texto-secundario: #6B7280;
+  --color-borde: #E5E7EB;
+  --color-rojo-suave: #FEE2E2;
+  --color-rojo-texto: #DC2626;
+  --color-ambar-suave: #FEF3C7;
+  --color-ambar-texto: #D97706;
+
+  --radio-borde: 12px;
+  --radio-borde-sm: 8px;
+  --sombra-suave: 0 4px 6px rgba(69, 94, 139, 0.08);
+  --sombra-media: 0 10px 25px rgba(69, 94, 139, 0.12);
+  --transicion: 0.25s ease;
+
+  --font-primaria: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
 
 *,
 *::before,
@@ -18,32 +44,20 @@ html {
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: #1a1a2e;
-    color: #e8e8e8;
-    line-height: 1.5;
+    font-family: var(--font-primaria);
+    background: var(--color-fondo);
+    color: var(--color-texto-principal);
+    line-height: 1.6;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
 /* --- Scrollbar elegante --- */
-::-webkit-scrollbar {
-    width: 6px;
-}
-
-::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.03);
-}
-
-::-webkit-scrollbar-thumb {
-    background: rgba(201, 169, 110, 0.2);
-    border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(201, 169, 110, 0.35);
-}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.04); }
+::-webkit-scrollbar-thumb { background: var(--color-gris-azulado); border-radius: 3px; opacity: 0.5; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-azul-oscuro); }
 
 /* --- Pantalla de carga --- */
 .pantalla-carga {
@@ -51,14 +65,14 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #1a1a2e;
-    color: rgba(255, 255, 255, 0.4);
+    background: var(--color-fondo);
+    color: var(--color-texto-secundario);
     font-size: 0.9rem;
 }
 
 /* --- Utilidades --- */
 a {
-    color: #c9a96e;
+    color: var(--color-azul-oscuro);
     text-decoration: none;
 }
 
