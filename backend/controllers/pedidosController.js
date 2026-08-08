@@ -86,4 +86,32 @@ const crearPedido = async (req, res) => {
     }
 };
 
-module.exports = { crearPedido };
+// GET /api/pedidos
+const obtenerPedidos = async (req, res) => {
+    try {
+        const pedidos = await PedidoModel.obtenerPedidosActivos();
+        res.json(pedidos);
+    } catch (error) {
+        console.error('Error al obtener pedidos:', error);
+        res.status(500).json({ error: 'Error del servidor' });
+    }
+};
+
+// PUT /api/pedidos/:id/estado
+const actualizarEstado = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { estado } = req.body;
+        
+        const pedido = await PedidoModel.actualizarEstado(id, estado);
+        if (!pedido) {
+            return res.status(404).json({ error: 'Pedido no encontrado' });
+        }
+        res.json(pedido);
+    } catch (error) {
+        console.error('Error al actualizar estado:', error);
+        res.status(500).json({ error: 'Error del servidor' });
+    }
+};
+
+module.exports = { crearPedido, obtenerPedidos, actualizarEstado };

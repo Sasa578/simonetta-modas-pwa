@@ -34,16 +34,27 @@ const PedidoModel = {
 
             // 2. Insertar detalle de material
             const resultadoDetalle = await cliente.query(
-                `INSERT INTO detalle_pedido_material (id_pedido, descripcion_tela, origen_material, cantidad_metros)
-                 VALUES ($1, $2, $3, $4)
+                `INSERT INTO detalle_pedido_material (id_pedido, id_material, descripcion_tela, origen_material, cantidad_metros)
+                 VALUES ($1, $2, $3, $4, $5)
                  RETURNING *`,
                 [
                     pedido.id_pedido,
+                    datosMaterial.id_material || null,
                     datosMaterial.descripcion_tela,
                     datosMaterial.origen_material,
                     datosMaterial.cantidad_metros || null,
                 ]
             );
+
+            // 3. REGLA DE NEGOCIO: Descontar stock si el material es del Taller
+            if (datosMaterial.origen_material === 'Taller' && datosMaterial.id_material && datosMaterial.cantidad_metros) {
+                await cliente.query(
+                    `UPDATE almacen 
+                     SET cantidad_actual = cantidad_actual - $1 
+                     WHERE id_material = $2`,
+                    [datosMaterial.cantidad_metros, datosMaterial.id_material]
+                );
+            }
 
             await cliente.query('COMMIT');
 
@@ -58,6 +69,34 @@ const PedidoModel = {
             cliente.release();
         }
     },
+
+    /**
+     * Actualiza el estado de un pedido (HU-06)
+     */
+    actualizarEstado: async (id_pedido, nuevoEstado) => {
+        const resultado = await db.pool.query(
+            `UPDATE pedidos 
+             SET estado = $1 
+             WHERE id_pedido = $2 
+             RETURNING *`,
+            [nuevoEstado, id_pedido]
+        );
+        return resultado.rows[0];
+    },
+
+    /**
+     * Obtiene los pedidos activos con información del cliente y detalle material (HU-06)
+     */
+    obtenerPedidosActivos: async () => {
+        const resultado = await db.pool.query(
+            `SELECT p.id_pedido, p.estado, p.fecha_pedido, p.fecha_entrega, c.nombre_completo as cliente, d.descripcion_tela as prenda
+             FROM pedidos p
+             JOIN clientes c ON p.id_cliente = c.id_cliente
+             LEFT JOIN detalle_pedido_material d ON p.id_pedido = d.id_pedido
+             ORDER BY p.fecha_entrega ASC`
+        );
+        return resultado.rows;
+    }
 };
 
 module.exports = PedidoModel;

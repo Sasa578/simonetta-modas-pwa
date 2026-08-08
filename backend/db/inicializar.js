@@ -8,6 +8,7 @@ const inicializarBD = async () => {
     const sql = fs.readFileSync(sqlPath, 'utf8');
 
     try {
+        await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
         await pool.query(sql);
         console.log('✅ Base de datos inicializada correctamente.');
     } catch (error) {

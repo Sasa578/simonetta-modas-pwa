@@ -68,6 +68,66 @@ const sembrarDatos = async () => {
         }
 
         console.log('✅ Medidas de prueba creadas para cada cliente');
+
+        // --- Crear inventario (Almacén) ---
+        const materiales = [
+            ['Gabardina azul marino', 12.5, 5, 'metros'],
+            ['Lino blanco', 8, 3, 'metros'],
+            ['Hilo dorado (carrete)', 1, 4, 'unidades'],
+            ['Cierre invisible 50cm', 15, 5, 'unidades'],
+        ];
+
+        for (const [nombre, cantidad, minimo, unidad] of materiales) {
+            await pool.query(
+                `INSERT INTO almacen (nombre_material, cantidad_actual, stock_minimo, unidad_medida)
+                 VALUES ($1, $2, $3, $4)`,
+                [nombre, cantidad, minimo, unidad]
+            );
+        }
+        console.log('✅ Inventario inicial creado (almacén)');
+
+        // --- Crear pedidos de prueba ---
+        // Obtener ids de materiales
+        const idGabardina = (await pool.query("SELECT id_material FROM almacen WHERE nombre_material = 'Gabardina azul marino'")).rows[0].id_material;
+        const idLino = (await pool.query("SELECT id_material FROM almacen WHERE nombre_material = 'Lino blanco'")).rows[0].id_material;
+
+        // Pedido 1: En Corte (Gabardina)
+        const pedido1 = await pool.query(
+            `INSERT INTO pedidos (id_cliente, fecha_pedido, fecha_entrega, costo_total, adelanto, saldo, estado)
+             VALUES ($1, CURRENT_DATE, CURRENT_DATE + INTERVAL '10 days', 500.00, 200.00, 300.00, 'Corte') RETURNING id_pedido`,
+            [clientesIds[0].id_cliente]
+        );
+        await pool.query(
+            `INSERT INTO detalle_pedido_material (id_pedido, id_material, descripcion_tela, origen_material, cantidad_metros)
+             VALUES ($1, $2, 'Vestido de novia - Gabardina', 'Taller', 2.5)`,
+            [pedido1.rows[0].id_pedido, idGabardina]
+        );
+
+        // Pedido 2: En Confección (Lino)
+        const pedido2 = await pool.query(
+            `INSERT INTO pedidos (id_cliente, fecha_pedido, fecha_entrega, costo_total, adelanto, saldo, estado)
+             VALUES ($1, CURRENT_DATE - INTERVAL '2 days', CURRENT_DATE + INTERVAL '5 days', 800.00, 400.00, 400.00, 'Armado') RETURNING id_pedido`,
+            [clientesIds[1].id_cliente]
+        );
+        await pool.query(
+            `INSERT INTO detalle_pedido_material (id_pedido, id_material, descripcion_tela, origen_material, cantidad_metros)
+             VALUES ($1, $2, 'Terno ejecutivo - Lino', 'Taller', 3.0)`,
+            [pedido2.rows[0].id_pedido, idLino]
+        );
+
+        // Pedido 3: Terminado (Tela del cliente)
+        const pedido3 = await pool.query(
+            `INSERT INTO pedidos (id_cliente, fecha_pedido, fecha_entrega, costo_total, adelanto, saldo, estado)
+             VALUES ($1, CURRENT_DATE - INTERVAL '10 days', CURRENT_DATE + INTERVAL '1 day', 200.00, 100.00, 100.00, 'Terminado') RETURNING id_pedido`,
+            [clientesIds[2].id_cliente]
+        );
+        await pool.query(
+            `INSERT INTO detalle_pedido_material (id_pedido, id_material, descripcion_tela, origen_material, cantidad_metros)
+             VALUES ($1, NULL, 'Pollera - Seda del cliente', 'Cliente', 4.0)`,
+            [pedido3.rows[0].id_pedido]
+        );
+
+        console.log('✅ Pedidos de prueba creados');
         console.log('\n🎉 Datos de prueba listos.\n');
 
     } catch (error) {
