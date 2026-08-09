@@ -560,3 +560,100 @@
         display: none;
     }
 }
+
+/* ============================================================
+   TI-4.2: KPIs Dashboard Gerencial
+   ============================================================ */
+.kpis-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.kpi-card {
+    background: var(--color-blanco);
+    border-radius: var(--radio-borde);
+    padding: 1.25rem 1.15rem;
+    box-shadow: var(--sombra-suave);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-left: 4px solid transparent;
+    transition: transform var(--transicion), box-shadow var(--transicion);
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--sombra-media);
+}
+
+.kpi-pendientes { border-left-color: var(--color-ambar-texto); }
+.kpi-urgentes   { border-left-color: var(--color-rojo-texto); }
+.kpi-ingresos   { border-left-color: #166534; }
+
+.kpi-icon {
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.kpi-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.kpi-valor {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--color-texto-principal);
+    line-height: 1.2;
+}
+
+.kpi-label {
+    font-size: 0.7rem;
+    color: var(--color-texto-secundario);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0.2rem;
+}
+
+/* ── Accesos rápidos (sidebar) ── */
+.accesos-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.acceso-item {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.75);
+    padding: 0.55rem 0.75rem;
+    border-radius: var(--radio-borde-sm);
+    font-size: 0.78rem;
+    cursor: pointer;
+    text-align: left;
+    transition: background var(--transicion);
+    width: 100%;
+}
+
+.acceso-item:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.acceso-item.active {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.acceso-item:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+@media (max-width: 768px) {
+    .kpis-grid {
+        grid-template-columns: 1fr;
+    }
+}

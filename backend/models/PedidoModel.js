@@ -96,7 +96,48 @@ const PedidoModel = {
              ORDER BY p.fecha_entrega ASC`
         );
         return resultado.rows;
-    }
+    },
+
+    /**
+     * Obtiene el cliente asociado a un pedido (para notificaciones FCM).
+     */
+    obtenerClienteDelPedido: async (idPedido) => {
+        const resultado = await db.pool.query(
+            `SELECT c.nombre_completo, c.telefono_whatsapp, u.fcm_token
+             FROM pedidos p
+             JOIN clientes c ON p.id_cliente = c.id_cliente
+             LEFT JOIN usuarios u ON c.id_usuario = u.id_usuario
+             WHERE p.id_pedido = $1`,
+            [idPedido]
+        );
+        return resultado.rows[0] || null;
+    },
+
+    /**
+     * Obtiene métricas (KPIs) para el dashboard gerencial (TI-4.1)
+     * @returns {object} { pendientes, proximos48h, ingresosMes }
+     */
+    obtenerMetricas: async () => {
+        const [pendientes, proximos, ingresos] = await Promise.all([
+            db.pool.query(
+                `SELECT COUNT(*)::int AS total FROM pedidos WHERE estado IN ('Pendiente', 'Corte')`
+            ),
+            db.pool.query(
+                `SELECT COUNT(*)::int AS total FROM pedidos 
+                 WHERE fecha_entrega BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '2 days'`
+            ),
+            db.pool.query(
+                `SELECT COALESCE(SUM(costo_total), 0)::float AS total FROM pedidos 
+                 WHERE DATE_TRUNC('month', fecha_pedido) = DATE_TRUNC('month', CURRENT_DATE)`
+            ),
+        ]);
+
+        return {
+            pedidosPendientes: pendientes.rows[0].total,
+            pedidosProximos48h: proximos.rows[0].total,
+            ingresosMes: ingresos.rows[0].total,
+        };
+    },
 };
 
 module.exports = PedidoModel;

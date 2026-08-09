@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     id_rol INTEGER NOT NULL,
     correo VARCHAR(150) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
+    fcm_token VARCHAR(500),
     CONSTRAINT fk_usuario_rol FOREIGN KEY (id_rol) REFERENCES roles(id_rol) ON DELETE RESTRICT
 );
 

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const verificarToken = require('../middleware/authMiddleware');
-const { crearPedido, obtenerPedidos, actualizarEstado } = require('../controllers/pedidosController');
+const { crearPedido, obtenerPedidos, actualizarEstado, obtenerMetricas } = require('../controllers/pedidosController');
 
 // Todas las rutas de pedidos requieren autenticación
 router.use(verificarToken);
@@ -14,5 +14,8 @@ router.post('/', crearPedido);
 
 // PUT /api/pedidos/:id/estado — Actualizar el estado de un pedido
 router.put('/:id/estado', actualizarEstado);
+
+// GET /api/pedidos/metricas — KPIs del dashboard (TI-4.1)
+router.get('/metricas', obtenerMetricas);
 
 module.exports = router;

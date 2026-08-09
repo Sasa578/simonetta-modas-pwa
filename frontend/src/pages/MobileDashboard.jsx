@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { solicitarPermisoNotificaciones, registrarTokenFCM } from '../utils/notificaciones';
+import api from '../api/axios';
 import './MobileDashboard.css';
 
 const MobileDashboard = () => {
@@ -26,6 +28,15 @@ const MobileDashboard = () => {
 
     useEffect(() => {
         if (token) fetchPedidos();
+
+        // TI-4.4: Solicitar permiso de notificaciones y registrar token FCM
+        const configurarNotificaciones = async () => {
+            const fcmToken = await solicitarPermisoNotificaciones();
+            if (fcmToken) {
+                await registrarTokenFCM(fcmToken, api);
+            }
+        };
+        configurarNotificaciones();
     }, [token]);
 
     const actualizarEstado = async (id_pedido, nuevoEstado) => {

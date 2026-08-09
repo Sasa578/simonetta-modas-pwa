@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import api from '../api/axios';
+import { requestFirebaseToken } from '../api/firebaseClient';
 
 const AuthContext = createContext(null);
 
@@ -17,11 +18,28 @@ export const AuthProvider = ({ children }) => {
         setCargando(false);
     }, []);
 
+    const registrarFCMToken = async () => {
+        try {
+            const fcmToken = await requestFirebaseToken();
+            if (fcmToken) {
+                await api.put('/auth/fcm-token', { fcm_token: fcmToken });
+            }
+        } catch (error) {
+            console.error('Error registrando FCM token en el servidor:', error);
+        }
+    };
+
     const login = async (correo, password) => {
         const { data } = await api.post('/auth/login', { correo, password });
         localStorage.setItem('token', data.token);
         localStorage.setItem('usuario', JSON.stringify(data.usuario));
         setUsuario(data.usuario);
+        
+        // TI-4.4: Solicitar permisos push después de login exitoso
+        setTimeout(() => {
+            registrarFCMToken();
+        }, 1000);
+
         return data;
     };
 
@@ -32,7 +50,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ usuario, cargando, login, logout }}>
+        <AuthContext.Provider value={{ usuario, cargando, login, logout, token: localStorage.getItem('token') }}>
             {children}
         </AuthContext.Provider>
     );

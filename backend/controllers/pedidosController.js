@@ -107,6 +107,23 @@ const actualizarEstado = async (req, res) => {
         if (!pedido) {
             return res.status(404).json({ error: 'Pedido no encontrado' });
         }
+
+        // TI-4.3: Disparar notificación cuando el pedido está "Listo para Prueba"
+        if (estado === 'Listo para Prueba') {
+            const notificacion = require('../config/firebase');
+            const cliente = await PedidoModel.obtenerClienteDelPedido(id);
+            
+            if (cliente && cliente.fcm_token) {
+                await notificacion.enviarNotificacion(cliente.fcm_token, {
+                    titulo: '👗 ¡Tu prenda está lista para prueba!',
+                    cuerpo: `Hola ${cliente.nombre_completo}, tu pedido #${id} ya está listo para que lo pruebes.`,
+                    datos: { pedidoId: String(id), accion: 'prueba' },
+                });
+            } else {
+                console.log(`📢 [SIMULADO] Notificación "Listo para Prueba" para pedido #${id} — cliente sin FCM token`);
+            }
+        }
+
         res.json(pedido);
     } catch (error) {
         console.error('Error al actualizar estado:', error);
@@ -114,4 +131,15 @@ const actualizarEstado = async (req, res) => {
     }
 };
 
-module.exports = { crearPedido, obtenerPedidos, actualizarEstado };
+// GET /api/metricas — KPIs para dashboard gerencial (TI-4.1)
+const obtenerMetricas = async (req, res) => {
+    try {
+        const metricas = await PedidoModel.obtenerMetricas();
+        return res.json(metricas);
+    } catch (error) {
+        console.error('Error al obtener métricas:', error);
+        return res.status(500).json({ error: 'Error interno del servidor.' });
+    }
+};
+
+module.exports = { crearPedido, obtenerPedidos, actualizarEstado, obtenerMetricas };
