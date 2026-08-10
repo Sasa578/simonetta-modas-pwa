@@ -17,12 +17,14 @@ const PedidoModel = {
 
             // 1. Insertar pedido
             const resultadoPedido = await cliente.query(
-                `INSERT INTO pedidos (id_cliente, fecha_entrega, costo_total, adelanto, saldo, estado)
-                 VALUES ($1, $2, $3, $4, $5, $6)
+                `INSERT INTO pedidos (id_cliente, id_costurera, fecha_entrega, fecha_prueba, costo_total, adelanto, saldo, estado)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                  RETURNING *`,
                 [
                     datosPedido.id_cliente,
+                    datosPedido.id_costurera || null,
                     datosPedido.fecha_entrega,
+                    datosPedido.fecha_prueba || null,
                     datosPedido.costo_total,
                     datosPedido.adelanto,
                     datosPedido.saldo,
@@ -89,11 +91,27 @@ const PedidoModel = {
      */
     obtenerPedidosActivos: async () => {
         const resultado = await db.pool.query(
-            `SELECT p.id_pedido, p.estado, p.fecha_pedido, p.fecha_entrega, c.nombre_completo as cliente, d.descripcion_tela as prenda
+            `SELECT p.id_pedido, p.estado, p.fecha_pedido, p.fecha_entrega, p.fecha_prueba, p.id_costurera, c.nombre_completo as cliente, d.descripcion_tela as prenda
              FROM pedidos p
              JOIN clientes c ON p.id_cliente = c.id_cliente
              LEFT JOIN detalle_pedido_material d ON p.id_pedido = d.id_pedido
              ORDER BY p.fecha_entrega ASC`
+        );
+        return resultado.rows;
+    },
+
+    /**
+     * Obtiene los pedidos asignados a una costurera específica
+     */
+    obtenerPedidosPorCosturera: async (id_costurera) => {
+        const resultado = await db.pool.query(
+            `SELECT p.id_pedido, p.estado, p.fecha_pedido, p.fecha_entrega, c.nombre_completo as cliente, c.id_cliente, d.descripcion_tela as prenda
+             FROM pedidos p
+             JOIN clientes c ON p.id_cliente = c.id_cliente
+             LEFT JOIN detalle_pedido_material d ON p.id_pedido = d.id_pedido
+             WHERE p.id_costurera = $1
+             ORDER BY p.fecha_entrega ASC`,
+            [id_costurera]
         );
         return resultado.rows;
     },

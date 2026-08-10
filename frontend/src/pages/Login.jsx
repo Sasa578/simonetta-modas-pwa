@@ -37,7 +37,7 @@ const Login = () => {
             <div className="login-card">
                 <div className="login-header">
                     <div className="login-logo">🧵</div>
-                    <h1>Simonetta</h1>
+                    <h1>Simonetta Modas</h1>
                     <p className="login-subtitle">Alta Costura · Confección a medida</p>
                 </div>
 
@@ -82,6 +82,25 @@ const Login = () => {
                 <p className="login-footer">
                     Taller de confección · La Paz, Bolivia
                 </p>
+                <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--color-texto-secundario)' }}>¿No tienes cuenta?</p>
+                    <button
+                        onClick={() => navigate('/register')}
+                        style={{
+                            background: 'transparent',
+                            border: '1.5px solid var(--color-azul-oscuro)',
+                            color: 'var(--color-azul-oscuro)',
+                            borderRadius: 'var(--radio-borde-sm)',
+                            padding: '0.6rem',
+                            width: '100%',
+                            marginTop: '0.5rem',
+                            fontWeight: '600',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Registrate
+                    </button>
+                </div>
             </div>
         </div>
     );

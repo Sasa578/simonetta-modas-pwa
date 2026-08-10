@@ -104,7 +104,9 @@ CREATE TABLE IF NOT EXISTS pedidos (
     adelanto DECIMAL(10,2) NOT NULL DEFAULT 0 CHECK (adelanto >= 0),
     saldo DECIMAL(10,2) NOT NULL,
     estado VARCHAR(50) NOT NULL DEFAULT 'Pendiente',
-    CONSTRAINT fk_pedido_cliente FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE CASCADE
+    id_costurera INTEGER,
+    CONSTRAINT fk_pedido_cliente FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE CASCADE,
+    CONSTRAINT fk_pedido_costurera FOREIGN KEY (id_costurera) REFERENCES usuarios(id_usuario) ON DELETE SET NULL
 );
 
 -- TABLA: detalle_pedido_material (HU-05)

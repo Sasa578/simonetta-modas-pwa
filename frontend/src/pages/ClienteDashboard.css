@@ -1,0 +1,28 @@
+.cliente-container { min-height: 100vh; background: var(--color-fondo); font-family: var(--font-primaria); }
+.cliente-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; background: var(--color-blanco); border-bottom: 1px solid var(--color-borde); box-shadow: var(--sombra-suave); }
+.cliente-logo { font-family: 'Georgia', serif; font-size: 1.1rem; color: var(--color-azul-oscuro); letter-spacing: 1px; font-weight: 600; }
+.cliente-logout { background: none; border: 1px solid var(--color-borde); color: var(--color-texto-secundario); padding: 0.4rem 0.9rem; border-radius: var(--radio-borde-sm); cursor: pointer; font-size: 0.8rem; }
+.cliente-main { padding: 1.5rem 1.25rem; max-width: 500px; margin: 0 auto; }
+.cliente-titulo { font-size: 1.2rem; font-weight: 700; color: var(--color-texto-principal); margin-bottom: 0.25rem; }
+.cliente-subtitulo { font-size: 0.8rem; color: var(--color-texto-secundario); margin-bottom: 1.5rem; }
+.cliente-cargando { text-align: center; color: var(--color-texto-secundario); padding: 2rem; }
+.cliente-vacio { text-align: center; padding: 3rem 1rem; }
+.cliente-vacio-icon { font-size: 3rem; display: block; margin-bottom: 0.5rem; }
+.cliente-vacio p { color: var(--color-texto-secundario); font-size: 0.9rem; }
+.cliente-pedidos { display: flex; flex-direction: column; gap: 1rem; }
+.cliente-pedido-card { background: var(--color-blanco); border-radius: var(--radio-borde); padding: 1.15rem; box-shadow: var(--sombra-suave); border: 1px solid var(--color-borde); }
+.cliente-pedido-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
+.cliente-pedido-id { font-weight: 700; font-size: 0.9rem; color: var(--color-azul-oscuro); }
+.cliente-estado { font-size: 0.65rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 20px; text-transform: uppercase; }
+.estado-pendiente { background: var(--color-ambar-suave); color: var(--color-ambar-texto); }
+.estado-corte { background: var(--color-ambar-suave); color: var(--color-ambar-texto); }
+.estado-armado { background: var(--color-azul-claro); color: var(--color-azul-oscuro); }
+.estado-acabados { background: var(--color-verde-suave); color: #166534; }
+.estado-listo-para-prueba { background: #E8F5E9; color: #2E7D32; }
+.estado-terminado { background: #E8F5E9; color: #1B5E20; }
+.cliente-prenda { font-size: 0.85rem; color: var(--color-texto-secundario); margin-bottom: 0.7rem; font-style: italic; }
+.cliente-progreso { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.6rem; }
+.cliente-progreso-bar { flex: 1; height: 6px; background: var(--color-borde); border-radius: 3px; overflow: hidden; }
+.cliente-progreso-fill { height: 100%; background: var(--color-azul-oscuro); border-radius: 3px; transition: width 0.5s; }
+.cliente-progreso span { font-size: 0.72rem; font-weight: 700; color: var(--color-texto-secundario); }
+.cliente-fechas { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--color-texto-secundario); border-top: 1px solid var(--color-borde); padding-top: 0.55rem; }

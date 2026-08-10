@@ -73,7 +73,7 @@
 }
 
 .form-group label {
-    color: #333333;
+    color: #000000 !important;
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 1px;
@@ -85,8 +85,9 @@
     border: 1.5px solid var(--color-gris-azulado);
     border-radius: var(--radio-borde-sm);
     padding: 0.8rem 1rem;
-    color: #333333 !important;
+    color: var(--color-azul-oscuro) !important;
     font-size: 0.95rem;
+    font-weight: 500;
     transition: border-color var(--transicion), box-shadow var(--transicion);
     min-height: 48px;
 }
@@ -99,7 +100,7 @@
 
 .form-group input::placeholder {
     color: var(--color-gris-azulado);
-    opacity: 0.6;
+    opacity: 0.9;
 }
 
 /* --- Botón primario --- */
@@ -148,6 +149,7 @@
     .login-card {
         padding: 2rem 1.5rem;
     }
+
     .login-header h1 {
         font-size: 1.5rem;
     }

@@ -7,9 +7,17 @@ const ClienteModel = {
      */
     listarTodos: async () => {
         const resultado = await db.query(
-            `SELECT id_cliente, nombre_completo, telefono_whatsapp
-             FROM clientes
-             ORDER BY nombre_completo ASC`
+            `SELECT c.id_cliente, c.nombre_completo, c.telefono_whatsapp, u.correo,
+                    m.cortas, m.cintura, m.frente, m.alto_cadera, m.cadera, 
+                    m.entre_busto, m.busto, m.espalda, m.hombro, m.fecha_toma
+             FROM clientes c
+             LEFT JOIN usuarios u ON c.id_usuario = u.id_usuario
+             LEFT JOIN LATERAL (
+                 SELECT * FROM medidas 
+                 WHERE id_cliente = c.id_cliente 
+                 ORDER BY fecha_toma DESC LIMIT 1
+             ) m ON true
+             ORDER BY c.nombre_completo ASC`
         );
         return resultado.rows;
     },

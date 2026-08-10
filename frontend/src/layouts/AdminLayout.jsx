@@ -1,96 +1,88 @@
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation, NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useState, useEffect } from 'react';
+import api from '../api/axios';
 import '../pages/AdminDashboard.css';
-
-const usuariosTaller = [
-    { id: 1, nombre: 'Laura Méndez', rol: 'Admin', iniciales: 'LM' },
-    { id: 2, nombre: 'Carmen Rojas', rol: 'Secretaria', iniciales: 'CR' },
-    { id: 3, nombre: 'Rosa Flores', rol: 'Costurera', iniciales: 'RF' },
-    { id: 4, nombre: 'Ana Quispe', rol: 'Costurera', iniciales: 'AQ' },
-];
-
-const pedidosProximos = [
-    { id: '#P-1045', cliente: 'María García', fecha: '16/08/2026' },
-    { id: '#P-1046', cliente: 'Juana Pérez', fecha: '19/08/2026' },
-    { id: '#P-1047', cliente: 'Rosa Quispe', fecha: '22/08/2026' },
-    { id: '#P-1048', cliente: 'Elena Vargas', fecha: '25/08/2026' },
-    { id: '#P-1049', cliente: 'Sofía Mamani', fecha: '28/08/2026' },
-];
 
 const AdminLayout = () => {
     const { usuario, logout } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
+    const [personal, setPersonal] = useState([]);
+    const [proximasEntregas, setProximasEntregas] = useState([]);
 
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
-    };
+    const handleLogout = () => { logout(); navigate('/login'); };
+
+    const isActive = (path) => location.pathname.startsWith(path) ? 'active' : '';
+
+    useEffect(() => {
+        api.get('/usuarios').then(({ data }) => setPersonal(data.slice(0, 5))).catch(() => {});
+        api.get('/pedidos').then(({ data }) => {
+            const prox = (data || []).filter(p => p.estado !== 'Terminado').slice(0, 5);
+            setProximasEntregas(prox);
+        }).catch(() => {});
+    }, []);
 
     return (
         <div className="admin-layout">
-            {/* ÁREA 1: Barra Lateral Izquierda */}
+            {/* Sidebar Izquierdo */}
             <aside className="sidebar-left">
                 <div className="sidebar-brand">
                     <span className="brand-icon">🧵</span>
                     <h1 className="brand-name">SIMONETTA</h1>
-                    <p className="brand-subtitle">Alta Costura</p>
+                    <p className="brand-subtitle">Panel Admin</p>
                 </div>
                 <div className="sidebar-section">
-                    <h3 className="sidebar-heading">Equipo del Taller</h3>
+                    <h3 className="sidebar-heading">Personal del Taller</h3>
                     <div className="usuarios-lista">
-                        {usuariosTaller.map((u) => (
-                            <div key={u.id} className="usuario-mini">
-                                <div className="usuario-avatar">{u.iniciales}</div>
+                        {personal.map((u) => (
+                            <div key={u.id_usuario} className="usuario-mini">
+                                <div className="usuario-avatar">{u.correo?.charAt(0).toUpperCase()}</div>
                                 <div className="usuario-detalle">
-                                    <span className="usuario-nombre">{u.nombre}</span>
-                                    <span className="usuario-rol">{u.rol}</span>
+                                    <span className="usuario-nombre">{u.correo?.split('@')[0]}</span>
+                                    <span className="usuario-rol">{u.nombre_rol}</span>
                                 </div>
                             </div>
                         ))}
                     </div>
                 </div>
-                <button className="sidebar-logout" onClick={handleLogout}>
-                    ⏻ Cerrar sesión
-                </button>
+                <button className="sidebar-logout" onClick={handleLogout}>⏻ Cerrar sesión</button>
             </aside>
 
-            {/* ÁREA 2: Barra Superior (Topbar) */}
+            {/* Topbar */}
             <header className="topbar">
                 <nav className="topbar-nav">
-                    <button className="nav-item active" onClick={() => navigate('/admin')}>Inicio</button>
-                    <button className="nav-item">Clientes</button>
-                    <button className="nav-item" onClick={() => navigate('/admin/pedidos/nuevo')}>Pedidos</button>
-                    <button className="nav-item">Almacén</button>
+                    <NavLink to="/admin" end className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Inicio</NavLink>
+                    <NavLink to="/admin/pedidos" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Pedidos</NavLink>
+                    <NavLink to="/admin/almacen" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Almacén</NavLink>
+                    <NavLink to="/admin/clientes" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Clientes</NavLink>
+                    <NavLink to="/admin/usuarios" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Usuarios</NavLink>
                 </nav>
                 <div className="topbar-perfil">
-                    <div className="perfil-avatar">
-                        {usuario?.correo?.charAt(0).toUpperCase() || 'A'}
-                    </div>
+                    <div className="perfil-avatar">{usuario?.correo?.charAt(0).toUpperCase() || 'A'}</div>
                     <div className="perfil-info">
                         <span className="perfil-nombre">{usuario?.correo || 'Admin'}</span>
-                        <span className="perfil-rol">{usuario?.rol || 'Administrador'}</span>
+                        <span className="perfil-rol">{usuario?.rol || 'Admin'}</span>
                     </div>
                 </div>
             </header>
 
-            {/* ÁREA 3: Panel Central (Main Content) */}
+            {/* Contenido central (Outlet) */}
             <main className="main-content">
                 <Outlet />
             </main>
 
-            {/* ÁREA 4: Barra Lateral Derecha */}
+            {/* Sidebar Derecho: Próximas Entregas */}
             <aside className="sidebar-right">
                 <div className="sidebar-right-header">
-                    <h2>📅 PEDIDOS</h2>
-                    <span className="sidebar-right-sub">Próximas entregas</span>
+                    <h2>📅 Próximas Entregas</h2>
                 </div>
                 <div className="mini-cards-lista">
-                    {pedidosProximos.map((p) => (
-                        <div key={p.id} className="mini-card">
+                    {proximasEntregas.map((p) => (
+                        <div key={p.id_pedido} className="mini-card">
                             <div className="mini-card-top">
-                                <span className="mini-id">{p.id}</span>
-                                <span className="mini-fecha">{p.fecha}</span>
+                                <span className="mini-id">#{p.id_pedido}</span>
+                                <span className="mini-fecha">{new Date(p.fecha_entrega).toLocaleDateString()}</span>
                             </div>
                             <span className="mini-cliente">{p.cliente}</span>
                         </div>

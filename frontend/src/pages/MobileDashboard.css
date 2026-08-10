@@ -287,3 +287,23 @@
     letter-spacing: 0.5px;
     text-transform: uppercase;
 }
+
+/* ============================================================
+   Modal Medidas (Costurera)
+   ============================================================ */
+.modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex;
+    align-items: center; justify-content: center; z-index: 100; padding: 1rem;
+}
+.modal-contenido {
+    background: var(--color-blanco); border-radius: var(--radio-borde);
+    padding: 1.5rem; width: 100%; max-width: 420px; max-height: 85vh; overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.modal-header h3 { font-size: 1rem; font-weight: 700; color: var(--color-texto-principal); margin: 0; }
+.modal-cerrar { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--color-texto-secundario); padding: 0.25rem; line-height: 1; }
+.modal-medidas-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+.modal-medida-item { background: var(--color-fondo); padding: 0.7rem 0.85rem; border-radius: var(--radio-borde-sm); display: flex; flex-direction: column; gap: 0.2rem; }
+.modal-medida-label { font-size: 0.65rem; text-transform: uppercase; color: var(--color-texto-secundario); letter-spacing: 0.5px; font-weight: 600; }
+.modal-medida-valor { font-size: 1rem; font-weight: 700; color: var(--color-azul-oscuro); }

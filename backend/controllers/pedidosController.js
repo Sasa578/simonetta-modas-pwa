@@ -5,7 +5,9 @@ const crearPedido = async (req, res) => {
     try {
         const {
             id_cliente,
+            id_costurera,
             fecha_entrega,
+            fecha_prueba,
             costo_total,
             adelanto,
             // Material (HU-05)
@@ -62,7 +64,9 @@ const crearPedido = async (req, res) => {
         const resultado = await PedidoModel.crearPedido(
             {
                 id_cliente,
+                id_costurera,
                 fecha_entrega,
+                fecha_prueba: fecha_prueba || null,
                 costo_total: costo,
                 adelanto: adelantoFloat,
                 saldo: saldoCalculado,
@@ -108,19 +112,25 @@ const actualizarEstado = async (req, res) => {
             return res.status(404).json({ error: 'Pedido no encontrado' });
         }
 
-        // TI-4.3: Disparar notificación cuando el pedido está "Listo para Prueba"
-        if (estado === 'Listo para Prueba') {
+        // TI-4.3: Disparar notificación cuando el pedido está "Listo para Prueba" o "Terminado"
+        if (estado === 'Listo para Prueba' || estado === 'Terminado') {
             const notificacion = require('../config/firebase');
             const cliente = await PedidoModel.obtenerClienteDelPedido(id);
             
-            if (cliente && cliente.fcm_token) {
+            const mensajes = {
+                'Listo para Prueba': { titulo: '👗 ¡Tu prenda está lista para prueba!', cuerpo: (nombre) => `Hola ${nombre}, tu pedido #${id} ya está listo para que lo pruebes.` },
+                'Terminado': { titulo: '✅ ¡Pedido completado!', cuerpo: (nombre) => `Hola ${nombre}, tu pedido #${id} ha sido finalizado. ¡Gracias por confiar en Simonetta!` },
+            };
+            
+            const msg = mensajes[estado];
+            if (cliente && cliente.fcm_token && msg) {
                 await notificacion.enviarNotificacion(cliente.fcm_token, {
-                    titulo: '👗 ¡Tu prenda está lista para prueba!',
-                    cuerpo: `Hola ${cliente.nombre_completo}, tu pedido #${id} ya está listo para que lo pruebes.`,
-                    datos: { pedidoId: String(id), accion: 'prueba' },
+                    titulo: msg.titulo,
+                    cuerpo: msg.cuerpo(cliente.nombre_completo),
+                    datos: { pedidoId: String(id), accion: estado === 'Terminado' ? 'finalizado' : 'prueba' },
                 });
             } else {
-                console.log(`📢 [SIMULADO] Notificación "Listo para Prueba" para pedido #${id} — cliente sin FCM token`);
+                console.log(`📢 [SIMULADO] Notificación "${estado}" para pedido #${id} — cliente sin FCM token`);
             }
         }
 
@@ -142,4 +152,16 @@ const obtenerMetricas = async (req, res) => {
     }
 };
 
-module.exports = { crearPedido, obtenerPedidos, actualizarEstado, obtenerMetricas };
+// GET /api/pedidos/costurera/:id_costurera
+const obtenerPedidosCosturera = async (req, res) => {
+    try {
+        const { id_costurera } = req.params;
+        const pedidos = await PedidoModel.obtenerPedidosPorCosturera(id_costurera);
+        res.json(pedidos);
+    } catch (error) {
+        console.error('Error al obtener pedidos de costurera:', error);
+        res.status(500).json({ error: 'Error del servidor' });
+    }
+};
+
+module.exports = { crearPedido, obtenerPedidos, actualizarEstado, obtenerMetricas, obtenerPedidosCosturera };
