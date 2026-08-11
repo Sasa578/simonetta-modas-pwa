@@ -164,4 +164,70 @@ const obtenerPedidosCosturera = async (req, res) => {
     }
 };
 
-module.exports = { crearPedido, obtenerPedidos, actualizarEstado, obtenerMetricas, obtenerPedidosCosturera };
+// GET /api/pedidos/:id
+const obtenerPedido = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const pedido = await PedidoModel.obtenerPedidoPorId(id);
+        if (!pedido) {
+            return res.status(404).json({ error: 'Pedido no encontrado' });
+        }
+        res.json(pedido);
+    } catch (error) {
+        console.error('Error al obtener pedido:', error);
+        res.status(500).json({ error: 'Error interno del servidor.' });
+    }
+};
+
+// PUT /api/pedidos/:id
+const actualizarPedido = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { id_costurera, fecha_entrega, fecha_prueba, costo_total, adelanto } = req.body;
+
+        const pedidoExistente = await PedidoModel.obtenerPedidoPorId(id);
+        if (!pedidoExistente) {
+            return res.status(404).json({ error: 'Pedido no encontrado' });
+        }
+
+        if (!fecha_entrega) {
+            return res.status(400).json({ error: 'La fecha de entrega es obligatoria.' });
+        }
+
+        if (costo_total === undefined || costo_total === null || parseFloat(costo_total) < 0) {
+            return res.status(400).json({ error: 'El costo total debe ser un número mayor o igual a 0.' });
+        }
+
+        const costo = parseFloat(costo_total);
+        const adelantoFloat = parseFloat(adelanto || 0);
+
+        if (adelantoFloat < 0) {
+            return res.status(400).json({ error: 'El adelanto no puede ser negativo.' });
+        }
+        
+        if (adelantoFloat > costo) {
+            return res.status(400).json({ error: 'El adelanto no puede ser mayor al costo total.' });
+        }
+
+        const saldoCalculado = costo - adelantoFloat;
+
+        const pedidoActualizado = await PedidoModel.actualizarPedidoBasico(id, {
+            id_costurera,
+            fecha_entrega,
+            fecha_prueba,
+            costo_total: costo,
+            adelanto: adelantoFloat,
+            saldo: saldoCalculado
+        });
+
+        res.json({
+            mensaje: 'Pedido actualizado correctamente',
+            pedido: pedidoActualizado
+        });
+    } catch (error) {
+        console.error('Error al actualizar pedido:', error);
+        res.status(500).json({ error: 'Error interno del servidor.' });
+    }
+};
+
+module.exports = { crearPedido, obtenerPedidos, actualizarEstado, obtenerMetricas, obtenerPedidosCosturera, obtenerPedido, actualizarPedido };

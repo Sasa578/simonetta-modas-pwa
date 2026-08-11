@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const verificarToken = require('../middleware/authMiddleware');
-const { crearPedido, obtenerPedidos, actualizarEstado, obtenerMetricas, obtenerPedidosCosturera } = require('../controllers/pedidosController');
+const { crearPedido, obtenerPedidos, actualizarEstado, obtenerMetricas, obtenerPedidosCosturera, obtenerPedido, actualizarPedido } = require('../controllers/pedidosController');
 
 // Todas las rutas de pedidos requieren autenticación
 router.use(verificarToken);
@@ -11,6 +11,12 @@ router.get('/', obtenerPedidos);
 
 // POST /api/pedidos — Crear un nuevo pedido con detalle de material
 router.post('/', crearPedido);
+
+// GET /api/pedidos/:id — Obtener un pedido específico
+router.get('/:id', obtenerPedido);
+
+// PUT /api/pedidos/:id — Actualizar información básica de un pedido
+router.put('/:id', actualizarPedido);
 
 // PUT /api/pedidos/:id/estado — Actualizar el estado de un pedido
 router.put('/:id/estado', actualizarEstado);

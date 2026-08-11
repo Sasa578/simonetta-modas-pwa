@@ -5,6 +5,7 @@ import '../pages/PedidoForm.css'; // Reutilizamos algo de estilo
 const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCliente = null }) => {
     const [clientes, setClientes] = useState([]);
     const [costureras, setCostureras] = useState([]);
+    const [materiales, setMateriales] = useState([]);
     const [cargando, setCargando] = useState(false);
     const [error, setError] = useState('');
     const [exito, setExito] = useState('');
@@ -20,6 +21,7 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
     // --- HU-05: Material ---
     const [descripcionTela, setDescripcionTela] = useState('');
     const [origenMaterial, setOrigenMaterial] = useState('');
+    const [idMaterial, setIdMaterial] = useState('');
     const [cantidadMetros, setCantidadMetros] = useState('');
 
     useEffect(() => {
@@ -32,12 +34,14 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
 
     const cargarDatos = async () => {
         try {
-            const [resClientes, resUsuarios] = await Promise.all([
+            const [resClientes, resUsuarios, resAlmacen] = await Promise.all([
                 api.get('/clientes'),
-                api.get('/usuarios/costureras')
+                api.get('/usuarios/costureras'),
+                api.get('/almacen')
             ]);
             setClientes(resClientes.data);
             setCostureras(resUsuarios.data);
+            setMateriales(resAlmacen.data);
         } catch {
             setError('No se pudieron cargar los datos.');
         }
@@ -54,6 +58,12 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
         e.preventDefault();
         setError('');
         setExito('');
+
+        if (origenMaterial === 'Taller' && !idMaterial) {
+            setError('Debes seleccionar el material del almacén si el origen es el Taller.');
+            return;
+        }
+
         setCargando(true);
 
         try {
@@ -66,6 +76,7 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                 adelanto: adelantoFloat,
                 descripcion_tela: descripcionTela.trim(),
                 origen_material: origenMaterial,
+                id_material: idMaterial ? Number(idMaterial) : null,
                 cantidad_metros: cantidadMetros || null,
             });
 
@@ -80,6 +91,7 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                 setAdelanto('');
                 setDescripcionTela('');
                 setOrigenMaterial('');
+                setIdMaterial('');
                 setCantidadMetros('');
                 setExito('');
                 if (onSuccess) onSuccess();
@@ -161,25 +173,37 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
 
                     <fieldset style={{border: '1px solid var(--color-borde)', padding: '1.5rem', borderRadius: '8px'}}>
                         <legend style={{padding: '0 0.5rem', fontWeight: 600, color: 'var(--color-azul-oscuro)'}}>🧶 Material</legend>
-                        <div style={{display: 'flex', gap: '1rem', flexWrap: 'wrap'}}>
-                            <div style={{flex: '2 1 200px', display: 'flex', flexDirection: 'column', gap: '0.4rem'}}>
-                                <label style={{fontSize: '0.85rem', fontWeight: 600}}>Descripción *</label>
-                                <input type="text" value={descripcionTela} onChange={(e) => setDescripcionTela(e.target.value)} required style={{padding: '0.7rem', borderRadius: '6px', border: '1px solid var(--color-borde)'}} placeholder="Ej: Gabardina azul"/>
-                            </div>
-                            <div style={{flex: '1 1 100px', display: 'flex', flexDirection: 'column', gap: '0.4rem'}}>
-                                <label style={{fontSize: '0.85rem', fontWeight: 600}}>Metros</label>
-                                <input type="number" step="0.01" min="0" value={cantidadMetros} onChange={(e) => setCantidadMetros(e.target.value)} style={{padding: '0.7rem', borderRadius: '6px', border: '1px solid var(--color-borde)'}}/>
-                            </div>
-                        </div>
-                        <div style={{marginTop: '1rem'}}>
-                            <label style={{fontSize: '0.85rem', fontWeight: 600}}>Origen *</label>
+                        
+                        <div style={{marginTop: '0.5rem', marginBottom: '1rem'}}>
+                            <label style={{fontSize: '0.85rem', fontWeight: 600}}>Origen del Material *</label>
                             <div style={{display: 'flex', gap: '1.5rem', marginTop: '0.5rem'}}>
                                 <label style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
                                     <input type="radio" value="Taller" checked={origenMaterial === 'Taller'} onChange={(e) => setOrigenMaterial(e.target.value)} required/> Taller
                                 </label>
                                 <label style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
-                                    <input type="radio" value="Cliente" checked={origenMaterial === 'Cliente'} onChange={(e) => setOrigenMaterial(e.target.value)}/> Cliente
+                                    <input type="radio" value="Cliente" checked={origenMaterial === 'Cliente'} onChange={(e) => { setOrigenMaterial(e.target.value); setIdMaterial(''); }}/> Cliente
                                 </label>
+                            </div>
+                        </div>
+
+                        {origenMaterial === 'Taller' && (
+                            <div style={{display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '1rem'}}>
+                                <label style={{fontSize: '0.85rem', fontWeight: 600}}>Seleccionar Material del Almacén *</label>
+                                <select value={idMaterial} onChange={(e) => setIdMaterial(e.target.value)} required style={{padding: '0.7rem', borderRadius: '6px', border: '1px solid var(--color-borde)'}}>
+                                    <option value="">-- Seleccionar --</option>
+                                    {materiales.map(m => <option key={m.id_material} value={m.id_material}>{m.nombre_material} (Disp: {m.cantidad_actual} {m.unidad_medida})</option>)}
+                                </select>
+                            </div>
+                        )}
+
+                        <div style={{display: 'flex', gap: '1rem', flexWrap: 'wrap'}}>
+                            <div style={{flex: '2 1 200px', display: 'flex', flexDirection: 'column', gap: '0.4rem'}}>
+                                <label style={{fontSize: '0.85rem', fontWeight: 600}}>Descripción / Color *</label>
+                                <input type="text" value={descripcionTela} onChange={(e) => setDescripcionTela(e.target.value)} required style={{padding: '0.7rem', borderRadius: '6px', border: '1px solid var(--color-borde)'}} placeholder="Ej: Gabardina azul"/>
+                            </div>
+                            <div style={{flex: '1 1 100px', display: 'flex', flexDirection: 'column', gap: '0.4rem'}}>
+                                <label style={{fontSize: '0.85rem', fontWeight: 600}}>Metros *</label>
+                                <input type="number" step="0.01" min="0" value={cantidadMetros} onChange={(e) => setCantidadMetros(e.target.value)} required style={{padding: '0.7rem', borderRadius: '6px', border: '1px solid var(--color-borde)'}}/>
                             </div>
                         </div>
                     </fieldset>

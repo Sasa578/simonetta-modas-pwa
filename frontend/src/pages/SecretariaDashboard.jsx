@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import ModalPedido from '../components/ModalPedido';
+import ModalEditarPedido from '../components/ModalEditarPedido';
 import api from '../api/axios';
 
 const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -23,6 +24,9 @@ const SecretariaDashboard = () => {
     const [fechaSeleccionada, setFechaSeleccionada] = useState('');
     const [clientePreseleccionado, setClientePreseleccionado] = useState(null);
     const [citaAtenderId, setCitaAtenderId] = useState(null);
+
+    // Estados para Editar Pedido
+    const [editarPedidoId, setEditarPedidoId] = useState(null);
 
     // Datos
     const [pedidos, setPedidos] = useState([]);
@@ -77,6 +81,11 @@ const SecretariaDashboard = () => {
             }
         }
         setIsModalOpen(false);
+        cargarDatos();
+    };
+
+    const handleEditarSuccess = () => {
+        setEditarPedidoId(null);
         cargarDatos();
     };
 
@@ -204,11 +213,19 @@ const SecretariaDashboard = () => {
                     </div>
                     <div className="card-body" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         {pedidos.filter(p => p.estado !== 'Terminado').slice(0, 5).map((p) => (
-                            <div key={p.id_pedido} className="fila-pedido-importante">
-                                <span className="importante-id">#{p.id_pedido}</span>
-                                <span className="importante-cliente">{p.cliente}</span>
-                                <span className="importante-fecha">{new Date(p.fecha_entrega).toLocaleDateString()}</span>
-                                <span className="importante-prioridad" style={{ background: '#e0e7ff', color: '#3730a3' }}>{p.estado}</span>
+                            <div key={p.id_pedido} className="fila-pedido-importante" style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                                <div style={{display:'flex', gap:'1rem', flex:1}}>
+                                    <span className="importante-id">#{p.id_pedido}</span>
+                                    <span className="importante-cliente">{p.cliente}</span>
+                                    <span className="importante-fecha">{new Date(p.fecha_entrega).toLocaleDateString()}</span>
+                                    <span className="importante-prioridad" style={{ background: '#e0e7ff', color: '#3730a3' }}>{p.estado}</span>
+                                </div>
+                                <button onClick={() => setEditarPedidoId(p.id_pedido)} style={{
+                                    background: 'transparent', border: '1px solid var(--color-borde)', padding: '0.3rem 0.6rem', 
+                                    borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold'
+                                }}>
+                                    ✏️ Editar
+                                </button>
                             </div>
                         ))}
                     </div>
@@ -221,6 +238,13 @@ const SecretariaDashboard = () => {
                 initialFecha={fechaSeleccionada}
                 initialCliente={clientePreseleccionado}
                 onSuccess={handlePedidoSuccess}
+            />
+            
+            <ModalEditarPedido
+                isOpen={!!editarPedidoId}
+                onClose={() => setEditarPedidoId(null)}
+                onSuccess={handleEditarSuccess}
+                idPedido={editarPedidoId}
             />
         </div>
     );

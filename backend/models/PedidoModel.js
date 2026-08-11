@@ -156,6 +156,37 @@ const PedidoModel = {
             ingresosMes: ingresos.rows[0].total,
         };
     },
+
+    /**
+     * Obtiene los datos completos de un pedido por su ID
+     */
+    obtenerPedidoPorId: async (id_pedido) => {
+        const resultado = await db.pool.query(
+            `SELECT p.*, c.nombre_completo as cliente, c.telefono_whatsapp, u.correo as costurera_correo, d.descripcion_tela, d.origen_material, d.cantidad_metros
+             FROM pedidos p
+             JOIN clientes c ON p.id_cliente = c.id_cliente
+             LEFT JOIN usuarios u ON p.id_costurera = u.id_usuario
+             LEFT JOIN detalle_pedido_material d ON p.id_pedido = d.id_pedido
+             WHERE p.id_pedido = $1`,
+            [id_pedido]
+        );
+        return resultado.rows[0];
+    },
+
+    /**
+     * Actualiza la información básica de un pedido (sin tocar el material)
+     */
+    actualizarPedidoBasico: async (id_pedido, datos) => {
+        const { id_costurera, fecha_entrega, fecha_prueba, costo_total, adelanto, saldo } = datos;
+        const resultado = await db.pool.query(
+            `UPDATE pedidos
+             SET id_costurera = $1, fecha_entrega = $2, fecha_prueba = $3, costo_total = $4, adelanto = $5, saldo = $6
+             WHERE id_pedido = $7
+             RETURNING *`,
+            [id_costurera || null, fecha_entrega, fecha_prueba || null, costo_total, adelanto, saldo, id_pedido]
+        );
+        return resultado.rows[0];
+    }
 };
 
 module.exports = PedidoModel;

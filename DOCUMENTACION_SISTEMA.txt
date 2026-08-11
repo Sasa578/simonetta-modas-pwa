@@ -1,0 +1,133 @@
+===========================================================================
+               DOCUMENTACIÓN TÉCNICA - SIMONETTA MODAS
+===========================================================================
+
+Este documento describe la arquitectura, la pila tecnológica (stack), la estructura de archivos y el flujo de comunicación interna del sistema de Simonetta Modas. Su propósito es servir como guía para comprender, mantener y exponer sobre el sistema.
+
+===========================================================================
+1. PILA TECNOLÓGICA (STACK) Y LENGUAJES UTILIZADOS
+===========================================================================
+
+El proyecto utiliza una arquitectura Cliente-Servidor separada en dos aplicaciones: Backend y Frontend, las cuales se comunican mediante una API REST.
+
+[ BACKEND ]
+- Lenguaje: JavaScript (Node.js)
+- Framework: Express.js (Manejo de rutas y peticiones HTTP)
+- Base de Datos: PostgreSQL (Base de datos relacional)
+- Librería de Base de Datos: `pg` (PostgreSQL Client para Node)
+- Autenticación: JWT (JSON Web Tokens) y `bcrypt` para el hash de contraseñas.
+- Propósito: Sirve como el cerebro lógico del sistema. Contiene las reglas de negocio, se conecta a la base de datos para almacenar y recuperar información y provee endpoints (rutas) de API para que el frontend los consuma.
+
+[ FRONTEND ]
+- Lenguaje: JavaScript (JSX)
+- Framework: React.js (Creación de componentes visuales)
+- Construcción/Empaquetado: Vite (Más rápido y moderno que Create React App)
+- Estilos: CSS puro (Vanilla CSS). No se utiliza Tailwind por decisión arquitectónica para mayor control manual.
+- Peticiones API: Axios (Cliente HTTP para interceptar peticiones y enviar Tokens).
+- Propósito: Es la interfaz de usuario (UI). Se encarga de mostrar la información al usuario, manejar eventos (clics, formularios) y reaccionar a los datos entregados por el backend. Está configurada para operar como una PWA (Progressive Web App).
+
+===========================================================================
+2. ESTRUCTURA DE CARPETAS Y ARCHIVOS IMPORTANTES
+===========================================================================
+
+A continuación se presenta el árbol de carpetas general y qué función cumple cada módulo:
+
+P_Simonetta_modas/
+├── backend/
+│   ├── config/
+│   │   ├── db.js                (Configura el "Pool" de conexión a PostgreSQL usando variables de entorno .env)
+│   │   └── firebase.js          (Inicializa el SDK de Firebase para enviar notificaciones Push)
+│   │
+│   ├── controllers/             (LÓGICA DE NEGOCIO: Qué hacer con los datos recibidos)
+│   │   ├── authController.js    (Maneja el Login, registro, y guardado del Token FCM)
+│   │   ├── pedidosController.js (Evalúa costos, genera pedidos, valida campos, dispara notificaciones Push)
+│   │   ├── usuariosController.js(CRUD de usuarios del sistema)
+│   │   ├── citasController.js   (Lógica para las citas preliminares de clientes)
+│   │   └── ...
+│   │
+│   ├── middleware/
+│   │   └── authMiddleware.js    (Barrera de seguridad: intercepta peticiones para comprobar si el Token JWT es válido)
+│   │
+│   ├── models/                  (ACCESO A DATOS: Únicos archivos que ejecutan SQL 'SELECT, INSERT, UPDATE, DELETE')
+│   │   ├── PedidoModel.js       (Maneja la tabla pedidos, almacén y detalle_material en transacciones SQL atómicas)
+│   │   ├── UsuarioModel.js      (Consultas sobre usuarios y roles)
+│   │   ├── MedidaModel.js       (Almacena y verifica si medidas tienen > 6 meses)
+│   │   └── ...
+│   │
+│   ├── routes/                  (RUTAS: Puertas de entrada de la API que mapean URLs a los controladores)
+│   │   ├── authRoutes.js        (Ej: router.post('/login', login) mapea la URL a la función de authController)
+│   │   ├── pedidosRoutes.js
+│   │   └── ...
+│   │
+│   └── server.js                (Punto de entrada del Backend: Inicia el servidor Express en el puerto 3000 y junta las rutas)
+│
+└── frontend/
+    ├── src/
+    │   ├── api/
+    │   │   └── axios.js         (Configura Axios, la URL base `http://localhost:3000/api` y auto-adjunta el JWT en los Headers)
+    │   │
+    │   ├── components/          (PIEZAS REUTILIZABLES DE LA INTERFAZ)
+    │   │   ├── ModalPedido.jsx  (Ventana emergente para que la secretaría/admin cree un pedido, con cálculos en tiempo real)
+    │   │   ├── ModalEditarPedido.jsx (Igual que el anterior pero precarga datos para hacer un `PUT`)
+    │   │   ├── ModalMedidas.jsx (Formulario con campos anatómicos y alerta de caducidad)
+    │   │   └── RootRedirect.jsx (Componente invisible que lee tu ROL tras el login y te lanza al dashboard correcto)
+    │   │
+    │   ├── context/
+    │   │   └── AuthContext.jsx  (Proveedor Global: Guarda el estado del usuario logueado en toda la aplicación de React)
+    │   │
+    │   ├── layouts/             (ESTRUCTURA DE PÁGINAS)
+    │   │   ├── AdminLayout.jsx  (Posee Sidebar Izquierdo, Topbar y un espacio <Outlet/> para inyectar las páginas del admin)
+    │   │   └── MobileLayout.jsx (Diseño tipo App Móvil con barra inferior para Clientas/Costureras)
+    │   │
+    │   ├── pages/               (PANTALLAS PRINCIPALES DEL SISTEMA)
+    │   │   ├── Login.jsx        (Formulario inicial de entrada)
+    │   │   ├── SecretariaDashboard.jsx (Panel complejo. Muestra el calendario dinámico cruzando fechas de pedidos y citas)
+    │   │   ├── AdminDashboard.jsx (Contiene indicadores gerenciales, KPIs y gráficas si existieran)
+    │   │   ├── MobileDashboard.jsx (Vista táctil simplificada para que costureras muevan estados y vean tareas)
+    │   │   └── ...
+    │   │
+    │   ├── App.jsx              (El cerebro del frontend. Contiene el enrutador <Routes>. Define qué URL muestra qué página)
+    │   └── main.jsx             (Punto de inyección de React hacia el archivo index.html)
+    │
+    └── index.html               (Único archivo HTML físico de todo el frontend, React se inyecta en su `<div id="root">`)
+
+===========================================================================
+3. CÓMO CONVIVEN LOS ARCHIVOS (FLUJO DEL SISTEMA)
+===========================================================================
+
+El sistema utiliza el Patrón de Arquitectura MVC (Modelo - Vista - Controlador) aunque físicamente separado por la red (API REST).
+
+Ejemplo de Flujo Completo: "Cambiar el estado de un pedido"
+
+1. LA VISTA (Frontend / React):
+   - Una Costurera entra a `MobileDashboard.jsx` (Página) en el navegador.
+   - Presiona el botón "Pasar a Armado".
+   - El archivo llama a la API mediante un `fetch` a la URL: `PUT http://localhost:3000/api/pedidos/5/estado`.
+   - Se envía un cuerpo (Body) en JSON: `{ "estado": "Armado" }` y el Token JWT en la cabecera.
+
+2. LA RUTA (Backend / Express):
+   - La petición llega a `server.js` y delega a `pedidosRoutes.js`.
+   - El archivo `authMiddleware.js` intercepta la petición, valida el Token para confirmar que la operaria es válida.
+   - La ruta ve que es una petición HTTP tipo `PUT` hacia `/:id/estado` y la envía a la función `actualizarEstado` dentro de `pedidosController.js`.
+
+3. EL CONTROLADOR (Lógica):
+   - `pedidosController.js` recibe la información. Analiza si el estado a cambiar es "Terminado" para preparar una notificación.
+   - Llama a `PedidoModel.actualizarEstado(id, nuevo_estado)`.
+
+4. EL MODELO (Base de Datos):
+   - `PedidoModel.js` recibe la orden. Crea la consulta SQL (`UPDATE pedidos SET estado = $1...`).
+   - El código se comunica con PostgreSQL, el dato se guarda físicamente en el disco.
+   - Devuelve la confirmación al Controlador.
+
+5. RETORNO (Cierre de ciclo):
+   - El Controlador devuelve una respuesta `200 OK` en formato JSON al Frontend.
+   - `MobileDashboard.jsx` (React) detecta la respuesta exitosa. 
+   - Ejecuta su función `fetchPedidos()` para descargar la nueva tabla actualizada.
+   - La barra de progreso de la pantalla se redibuja visualmente sin recargar el navegador.
+
+===========================================================================
+4. DATOS ADICIONALES PARA LA EXPOSICIÓN
+===========================================================================
+- PWA: El frontend está preparado como "Progressive Web App". Esto significa que a nivel lógico, tiene un manifest.json para que los clientes puedan darle a "Añadir a la pantalla de inicio" en sus celulares y usarla como si fuera una app nativa, justificando el uso de React sobre tecnologías más tradicionales.
+- Seguridad: Al usar hashes con `bcrypt`, si la base de datos llegara a filtrarse, nadie conocería las contraseñas reales, solo sus hashes incomprensibles.
+- Rendimiento Atómico: En el modelo (`PedidoModel.js`), se usa `BEGIN` y `COMMIT` de SQL para que si falla el descuento de inventario, tampoco se guarde el pedido (Transacción SQL Atómica). Esto evita inconsistencias de datos (ej. pedidos que se crean pero cuya tela no se descuenta).

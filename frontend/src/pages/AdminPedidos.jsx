@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import ModalPedido from '../components/ModalPedido';
+import ModalEditarPedido from '../components/ModalEditarPedido';
 
 const AdminPedidos = () => {
     const [pedidos, setPedidos] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editarPedidoId, setEditarPedidoId] = useState(null);
     const [msg, setMsg] = useState('');
 
     const cargarPedidos = async () => {
@@ -27,6 +29,11 @@ const AdminPedidos = () => {
         } catch (error) {
             alert('Error al actualizar estado');
         }
+    };
+
+    const handleEditarSuccess = () => {
+        setEditarPedidoId(null);
+        cargarPedidos();
     };
 
     const formatBs = (val) => `Bs. ${Number(val).toLocaleString('es-BO', { minimumFractionDigits: 2 })}`;
@@ -68,7 +75,7 @@ const AdminPedidos = () => {
                                             {p.estado}
                                         </span>
                                     </td>
-                                    <td>
+                                    <td style={{display: 'flex', gap: '0.5rem', alignItems: 'center'}}>
                                         <select 
                                             value={p.estado} 
                                             onChange={(e) => actualizarEstado(p.id_pedido, e.target.value)}
@@ -82,6 +89,12 @@ const AdminPedidos = () => {
                                             <option value="Terminado">Terminado</option>
                                             <option value="Cancelado">Cancelado</option>
                                         </select>
+                                        <button 
+                                            onClick={() => setEditarPedidoId(p.id_pedido)}
+                                            style={{ background: 'var(--color-azul-claro)', color: 'var(--color-azul-oscuro)', border: 'none', borderRadius: '4px', padding: '0.3rem 0.6rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}
+                                        >
+                                            ✏️ Editar
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
@@ -95,6 +108,13 @@ const AdminPedidos = () => {
                 isOpen={isModalOpen} 
                 onClose={() => setIsModalOpen(false)} 
                 onSuccess={cargarPedidos} 
+            />
+
+            <ModalEditarPedido
+                isOpen={!!editarPedidoId}
+                onClose={() => setEditarPedidoId(null)}
+                onSuccess={handleEditarSuccess}
+                idPedido={editarPedidoId}
             />
         </section>
     );
