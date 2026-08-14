@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
+import { io } from 'socket.io-client';
 
 const pedidosEntregadosMock = [{ id: '#P-1038', cliente: 'Elena Vargas', prenda: 'Blusa bordada', fecha: '02/08/2026' }];
 
@@ -10,11 +11,25 @@ const AdminDashboard = () => {
 
     const formatBs = (val) => `Bs. ${Number(val).toLocaleString('es-BO', { minimumFractionDigits: 2 })}`;
 
-    useEffect(() => {
+    const cargarDatos = () => {
         api.get('/pedidos/metricas').then(({ data }) => setMetricas(data)).catch(() => {});
         api.get('/almacen').then(({ data }) => setAlmacenStock(data)).catch(() => {});
         api.get('/pedidos').then(({ data }) => { if (data?.length) setPedidosProduccion(data); }).catch(() => {});
+    };
+
+    useEffect(() => {
+        cargarDatos();
+
+        const socket = io(`http://${window.location.hostname}:3000`);
+        socket.on('actualizacion_datos', () => {
+            cargarDatos();
+        });
+
+        return () => {
+            socket.disconnect();
+        };
     }, []);
+
 
     return (
         <>

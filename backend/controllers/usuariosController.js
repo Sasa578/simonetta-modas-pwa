@@ -14,11 +14,11 @@ const listarUsuarios = async (req, res) => {
 // POST /api/usuarios — Crear usuario
 const crearUsuario = async (req, res) => {
     try {
-        const { correo, password, id_rol } = req.body;
+        const { correo, password, id_rol, nombre_completo, carnet_identidad, telefono } = req.body;
         if (!correo || !password || !id_rol) {
             return res.status(400).json({ error: 'Correo, contraseña y rol son obligatorios.' });
         }
-        const usuario = await UsuarioModel.crear({ correo, password, id_rol });
+        const usuario = await UsuarioModel.crear({ correo, password, id_rol, nombre_completo, carnet_identidad, telefono });
         return res.status(201).json({ mensaje: 'Usuario creado.', usuario });
     } catch (error) {
         if (error.constraint === 'usuarios_correo_key') {

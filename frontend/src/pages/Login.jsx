@@ -14,7 +14,8 @@ const Login = () => {
     const redirigirPorRol = (rol) => {
         if (rol === 'Admin') navigate('/admin');
         else if (rol === 'Secretaria') navigate('/secretaria');
-        else navigate('/mobile'); // Costurera, Cliente
+        else if (rol === 'Cliente') navigate('/cliente');
+        else navigate('/mobile'); // Costurera
     };
 
     const handleSubmit = async (e) => {

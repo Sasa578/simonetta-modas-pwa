@@ -152,7 +152,7 @@ const ModalMedidas = ({ isOpen, onClose, onSuccess, cliente }) => {
                     <div style={{display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem'}}>
                         <label style={{fontSize: '0.85rem', fontWeight: 600}}>Fecha de toma</label>
                         <input
-                            type="date"
+                            type="date" max={new Date().toISOString().split("T")[0]}
                             value={medidas.fecha_toma}
                             onChange={(e) => handleMedidaChange('fecha_toma', e.target.value)}
                             style={{padding: '0.7rem', borderRadius: '6px', border: '1px solid var(--color-borde)'}}

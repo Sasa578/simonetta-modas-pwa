@@ -31,9 +31,30 @@ app.get('/api/salud', (req, res) => {
     res.json({ estado: 'ok', servicio: 'Simonetta Modas API', version: '1.0.0' });
 });
 
-// --- Iniciar servidor ---
-app.listen(PUERTO, () => {
-    console.log(`🧵 Simonetta Modas API corriendo en http://localhost:${PUERTO}`);
+// --- Iniciar servidor con Socket.io ---
+const http = require('http');
+const { Server } = require('socket.io');
+
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: '*', // Permitir cualquier origen por simplicidad en desarrollo local
+        methods: ['GET', 'POST', 'PUT', 'DELETE']
+    }
 });
 
-module.exports = app;
+// Guardar io en app para acceder desde controladores via req.app.get('io')
+app.set('io', io);
+
+io.on('connection', (socket) => {
+    console.log(`🟢 Cliente conectado (Socket ID: ${socket.id})`);
+    socket.on('disconnect', () => {
+        console.log(`🔴 Cliente desconectado (Socket ID: ${socket.id})`);
+    });
+});
+
+server.listen(PUERTO, () => {
+    console.log(`🧵 Simonetta Modas API corriendo en http://localhost:${PUERTO} (Con WebSockets)`);
+});
+
+module.exports = { app, server, io };

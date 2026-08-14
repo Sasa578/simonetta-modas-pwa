@@ -42,7 +42,7 @@ const MedidaModel = {
              FROM medidas m
              JOIN clientes c ON m.id_cliente = c.id_cliente
              WHERE m.id_cliente = $1
-             ORDER BY m.fecha_toma DESC`,
+             ORDER BY m.fecha_toma DESC, m.id_medida DESC`,
             [idCliente]
         );
 

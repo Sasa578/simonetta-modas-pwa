@@ -8,7 +8,8 @@ const Register = () => {
         correo: '',
         password: '',
         nombre_completo: '',
-        telefono_whatsapp: ''
+        telefono_whatsapp: '',
+        carnet_identidad: ''
     });
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -57,6 +58,17 @@ const Register = () => {
                             value={formData.nombre_completo}
                             onChange={(e) => setFormData({ ...formData, nombre_completo: e.target.value })}
                             placeholder="María Pérez"
+                            required
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Carnet de Identidad</label>
+                        <input
+                            type="text"
+                            value={formData.carnet_identidad}
+                            onChange={(e) => setFormData({ ...formData, carnet_identidad: e.target.value })}
+                            placeholder="1234567"
                             required
                         />
                     </div>

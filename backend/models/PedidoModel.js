@@ -117,6 +117,23 @@ const PedidoModel = {
     },
 
     /**
+     * Obtiene los pedidos asignados a una lista de IDs de cliente
+     */
+    obtenerPedidosPorClienteIds: async (idsClienteArray) => {
+        if (!idsClienteArray || idsClienteArray.length === 0) return [];
+        const resultado = await db.pool.query(
+            `SELECT p.id_pedido, p.estado, p.fecha_pedido, p.fecha_entrega, p.fecha_prueba, p.id_costurera, c.nombre_completo as cliente, d.descripcion_tela as prenda
+             FROM pedidos p
+             JOIN clientes c ON p.id_cliente = c.id_cliente
+             LEFT JOIN detalle_pedido_material d ON p.id_pedido = d.id_pedido
+             WHERE p.id_cliente = ANY($1::int[])
+             ORDER BY p.fecha_entrega ASC`,
+            [idsClienteArray]
+        );
+        return resultado.rows;
+    },
+
+    /**
      * Obtiene el cliente asociado a un pedido (para notificaciones FCM).
      */
     obtenerClienteDelPedido: async (idPedido) => {

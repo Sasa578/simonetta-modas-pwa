@@ -14,7 +14,7 @@ const UsuarioModel = {
     /** Lista todos los usuarios con su rol (para Admin) */
     listarTodos: async () => {
         const resultado = await db.query(
-            `SELECT u.id_usuario, u.correo, u.fcm_token, r.id_rol, r.nombre_rol
+            `SELECT u.id_usuario, u.correo, u.fcm_token, r.id_rol, r.nombre_rol, u.nombre_completo, u.carnet_identidad, u.telefono, u.fecha_registro
              FROM usuarios u JOIN roles r ON u.id_rol = r.id_rol
              ORDER BY u.id_usuario`
         );
@@ -22,22 +22,25 @@ const UsuarioModel = {
     },
 
     /** Crea un nuevo usuario (password hasheado) */
-    crear: async ({ correo, password, id_rol }) => {
+    crear: async ({ correo, password, id_rol, nombre_completo, carnet_identidad, telefono }) => {
         const hash = await bcrypt.hash(password, 10);
         const resultado = await db.query(
-            `INSERT INTO usuarios (correo, password_hash, id_rol) VALUES ($1, $2, $3) RETURNING id_usuario, correo`,
-            [correo, hash, id_rol]
+            `INSERT INTO usuarios (correo, password_hash, id_rol, nombre_completo, carnet_identidad, telefono) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id_usuario, correo`,
+            [correo, hash, id_rol, nombre_completo || null, carnet_identidad || null, telefono || null]
         );
         return resultado.rows[0];
     },
 
     /** Actualiza datos de un usuario (opcionalmente cambia password) */
-    actualizar: async (id, { correo, password, id_rol }) => {
+    actualizar: async (id, { correo, password, id_rol, nombre_completo, carnet_identidad, telefono }) => {
         const sets = [];
         const vals = [];
         let idx = 1;
         if (correo) { sets.push(`correo = $${idx++}`); vals.push(correo); }
         if (id_rol)  { sets.push(`id_rol = $${idx++}`); vals.push(id_rol); }
+        if (nombre_completo !== undefined) { sets.push(`nombre_completo = $${idx++}`); vals.push(nombre_completo); }
+        if (carnet_identidad !== undefined) { sets.push(`carnet_identidad = $${idx++}`); vals.push(carnet_identidad); }
+        if (telefono !== undefined) { sets.push(`telefono = $${idx++}`); vals.push(telefono); }
         if (password) {
             const hash = await bcrypt.hash(password, 10);
             sets.push(`password_hash = $${idx++}`); vals.push(hash);
@@ -58,6 +61,14 @@ const UsuarioModel = {
         );
         return resultado.rows.length > 0;
     },
+
+    /** Registra o actualiza el FCM Token de un usuario */
+    guardarFcmToken: async (id_usuario, token) => {
+        await db.query(
+            `UPDATE usuarios SET fcm_token = $1 WHERE id_usuario = $2`,
+            [token, id_usuario]
+        );
+    }
 };
 
 module.exports = UsuarioModel;

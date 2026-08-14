@@ -82,7 +82,7 @@ const listarRoles = async (req, res) => {
 
 // POST /api/auth/register — Registro de clientes
 const registrarCliente = async (req, res) => {
-    const { correo, password, nombre_completo, telefono_whatsapp } = req.body;
+    const { correo, password, nombre_completo, telefono_whatsapp, carnet_identidad } = req.body;
 
     if (!correo || !password || !nombre_completo || !telefono_whatsapp) {
         return res.status(400).json({ error: 'Todos los campos son obligatorios.' });
@@ -112,8 +112,8 @@ const registrarCliente = async (req, res) => {
 
         // Insertar usuario
         const usuarioRes = await db.query(
-            'INSERT INTO usuarios (id_rol, correo, password_hash) VALUES ($1, $2, $3) RETURNING id_usuario',
-            [id_rol, correo, hash]
+            'INSERT INTO usuarios (id_rol, correo, password_hash, nombre_completo, telefono, carnet_identidad) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id_usuario',
+            [id_rol, correo, hash, nombre_completo, telefono_whatsapp, carnet_identidad || null]
         );
         const id_usuario = usuarioRes.rows[0].id_usuario;
 

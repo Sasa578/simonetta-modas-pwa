@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import api from '../api/axios';
 
 const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
-    const [form, setForm] = useState({ nombre_completo: '', telefono_whatsapp: '' });
+    const [form, setForm] = useState({ nombre_completo: '', telefono_whatsapp: '', carnet_identidad: '', correo: '' });
     const [cargando, setCargando] = useState(false);
     const [error, setError] = useState('');
 
     useEffect(() => {
         if (isOpen) {
-            setForm({ nombre_completo: '', telefono_whatsapp: '' });
+            setForm({ nombre_completo: '', telefono_whatsapp: '', carnet_identidad: '', correo: '' });
             setError('');
         }
     }, [isOpen]);
@@ -58,8 +58,18 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
                     </div>
 
                     <div style={{display: 'flex', flexDirection: 'column', gap: '0.4rem'}}>
+                        <label style={{fontSize: '0.85rem', fontWeight: 600}}>Carnet de Identidad</label>
+                        <input type="text" value={form.carnet_identidad} onChange={(e) => setForm({...form, carnet_identidad: e.target.value})} style={{padding: '0.7rem', borderRadius: '6px', border: '1px solid var(--color-borde)'}} />
+                    </div>
+
+                    <div style={{display: 'flex', flexDirection: 'column', gap: '0.4rem'}}>
                         <label style={{fontSize: '0.85rem', fontWeight: 600}}>WhatsApp *</label>
                         <input type="tel" value={form.telefono_whatsapp} onChange={(e) => setForm({...form, telefono_whatsapp: e.target.value})} required style={{padding: '0.7rem', borderRadius: '6px', border: '1px solid var(--color-borde)'}} />
+                    </div>
+
+                    <div style={{display: 'flex', flexDirection: 'column', gap: '0.4rem'}}>
+                        <label style={{fontSize: '0.85rem', fontWeight: 600}}>Correo</label>
+                        <input type="email" value={form.correo} onChange={(e) => setForm({...form, correo: e.target.value})} style={{padding: '0.7rem', borderRadius: '6px', border: '1px solid var(--color-borde)'}} />
                     </div>
 
                     <button type="submit" disabled={cargando} style={{

@@ -7,10 +7,14 @@ const {
     crearCliente,
     actualizarCliente,
     eliminarCliente,
+    obtenerMiPerfil,
 } = require('../controllers/clientesController');
 
 // Todas las rutas de clientes requieren autenticación
 router.use(verificarToken);
+
+// GET /api/clientes/mi-perfil — Perfil y medidas del usuario logueado
+router.get('/mi-perfil', obtenerMiPerfil);
 
 // GET    /api/clientes        — Listar todos los clientes
 // POST   /api/clientes        — Crear un nuevo cliente

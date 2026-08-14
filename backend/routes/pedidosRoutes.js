@@ -12,6 +12,9 @@ router.get('/', obtenerPedidos);
 // POST /api/pedidos — Crear un nuevo pedido con detalle de material
 router.post('/', crearPedido);
 
+// GET /api/pedidos/metricas — KPIs del dashboard (TI-4.1)
+router.get('/metricas', obtenerMetricas);
+
 // GET /api/pedidos/:id — Obtener un pedido específico
 router.get('/:id', obtenerPedido);
 
@@ -21,8 +24,6 @@ router.put('/:id', actualizarPedido);
 // PUT /api/pedidos/:id/estado — Actualizar el estado de un pedido
 router.put('/:id/estado', actualizarEstado);
 
-// GET /api/pedidos/metricas — KPIs del dashboard (TI-4.1)
-router.get('/metricas', obtenerMetricas);
 
 // GET /api/pedidos/costurera/:id_costurera
 router.get('/costurera/:id_costurera', obtenerPedidosCosturera);

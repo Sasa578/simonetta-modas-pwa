@@ -27,7 +27,7 @@ const obtenerCliente = async (req, res) => {
 
 // POST /api/clientes — Crear un nuevo cliente
 const crearCliente = async (req, res) => {
-    const { nombre_completo, telefono_whatsapp, id_usuario } = req.body;
+    const { nombre_completo, telefono_whatsapp, id_usuario, carnet_identidad, correo } = req.body;
 
     if (!nombre_completo) {
         return res.status(400).json({ error: 'El nombre completo es obligatorio.' });
@@ -57,7 +57,7 @@ const crearCliente = async (req, res) => {
 // PUT /api/clientes/:id — Actualizar un cliente
 const actualizarCliente = async (req, res) => {
     const { id } = req.params;
-    const { nombre_completo, telefono_whatsapp, id_usuario } = req.body;
+    const { nombre_completo, telefono_whatsapp, id_usuario, carnet_identidad, correo } = req.body;
 
     // Si se envía telefono_whatsapp, no puede ser vacío
     if (telefono_whatsapp !== undefined && telefono_whatsapp.trim() === '') {
@@ -99,10 +99,51 @@ const eliminarCliente = async (req, res) => {
     }
 };
 
+// GET /api/clientes/mi-perfil — Obtener perfil y medidas del cliente logueado
+const obtenerMiPerfil = async (req, res) => {
+    try {
+        const id_usuario = req.usuario.id_usuario;
+        const correo = req.usuario.correo;
+        const db = require('../config/db');
+        const { obtenerIdsClienteParaUsuario } = require('../utils/clienteHelper');
+
+        const idsCliente = await obtenerIdsClienteParaUsuario(id_usuario, correo);
+
+        if (idsCliente.length === 0) {
+            const userRes = await db.pool.query('SELECT id_usuario, correo, id_rol as rol, nombre_completo, telefono, carnet_identidad, fecha_registro FROM usuarios WHERE id_usuario = $1', [id_usuario]);
+            return res.json({ cliente: userRes.rows[0] || null, medidas: null });
+        }
+
+        const clienteRes = await db.pool.query(
+            `SELECT c.id_cliente, COALESCE(u.nombre_completo, c.nombre_completo) as nombre_completo, COALESCE(u.telefono, c.telefono_whatsapp) as telefono_whatsapp, u.correo, u.id_rol as rol, u.carnet_identidad, u.fecha_registro
+             FROM clientes c
+             LEFT JOIN usuarios u ON c.id_usuario = u.id_usuario
+             WHERE c.id_cliente = ANY($1::int[])
+             ORDER BY c.id_cliente DESC LIMIT 1`,
+            [idsCliente]
+        );
+
+        const cliente = clienteRes.rows[0];
+        const medidasRes = await db.pool.query(
+            `SELECT * FROM medidas WHERE id_cliente = ANY($1::int[]) ORDER BY fecha_toma DESC, id_medida DESC LIMIT 1`,
+            [idsCliente]
+        );
+
+        return res.json({
+            cliente,
+            medidas: medidasRes.rows[0] || null
+        });
+    } catch (error) {
+        console.error('Error al obtener mi perfil:', error);
+        return res.status(500).json({ error: 'Error interno del servidor.' });
+    }
+};
+
 module.exports = {
     listarClientes,
     obtenerCliente,
     crearCliente,
     actualizarCliente,
     eliminarCliente,
+    obtenerMiPerfil,
 };

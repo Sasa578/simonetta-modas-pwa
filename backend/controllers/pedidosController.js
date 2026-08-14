@@ -79,6 +79,10 @@ const crearPedido = async (req, res) => {
             }
         );
 
+        // Emitir evento en tiempo real
+        const io = req.app.get('io');
+        if (io) io.emit('actualizacion_datos');
+
         return res.status(201).json({
             mensaje: 'Pedido creado exitosamente.',
             pedido: resultado.pedido,
@@ -93,6 +97,18 @@ const crearPedido = async (req, res) => {
 // GET /api/pedidos
 const obtenerPedidos = async (req, res) => {
     try {
+        if (req.usuario && req.usuario.rol === 'Cliente') {
+            const { obtenerIdsClienteParaUsuario } = require('../utils/clienteHelper');
+            const idsCliente = await obtenerIdsClienteParaUsuario(req.usuario.id_usuario, req.usuario.correo);
+            
+            if (idsCliente.length === 0) {
+                return res.json([]);
+            }
+
+            const pedidos = await PedidoModel.obtenerPedidosPorClienteIds(idsCliente);
+            return res.json(pedidos);
+        }
+
         const pedidos = await PedidoModel.obtenerPedidosActivos();
         res.json(pedidos);
     } catch (error) {
@@ -133,6 +149,10 @@ const actualizarEstado = async (req, res) => {
                 console.log(`📢 [SIMULADO] Notificación "${estado}" para pedido #${id} — cliente sin FCM token`);
             }
         }
+
+        // Emitir evento en tiempo real
+        const io = req.app.get('io');
+        if (io) io.emit('actualizacion_datos');
 
         res.json(pedido);
     } catch (error) {
@@ -219,6 +239,10 @@ const actualizarPedido = async (req, res) => {
             adelanto: adelantoFloat,
             saldo: saldoCalculado
         });
+
+        // Emitir evento en tiempo real
+        const io = req.app.get('io');
+        if (io) io.emit('actualizacion_datos');
 
         res.json({
             mensaje: 'Pedido actualizado correctamente',

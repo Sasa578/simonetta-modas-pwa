@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import ModalPedido from '../components/ModalPedido';
 import ModalEditarPedido from '../components/ModalEditarPedido';
 import api from '../api/axios';
+import { io } from 'socket.io-client';
 
 const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const calendarioDias = () => {
@@ -53,6 +54,15 @@ const SecretariaDashboard = () => {
 
     useEffect(() => {
         cargarDatos();
+
+        const socket = io(`http://${window.location.hostname}:3000`);
+        socket.on('actualizacion_datos', () => {
+            cargarDatos();
+        });
+
+        return () => {
+            socket.disconnect();
+        };
     }, []);
 
     const handleDiaClick = (diaFecha) => {
@@ -111,71 +121,70 @@ const SecretariaDashboard = () => {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '2rem' }}>
-            {/* Fila Principal: Calendario + Citas */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '1.5rem' }}>
-                
-                {/* Calendario */}
-                <section className="card card-calendario" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                    <div className="card-header">
-                        <h2>📅 {mesActual.charAt(0).toUpperCase() + mesActual.slice(1)}</h2>
-                        <span className="card-subtitle">Click en un día para agendar</span>
+            {/* Fila 1: Calendario a Ancho Completo */}
+            <section className="card card-calendario" style={{ width: '100%' }}>
+                <div className="card-header">
+                    <h2>📅 {mesActual.charAt(0).toUpperCase() + mesActual.slice(1)}</h2>
+                    <span className="card-subtitle">Haz clic en un día para agendar un nuevo pedido</span>
+                </div>
+                <div className="calendario-grid-wrapper">
+                    <div className="calendario-dias-semana">
+                        {diasSemana.map((d) => <span key={d} className="dia-semana">{d}</span>)}
                     </div>
-                    <div className="calendario-grid-wrapper" style={{ padding: '1rem', flex: 1 }}>
-                        <div className="calendario-dias-semana">
-                            {diasSemana.map((d) => <span key={d} className="dia-semana" style={{ fontWeight: 'bold' }}>{d}</span>)}
-                        </div>
-                        <div className="calendario-grid">
-                            {dias.map((diaFecha, i) => {
-                                const isHoy = diaFecha && diaFecha.toISOString().split('T')[0] === hoyStr;
-                                const indicadores = getIndicadores(diaFecha);
-                                return (
-                                    <div
-                                        key={i}
-                                        className={`calendario-dia ${diaFecha ? 'activo' : 'vacio'} ${isHoy ? 'hoy' : ''}`}
-                                        onClick={() => diaFecha && handleDiaClick(diaFecha)}
-                                        style={{ position: 'relative', minHeight: '60px' }}
-                                    >
-                                        <span>{diaFecha ? diaFecha.getDate() : ''}</span>
-                                        <div style={{ position: 'absolute', bottom: '2px', display: 'flex', gap: '2px' }}>
-                                            {indicadores.map((ind, idx) => (
-                                                <span key={idx} title={ind.title} style={{ fontSize: '0.8rem' }}>{ind.icono}</span>
-                                            ))}
-                                        </div>
+                    <div className="calendario-grid">
+                        {dias.map((diaFecha, i) => {
+                            const isHoy = diaFecha && diaFecha.toISOString().split('T')[0] === hoyStr;
+                            const indicadores = getIndicadores(diaFecha);
+                            return (
+                                <div
+                                    key={i}
+                                    className={`calendario-dia ${diaFecha ? 'activo' : 'vacio'} ${isHoy ? 'hoy' : ''}`}
+                                    onClick={() => diaFecha && handleDiaClick(diaFecha)}
+                                    style={{ position: 'relative' }}
+                                >
+                                    <span>{diaFecha ? diaFecha.getDate() : ''}</span>
+                                    <div style={{ marginTop: 'auto', display: 'flex', gap: '3px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                                        {indicadores.map((ind, idx) => (
+                                            <span key={idx} title={ind.title} style={{ fontSize: '0.8rem' }}>{ind.icono}</span>
+                                        ))}
                                     </div>
-                                );
-                            })}
-                        </div>
-                        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', fontSize: '0.85rem', color: 'var(--color-texto-secundario)', justifyContent: 'center' }}>
-                            <span>📌 Cita</span>
-                            <span>✂️ Prueba</span>
-                            <span>🏁 Entrega</span>
-                        </div>
+                                </div>
+                            );
+                        })}
                     </div>
-                </section>
+                    <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1rem', fontSize: '0.85rem', color: 'var(--color-texto-secundario)', justifyContent: 'center' }}>
+                        <span>📌 Cita programada</span>
+                        <span>✂️ Prueba de vestuario</span>
+                        <span>🏁 Entrega de pedido</span>
+                    </div>
+                </div>
+            </section>
 
+            {/* Fila 2: 3 Paneles Secundarios (Citas, Almacén, Entregas Próximas) */}
+            <div className="secretaria-columnas">
                 {/* Citas Pendientes */}
-                <section className="card" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <section className="card card-citas-sec" style={{ display: 'flex', flexDirection: 'column' }}>
                     <div className="card-header">
                         <h2>📌 Citas Pendientes</h2>
-                        <span className="card-badge">{citas.length} clientes por atender</span>
+                        <span className="card-badge">{citas.length} por atender</span>
                     </div>
-                    <div className="card-body" style={{ flex: 1, overflowY: 'auto' }}>
+                    <div className="card-body" style={{ flex: 1, maxHeight: '320px', overflowY: 'auto' }}>
                         {citas.length === 0 ? (
                             <p style={{ color: 'var(--color-texto-secundario)', textAlign: 'center', marginTop: '2rem' }}>No hay citas pendientes.</p>
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 {citas.map(c => (
-                                    <div key={c.id_cita} style={{ border: '1px solid var(--color-borde)', borderRadius: '8px', padding: '1rem', background: '#f8fafc' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                    <div key={c.id_cita} style={{ border: '1px solid var(--color-borde)', borderRadius: '8px', padding: '0.9rem', background: '#f8fafc' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
                                             <strong style={{ color: 'var(--color-azul-oscuro)' }}>{c.cliente}</strong>
-                                            <span style={{ fontSize: '0.85rem', color: 'var(--color-texto-secundario)' }}>{new Date(c.fecha_cita).toLocaleDateString()}</span>
+                                            <span style={{ fontSize: '0.8rem', color: 'var(--color-texto-secundario)' }}>{new Date(c.fecha_cita).toLocaleDateString()}</span>
                                         </div>
-                                        <p style={{ margin: '0 0 0.5rem', fontSize: '0.85rem' }}>📞 {c.telefono_whatsapp}</p>
-                                        {c.detalles && <p style={{ margin: '0 0 0.5rem', fontSize: '0.85rem', fontStyle: 'italic', color: 'var(--color-texto-secundario)' }}>"{c.detalles}"</p>}
+                                        <p style={{ margin: '0 0 0.4rem', fontSize: '0.85rem' }}>📞 {c.telefono_whatsapp}</p>
+                                        {c.detalles && <p style={{ margin: '0 0 0.6rem', fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--color-texto-secundario)' }}>"{c.detalles}"</p>}
                                         
                                         <button onClick={() => handleAtenderCita(c)} style={{
-                                            width: '100%', padding: '0.6rem', background: 'var(--color-azul-oscuro)',
-                                            color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer'
+                                            width: '100%', padding: '0.5rem', background: 'var(--color-azul-oscuro)',
+                                            color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer'
                                         }}>
                                             Crear Pedido
                                         </button>
@@ -185,15 +194,13 @@ const SecretariaDashboard = () => {
                         )}
                     </div>
                 </section>
-            </div>
 
-            {/* Fila Secundaria: Almacén y Pedidos Activos */}
-            <div className="secretaria-columnas">
+                {/* Vistazo de Almacén */}
                 <section className="card card-almacen-sec">
                     <div className="card-header">
                         <h2>📦 Vistazo de Almacén</h2>
                     </div>
-                    <div className="card-body" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                    <div className="card-body" style={{ maxHeight: '320px', overflowY: 'auto' }}>
                         {almacen.length === 0 ? <p>Cargando almacén...</p> : almacen.map((item, i) => {
                             const bajo = item.cantidad_actual <= item.stock_minimo;
                             return (
@@ -207,22 +214,23 @@ const SecretariaDashboard = () => {
                     </div>
                 </section>
 
+                {/* Entregas Próximas */}
                 <section className="card card-pedidos-importantes">
                     <div className="card-header">
                         <h2>⭐ Entregas Próximas</h2>
                     </div>
-                    <div className="card-body" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {pedidos.filter(p => p.estado !== 'Terminado').slice(0, 5).map((p) => (
+                    <div className="card-body" style={{ maxHeight: '320px', overflowY: 'auto' }}>
+                        {pedidos.filter(p => p.estado !== 'Terminado').slice(0, 10).map((p) => (
                             <div key={p.id_pedido} className="fila-pedido-importante" style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                                <div style={{display:'flex', gap:'1rem', flex:1}}>
+                                <div style={{display:'flex', gap:'0.6rem', flex:1, alignItems: 'center'}}>
                                     <span className="importante-id">#{p.id_pedido}</span>
                                     <span className="importante-cliente">{p.cliente}</span>
                                     <span className="importante-fecha">{new Date(p.fecha_entrega).toLocaleDateString()}</span>
                                     <span className="importante-prioridad" style={{ background: '#e0e7ff', color: '#3730a3' }}>{p.estado}</span>
                                 </div>
                                 <button onClick={() => setEditarPedidoId(p.id_pedido)} style={{
-                                    background: 'transparent', border: '1px solid var(--color-borde)', padding: '0.3rem 0.6rem', 
-                                    borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold'
+                                    background: 'transparent', border: '1px solid var(--color-borde)', padding: '0.25rem 0.5rem', 
+                                    borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold'
                                 }}>
                                     ✏️ Editar
                                 </button>

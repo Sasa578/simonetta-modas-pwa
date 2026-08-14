@@ -4,7 +4,7 @@ const MedidaModel = require('../models/MedidaModel');
 const crearMedida = async (req, res) => {
     const datos = req.body;
 
-    if (!datos.id_cliente) {
+    if (datos.fecha_toma) { const hoy = new Date(); hoy.setHours(0,0,0,0); const fechaToma = new Date(datos.fecha_toma + 'T00:00:00'); if (fechaToma > hoy) return res.status(400).json({ error: 'La fecha de toma no puede ser a futuro.' }); } if (!datos.id_cliente) {
         return res.status(400).json({ error: 'El ID del cliente es obligatorio.' });
     }
 
@@ -14,7 +14,7 @@ const crearMedida = async (req, res) => {
             return res.status(404).json({ error: 'Cliente no encontrado.' });
         }
 
-        const medida = await MedidaModel.crear(datos);
+        const medida = await MedidaModel.crear(datos); const io = req.app.get('io'); if (io) io.emit('actualizacion_datos');
 
         return res.status(201).json({
             mensaje: 'Medida registrada exitosamente.',

@@ -53,7 +53,7 @@ const ModalCita = ({ isOpen, onClose, onSuccess }) => {
                 width: '100%', maxWidth: '450px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
             }}>
                 <header style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem'}}>
-                    <h2 style={{color: 'var(--color-azul-oscuro)', margin: 0}}>📅 Solicitar Cita</h2>
+                    <h2 style={{color: 'var(--color-azul-oscuro)', margin: 0, fontSize: '1.3rem'}}>👗 Solicitar Cita de Pedido</h2>
                     <button onClick={onClose} style={{
                         background: 'transparent', border: 'none', fontSize: '1.5rem',
                         cursor: 'pointer', color: 'var(--color-texto-secundario)'
@@ -63,12 +63,12 @@ const ModalCita = ({ isOpen, onClose, onSuccess }) => {
                 {error && <div style={{padding:'0.8rem', marginBottom:'1rem', borderRadius:'8px', background:'var(--color-rojo-suave)', color:'var(--color-rojo-texto)', fontSize: '0.9rem'}}>{error}</div>}
 
                 <form onSubmit={handleSubmit} style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
-                    <p style={{fontSize: '0.9rem', color: 'var(--color-texto-secundario)', margin: 0}}>
-                        Selecciona una fecha para acercarte al taller. Allí confirmaremos tus medidas, la tela y el precio final del pedido.
-                    </p>
+                    <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', padding: '0.9rem', borderRadius: '8px', fontSize: '0.85rem', color: '#0369a1' }}>
+                        ℹ️ <strong>Flujo de Pedidos:</strong> Al solicitar esta cita, te reunirás con la Secretaría en la fecha elegida para registrar/revisar tus medidas, definir la prenda y coordinar el precio final de tu pedido.
+                    </div>
 
                     <div style={{display: 'flex', flexDirection: 'column', gap: '0.4rem'}}>
-                        <label style={{fontSize: '0.85rem', fontWeight: 600}}>Fecha de la Cita *</label>
+                        <label style={{fontSize: '0.85rem', fontWeight: 600}}>Fecha deseada para la reunión *</label>
                         <input
                             type="date"
                             value={fechaCita}
@@ -79,11 +79,11 @@ const ModalCita = ({ isOpen, onClose, onSuccess }) => {
                     </div>
 
                     <div style={{display: 'flex', flexDirection: 'column', gap: '0.4rem'}}>
-                        <label style={{fontSize: '0.85rem', fontWeight: 600}}>¿Qué prenda te gustaría hacer? (Opcional)</label>
+                        <label style={{fontSize: '0.85rem', fontWeight: 600}}>¿Qué tipo de prenda deseas confeccionar?</label>
                         <textarea
                             value={detalles}
                             onChange={(e) => setDetalles(e.target.value)}
-                            placeholder="Ej: Un vestido de gala rojo con encaje..."
+                            placeholder="Ej: Un vestido de gala largo, color rojo, con bordados en el talle..."
                             rows="3"
                             style={{padding: '0.7rem', borderRadius: '6px', border: '1px solid var(--color-borde)', fontFamily: 'inherit', resize: 'vertical'}}
                         />
@@ -100,7 +100,7 @@ const ModalCita = ({ isOpen, onClose, onSuccess }) => {
                             flex: 2, background: 'var(--color-azul-oscuro)', color: '#fff', padding: '0.8rem',
                             border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: cargando ? 'not-allowed' : 'pointer'
                         }}>
-                            {cargando ? 'Enviando...' : 'Confirmar Solicitud'}
+                            {cargando ? 'Enviando...' : '🗓️ Solicitar Cita'}
                         </button>
                     </div>
                 </form>

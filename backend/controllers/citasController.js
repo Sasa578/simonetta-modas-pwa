@@ -25,6 +25,10 @@ const crearCita = async (req, res) => {
             detalles
         });
 
+        // Emitir evento en tiempo real
+        const io = req.app.get('io');
+        if (io) io.emit('actualizacion_datos');
+
         res.status(201).json({ mensaje: 'Cita solicitada con éxito.', cita: nuevaCita });
     } catch (error) {
         console.error('Error al crear cita:', error);
@@ -46,16 +50,19 @@ const obtenerCitasPendientes = async (req, res) => {
 // GET /api/citas/mis-citas (Cliente)
 const obtenerMisCitas = async (req, res) => {
     try {
-        const { id_usuario } = req.usuario;
-        
-        const clienteRes = await db.pool.query('SELECT id_cliente FROM clientes WHERE id_usuario = $1', [id_usuario]);
-        if (clienteRes.rows.length === 0) {
+        const { id_usuario, correo } = req.usuario;
+        const { obtenerIdsClienteParaUsuario } = require('../utils/clienteHelper');
+        const idsCliente = await obtenerIdsClienteParaUsuario(id_usuario, correo);
+
+        if (idsCliente.length === 0) {
             return res.json([]);
         }
-        const id_cliente = clienteRes.rows[0].id_cliente;
 
-        const citas = await CitaModel.obtenerPorCliente(id_cliente);
-        res.json(citas);
+        const citasRes = await db.pool.query(
+            `SELECT * FROM citas WHERE id_cliente = ANY($1::int[]) ORDER BY fecha_cita DESC`,
+            [idsCliente]
+        );
+        res.json(citasRes.rows);
     } catch (error) {
         console.error('Error al obtener citas del cliente:', error);
         res.status(500).json({ error: 'Error del servidor' });
@@ -72,6 +79,10 @@ const actualizarEstado = async (req, res) => {
         if (!cita) {
             return res.status(404).json({ error: 'Cita no encontrada.' });
         }
+
+        // Emitir evento en tiempo real
+        const io = req.app.get('io');
+        if (io) io.emit('actualizacion_datos');
 
         res.json(cita);
     } catch (error) {
