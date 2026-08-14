@@ -101,9 +101,9 @@ Ejemplo de Flujo Completo: "Cambiar el estado de un pedido"
 
 1. LA VISTA (Frontend / React):
    - Una Costurera entra a `MobileDashboard.jsx` (Página) en el navegador.
-   - Presiona el botón "Pasar a Armado".
+   - Presiona el botón "Pasar a Secretaría" (antes Finalizar Prenda).
    - El archivo llama a la API mediante un `fetch` a la URL: `PUT http://localhost:3000/api/pedidos/5/estado`.
-   - Se envía un cuerpo (Body) en JSON: `{ "estado": "Armado" }` y el Token JWT en la cabecera.
+   - Se envía un cuerpo (Body) en JSON: `{ "estado": "Para Entregar" }` y el Token JWT en la cabecera.
 
 2. LA RUTA (Backend / Express):
    - La petición llega a `server.js` y delega a `pedidosRoutes.js`.
@@ -111,7 +111,7 @@ Ejemplo de Flujo Completo: "Cambiar el estado de un pedido"
    - La ruta ve que es una petición HTTP tipo `PUT` hacia `/:id/estado` y la envía a la función `actualizarEstado` dentro de `pedidosController.js`.
 
 3. EL CONTROLADOR (Lógica):
-   - `pedidosController.js` recibe la información. Analiza si el estado a cambiar es "Terminado" para preparar una notificación.
+   - `pedidosController.js` recibe la información. Analiza si el estado a cambiar es "Para Entregar" para preparar una notificación a la Secretaria.
    - Llama a `PedidoModel.actualizarEstado(id, nuevo_estado)`.
 
 4. EL MODELO (Base de Datos):
@@ -126,8 +126,11 @@ Ejemplo de Flujo Completo: "Cambiar el estado de un pedido"
    - La barra de progreso de la pantalla se redibuja visualmente sin recargar el navegador.
 
 ===========================================================================
-4. DATOS ADICIONALES PARA LA EXPOSICIÓN
+4. DATOS ADICIONALES Y MEJORAS RECIENTES
 ===========================================================================
 - PWA: El frontend está preparado como "Progressive Web App". Esto significa que a nivel lógico, tiene un manifest.json para que los clientes puedan darle a "Añadir a la pantalla de inicio" en sus celulares y usarla como si fuera una app nativa, justificando el uso de React sobre tecnologías más tradicionales.
 - Seguridad: Al usar hashes con `bcrypt`, si la base de datos llegara a filtrarse, nadie conocería las contraseñas reales, solo sus hashes incomprensibles.
 - Rendimiento Atómico: En el modelo (`PedidoModel.js`), se usa `BEGIN` y `COMMIT` de SQL para que si falla el descuento de inventario, tampoco se guarde el pedido (Transacción SQL Atómica). Esto evita inconsistencias de datos (ej. pedidos que se crean pero cuya tela no se descuenta).
+- Flujo de Entregas y Pagos: Se ha introducido un paso intermedio para las costureras ("Para Entregar") que les permite devolver la responsabilidad de la prenda terminada a la administración. Así, la Secretaria puede realizar el cobro del saldo restante a través de un Modal de Entrega (`ModalEntrega.jsx`) antes de marcar el pedido finalmente como "Entregado".
+- Interfaz (UI/UX Pro Max): Gran parte de los componentes (modales de usuarios, clientes y entregas) se han pulido visualmente con bordes suaves, efectos de blur y jerarquía clara, elevando la calidad estética de la aplicación sin abandonar el uso de Vanilla CSS.
+- Perfiles de Usuario Avanzados: Se han migrado las tablas de base de datos para almacenar `nombre_completo`, `carnet_identidad` y `telefono` no solo para clientes, sino también para usuarios del sistema, permitiendo que operarias y administradoras puedan visualizar su propia información en la pestaña "Perfil".

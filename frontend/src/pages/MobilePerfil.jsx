@@ -48,9 +48,9 @@ const MobilePerfil = () => {
                     {(perfil?.nombre_completo || usuario?.correo)?.charAt(0).toUpperCase()}
                 </div>
                 
-                {esCliente && perfil?.nombre_completo ? (
+                {(esCliente && perfil?.nombre_completo) || (!esCliente && usuario?.nombre_completo) ? (
                     <h2 style={{ margin: '0 0 0.2rem', color: 'var(--color-texto-principal)', fontSize: '1.2rem' }}>
-                        {perfil.nombre_completo}
+                        {esCliente ? perfil.nombre_completo : usuario.nombre_completo}
                     </h2>
                 ) : null}
 
@@ -58,11 +58,11 @@ const MobilePerfil = () => {
                     ✉️ {usuario?.correo}
                 </p>
 
-                {esCliente && perfil?.telefono_whatsapp && (
+                {(esCliente && perfil?.telefono_whatsapp) || (!esCliente && usuario?.telefono) ? (
                     <p style={{ margin: '0 0 0.8rem', color: 'var(--color-texto-secundario)', fontSize: '0.9rem' }}>
-                        📞 WhatsApp: {perfil.telefono_whatsapp}
+                        📞 WhatsApp: {esCliente ? perfil.telefono_whatsapp : usuario.telefono}
                     </p>
-                )}
+                ) : null}
 
                 <span className="mobile-rol-badge" style={{ display: 'inline-block' }}>{usuario?.rol}</span>
             </div>

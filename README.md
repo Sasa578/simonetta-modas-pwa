@@ -2,6 +2,17 @@
 
 Este es el sistema integral de gestión para el taller de alta costura "Simonetta Modas". El sistema cuenta con roles para el Administrador, Secretaría, Costureras y Clientes, y está dividido en dos partes principales: un Backend (Node.js + PostgreSQL) y un Frontend PWA (React.js + Vite).
 
+## ✨ Características Principales y Últimas Actualizaciones
+
+- **Dashboard de Administración y Secretaría**: Gestión dinámica de pedidos, clientes y operarios.
+- **Flujo de Trabajo para Costureras**: Panel táctil y móvil para reportar avance en tiempo real, desde *Corte* hasta *Para Entregar*.
+- **Control Financiero**: Gestión de costos totales, pagos por adelantado (adelantos) y cobro automatizado de **saldos** finales en la entrega de prendas.
+- **Diseño UI/UX Premium**: Modales con efecto *Glassmorphism* (backdrop blur), esquinas redondeadas, alertas semánticas y paleta de colores cuidada corporativamente.
+- **Perfiles Extensivos**: Los usuarios (costureras, clientes, etc.) poseen fichas de contacto ampliadas (Nombre Completo, CI, Teléfono) visibles directamente en sus vistas móviles y de perfil.
+- **Notificaciones Push**: Integración con Firebase (FCM) para enviar notificaciones automáticas ante el cambio de estado de los pedidos y en la entrega de prendas.
+
+---
+
 ## 🚀 Requisitos Previos
 
 Para ejecutar este proyecto en otro equipo, necesitarás tener instalado lo siguiente:

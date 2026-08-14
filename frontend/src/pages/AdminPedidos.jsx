@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import ModalPedido from '../components/ModalPedido';
+import ModalEntrega from '../components/ModalEntrega';
 import ModalEditarPedido from '../components/ModalEditarPedido';
 
 const AdminPedidos = () => {
     const [pedidos, setPedidos] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editarPedidoId, setEditarPedidoId] = useState(null);
+    const [pedidoAEntregar, setPedidoAEntregar] = useState(null);
     const [msg, setMsg] = useState('');
 
     const cargarPedidos = async () => {
@@ -86,9 +88,16 @@ const AdminPedidos = () => {
                                             <option value="Armado">Armado</option>
                                             <option value="Acabados">Acabados</option>
                                             <option value="Listo para Prueba">Listo para Prueba</option>
+                                            <option value="Para Entregar">Para Entregar</option>
+                                            <option value="Entregado">Entregado</option>
                                             <option value="Terminado">Terminado</option>
                                             <option value="Cancelado">Cancelado</option>
                                         </select>
+                                        {p.estado === 'Para Entregar' && (
+                                            <button onClick={() => setPedidoAEntregar(p)} style={{ background: 'var(--color-verde)', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.3rem 0.6rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                                                🎁 Entregar
+                                            </button>
+                                        )}
                                         <button 
                                             onClick={() => setEditarPedidoId(p.id_pedido)}
                                             style={{ background: 'var(--color-azul-claro)', color: 'var(--color-azul-oscuro)', border: 'none', borderRadius: '4px', padding: '0.3rem 0.6rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}

@@ -113,7 +113,7 @@ const MobileDashboard = () => {
                                         {p.estado === 'Pendiente' && <button onClick={() => actualizarEstado(p.id_pedido, 'Corte')} style={{flex:1,padding:'12px',background:'#455E8B',color:'white',border:'none',borderRadius:'8px',fontSize:'16px',fontWeight:'bold'}}>Pasar a Corte</button>}
                                         {p.estado === 'Corte' && <button onClick={() => actualizarEstado(p.id_pedido, 'Armado')} style={{flex:1,padding:'12px',background:'#A3FC9A',color:'#333',border:'none',borderRadius:'8px',fontSize:'16px',fontWeight:'bold'}}>Pasar a Armado</button>}
                                         {p.estado === 'Armado' && <button onClick={() => actualizarEstado(p.id_pedido, 'Acabados')} style={{flex:1,padding:'12px',background:'#E1F0FE',color:'#333',border:'none',borderRadius:'8px',fontSize:'16px',fontWeight:'bold'}}>A Acabados</button>}
-                                        {p.estado === 'Acabados' && <button onClick={() => actualizarEstado(p.id_pedido, 'Terminado')} style={{flex:1,padding:'12px',background:'#8290B0',color:'white',border:'none',borderRadius:'8px',fontSize:'16px',fontWeight:'bold'}}>Finalizar Prenda</button>}
+                                        {p.estado === 'Acabados' && <button onClick={() => actualizarEstado(p.id_pedido, 'Para Entregar')} style={{flex:1,padding:'12px',background:'#8290B0',color:'white',border:'none',borderRadius:'8px',fontSize:'16px',fontWeight:'bold'}}>Pasar a Secretar�a</button>}
                                     </>
                                 )}
                                 {/* 📏 Ver Medidas — 44x44px mínimo */}

@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const UsuarioModel = {
     buscarPorCorreo: async (correo) => {
         const resultado = await db.query(
-            `SELECT u.id_usuario, u.correo, u.password_hash, r.nombre_rol
+            `SELECT u.id_usuario, u.correo, u.password_hash, r.nombre_rol, u.nombre_completo, u.telefono
              FROM usuarios u JOIN roles r ON u.id_rol = r.id_rol
              WHERE u.correo = $1`, [correo]
         );

@@ -129,13 +129,14 @@ const actualizarEstado = async (req, res) => {
         }
 
         // TI-4.3: Disparar notificación cuando el pedido está "Listo para Prueba" o "Terminado"
-        if (estado === 'Listo para Prueba' || estado === 'Terminado') {
+        if (estado === 'Listo para Prueba' || estado === 'Para Entregar' || estado === 'Entregado') {
             const notificacion = require('../config/firebase');
             const cliente = await PedidoModel.obtenerClienteDelPedido(id);
             
             const mensajes = {
                 'Listo para Prueba': { titulo: '👗 ¡Tu prenda está lista para prueba!', cuerpo: (nombre) => `Hola ${nombre}, tu pedido #${id} ya está listo para que lo pruebes.` },
-                'Terminado': { titulo: '✅ ¡Pedido completado!', cuerpo: (nombre) => `Hola ${nombre}, tu pedido #${id} ha sido finalizado. ¡Gracias por confiar en Simonetta!` },
+                'Para Entregar': { titulo: '✨ ¡Tu prenda está lista!', cuerpo: (nombre) => `Hola ${nombre}, tu pedido #${id} ya está finalizado. Pasa por secretaría para la entrega.` },
+                'Entregado': { titulo: '✅ ¡Pedido Entregado!', cuerpo: (nombre) => `Hola ${nombre}, gracias por confiar en Simonetta. ¡Esperamos verte pronto!` },
             };
             
             const msg = mensajes[estado];
@@ -254,4 +255,33 @@ const actualizarPedido = async (req, res) => {
     }
 };
 
-module.exports = { crearPedido, obtenerPedidos, actualizarEstado, obtenerMetricas, obtenerPedidosCosturera, obtenerPedido, actualizarPedido };
+
+// PUT /api/pedidos/:id/saldar
+const saldarYEntregar = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const pedido = await PedidoModel.saldarYEntregar(id);
+        if (!pedido) {
+            return res.status(404).json({ error: 'Pedido no encontrado' });
+        }
+        
+        // Notificar al cliente
+        const notificacion = require('../config/firebase');
+        const cliente = await PedidoModel.obtenerClienteDelPedido(id);
+        if (cliente && cliente.fcm_token) {
+            await notificacion.enviarNotificacion(cliente.fcm_token, {
+                titulo: '✅ ¡Pedido Entregado y Saldado!',
+                cuerpo: `Hola ${cliente.nombre_completo}, gracias por tu compra. ¡Esperamos verte pronto!`,
+                datos: { pedidoId: String(id), accion: 'entregado' },
+            });
+        }
+
+        return res.json({ mensaje: 'Pedido entregado y saldado correctamente', pedido });
+    } catch (error) {
+        console.error('Error al saldar pedido:', error);
+        res.status(500).json({ error: 'Error interno' });
+    }
+};
+
+module.exports = {
+ crearPedido, obtenerPedidos, actualizarEstado, obtenerMetricas, obtenerPedidosCosturera, obtenerPedido, actualizarPedido };

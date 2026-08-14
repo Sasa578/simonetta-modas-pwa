@@ -31,53 +31,93 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
         }
     };
 
+    const inputStyle = {
+        padding: '0.8rem 1rem', 
+        borderRadius: '8px', 
+        border: '1px solid #E2E8F0',
+        fontSize: '0.95rem',
+        outline: 'none',
+        transition: 'all 0.2s ease',
+        background: '#F8FAFC'
+    };
+
+    const labelStyle = {
+        fontSize: '0.85rem', 
+        fontWeight: 600,
+        color: '#475569',
+        marginBottom: '0.2rem'
+    };
+
     return (
         <div style={{
             position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-            background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center',
-            justifyContent: 'center', zIndex: 9999
+            background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
         }}>
             <div style={{
-                background: '#fff', padding: '2rem', borderRadius: '12px',
-                width: '100%', maxWidth: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+                background: '#ffffff', padding: '2.5rem', borderRadius: '16px',
+                width: '90%', maxWidth: '420px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
             }}>
                 <header style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem'}}>
-                    <h2 style={{color: 'var(--color-azul-oscuro)', margin: 0}}>👤 Nuevo Cliente</h2>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                        <div style={{background: 'var(--color-azul-claro)', padding: '0.5rem', borderRadius: '8px', color: 'var(--color-azul-oscuro)', fontSize: '1.2rem'}}>
+                            👤
+                        </div>
+                        <h2 style={{color: '#0F172A', margin: 0, fontSize: '1.4rem', fontWeight: 700}}>
+                            Nuevo Cliente
+                        </h2>
+                    </div>
                     <button onClick={onClose} style={{
-                        background: 'transparent', border: 'none', fontSize: '1.5rem',
-                        cursor: 'pointer', color: 'var(--color-texto-secundario)'
-                    }}>×</button>
+                        background: '#F1F5F9', border: 'none', width: '32px', height: '32px', borderRadius: '50%',
+                        cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'background 0.2s'
+                    }}>✕</button>
                 </header>
 
-                {error && <div style={{padding:'0.8rem', marginBottom:'1rem', borderRadius:'8px', background:'var(--color-rojo-suave)', color:'var(--color-rojo-texto)'}}>{error}</div>}
+                {error && (
+                    <div style={{padding:'0.8rem 1rem', marginBottom:'1.5rem', borderRadius:'8px', background:'#FEF2F2', border: '1px solid #FCA5A5', color:'#991B1B', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                        ⚠️ {error}
+                    </div>
+                )}
 
-                <form onSubmit={handleSubmit} style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
-                    <div style={{display: 'flex', flexDirection: 'column', gap: '0.4rem'}}>
-                        <label style={{fontSize: '0.85rem', fontWeight: 600}}>Nombre Completo *</label>
-                        <input type="text" value={form.nombre_completo} onChange={(e) => setForm({...form, nombre_completo: e.target.value})} required style={{padding: '0.7rem', borderRadius: '6px', border: '1px solid var(--color-borde)'}} />
+                <form onSubmit={handleSubmit} style={{display: 'flex', flexDirection: 'column', gap: '1.2rem'}}>
+                    <div style={{display: 'flex', flexDirection: 'column'}}>
+                        <label style={labelStyle}>Nombre Completo *</label>
+                        <input type="text" placeholder="Ej. Juan Pérez" value={form.nombre_completo} onChange={(e) => setForm({...form, nombre_completo: e.target.value})} style={inputStyle} required />
                     </div>
 
-                    <div style={{display: 'flex', flexDirection: 'column', gap: '0.4rem'}}>
-                        <label style={{fontSize: '0.85rem', fontWeight: 600}}>Carnet de Identidad</label>
-                        <input type="text" value={form.carnet_identidad} onChange={(e) => setForm({...form, carnet_identidad: e.target.value})} style={{padding: '0.7rem', borderRadius: '6px', border: '1px solid var(--color-borde)'}} />
+                    <div style={{display: 'flex', gap: '1rem'}}>
+                        <div style={{display: 'flex', flexDirection: 'column', flex: 1}}>
+                            <label style={labelStyle}>CI</label>
+                            <input type="text" placeholder="Ej. 1234567" value={form.carnet_identidad} onChange={(e) => setForm({...form, carnet_identidad: e.target.value})} style={inputStyle} />
+                        </div>
+                        <div style={{display: 'flex', flexDirection: 'column', flex: 1}}>
+                            <label style={labelStyle}>WhatsApp *</label>
+                            <input type="tel" placeholder="Ej. 70000000" value={form.telefono_whatsapp} onChange={(e) => setForm({...form, telefono_whatsapp: e.target.value})} style={inputStyle} required />
+                        </div>
                     </div>
 
-                    <div style={{display: 'flex', flexDirection: 'column', gap: '0.4rem'}}>
-                        <label style={{fontSize: '0.85rem', fontWeight: 600}}>WhatsApp *</label>
-                        <input type="tel" value={form.telefono_whatsapp} onChange={(e) => setForm({...form, telefono_whatsapp: e.target.value})} required style={{padding: '0.7rem', borderRadius: '6px', border: '1px solid var(--color-borde)'}} />
+                    <div style={{display: 'flex', flexDirection: 'column'}}>
+                        <label style={labelStyle}>Correo Electrónico</label>
+                        <input type="email" placeholder="Opcional" value={form.correo} onChange={(e) => setForm({...form, correo: e.target.value})} style={inputStyle} />
                     </div>
 
-                    <div style={{display: 'flex', flexDirection: 'column', gap: '0.4rem'}}>
-                        <label style={{fontSize: '0.85rem', fontWeight: 600}}>Correo</label>
-                        <input type="email" value={form.correo} onChange={(e) => setForm({...form, correo: e.target.value})} style={{padding: '0.7rem', borderRadius: '6px', border: '1px solid var(--color-borde)'}} />
+                    <div style={{display: 'flex', gap: '0.8rem', marginTop: '0.5rem'}}>
+                        <button type="button" onClick={onClose} style={{
+                            flex: 1, padding: '0.9rem', background: '#F1F5F9', color: '#475569',
+                            border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer',
+                            transition: 'background 0.2s'
+                        }}>
+                            Cancelar
+                        </button>
+                        <button type="submit" disabled={cargando} style={{
+                            flex: 2, background: 'var(--color-azul-oscuro)', color: '#ffffff', padding: '0.9rem',
+                            border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: cargando ? 'not-allowed' : 'pointer',
+                            transition: 'opacity 0.2s', opacity: cargando ? 0.7 : 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem'
+                        }}>
+                            {cargando ? 'Guardando...' : 'Crear Cliente'}
+                        </button>
                     </div>
-
-                    <button type="submit" disabled={cargando} style={{
-                        marginTop: '1rem', background: 'var(--color-azul-oscuro)', color: '#fff', padding: '1rem',
-                        border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: cargando ? 'not-allowed' : 'pointer'
-                    }}>
-                        {cargando ? 'Guardando...' : 'Crear Cliente'}
-                    </button>
                 </form>
             </div>
         </div>
