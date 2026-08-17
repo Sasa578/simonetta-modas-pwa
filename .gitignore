@@ -1,5 +1,5 @@
 # ============================================================
-# Simonetta Modas â€” .gitignore
+# Simonetta Modas — .gitignore
 # ============================================================
 
 # Dependencias
@@ -20,6 +20,12 @@ logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Archivos temporales de Microsoft Word / Office
+~\$*.docx
+~\$*.doc
+*.tmp
+*.bak
 
 # Sistema operativo
 .DS_Store
