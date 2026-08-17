@@ -25,6 +25,10 @@ CREATE TABLE IF NOT EXISTS usuarios (
     correo VARCHAR(150) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     fcm_token VARCHAR(500),
+    nombre_completo VARCHAR(200),
+    carnet_identidad VARCHAR(50),
+    telefono VARCHAR(50),
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_usuario_rol FOREIGN KEY (id_rol) REFERENCES roles(id_rol) ON DELETE RESTRICT
 );
 
@@ -37,6 +41,8 @@ CREATE TABLE IF NOT EXISTS clientes (
     id_usuario INTEGER,
     nombre_completo VARCHAR(200) NOT NULL,
     telefono_whatsapp VARCHAR(20) NOT NULL,
+    carnet_identidad VARCHAR(50),
+    correo VARCHAR(150),
     CONSTRAINT fk_cliente_usuario FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE SET NULL
 );
 

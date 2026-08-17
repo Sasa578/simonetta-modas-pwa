@@ -5,18 +5,38 @@ async function migrate() {
     try {
         await cliente.query('BEGIN');
 
-        console.log('--- Iniciando Migración ---');
+        console.log('--- Iniciando Migración Completa de Base de Datos ---');
 
-        // 1. Añadir fecha_prueba a pedidos
-        console.log('1. Añadiendo fecha_prueba a la tabla pedidos...');
+        // 1. Añadir fecha_prueba a la tabla pedidos
+        console.log('1. Verificando tabla pedidos (fecha_prueba)...');
         await cliente.query(`
             ALTER TABLE pedidos
             ADD COLUMN IF NOT EXISTS fecha_prueba DATE;
         `);
-        console.log('✔ Columna fecha_prueba añadida (o ya existía).');
+        console.log('✔ Columna fecha_prueba en pedidos asegurada.');
 
-        // 2. Crear tabla citas
-        console.log('2. Creando tabla citas...');
+        // 2. Añadir campos extendidos a la tabla usuarios
+        console.log('2. Verificando tabla usuarios (nombre_completo, carnet_identidad, telefono, fecha_registro)...');
+        await cliente.query(`
+            ALTER TABLE usuarios
+            ADD COLUMN IF NOT EXISTS nombre_completo VARCHAR(200),
+            ADD COLUMN IF NOT EXISTS carnet_identidad VARCHAR(50),
+            ADD COLUMN IF NOT EXISTS telefono VARCHAR(50),
+            ADD COLUMN IF NOT EXISTS fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+        `);
+        console.log('✔ Columnas extendidas en usuarios aseguradas.');
+
+        // 3. Añadir campos extendidos a la tabla clientes
+        console.log('3. Verificando tabla clientes (carnet_identidad, correo)...');
+        await cliente.query(`
+            ALTER TABLE clientes
+            ADD COLUMN IF NOT EXISTS carnet_identidad VARCHAR(50),
+            ADD COLUMN IF NOT EXISTS correo VARCHAR(150);
+        `);
+        console.log('✔ Columnas extendidas en clientes aseguradas.');
+
+        // 4. Crear tabla citas
+        console.log('4. Verificando tabla citas...');
         await cliente.query(`
             CREATE TABLE IF NOT EXISTS citas (
                 id_cita SERIAL PRIMARY KEY,
@@ -30,13 +50,13 @@ async function migrate() {
         `);
         console.log('✔ Tabla citas creada (o ya existía).');
 
-        // 3. Crear índice para citas
-        console.log('3. Creando índices...');
+        // 5. Crear índices
+        console.log('5. Verificando índices...');
         await cliente.query(`
             CREATE INDEX IF NOT EXISTS idx_citas_estado ON citas(estado);
             CREATE INDEX IF NOT EXISTS idx_citas_id_cliente ON citas(id_cliente);
         `);
-        console.log('✔ Índices creados.');
+        console.log('✔ Índices comprobados.');
 
         await cliente.query('COMMIT');
         console.log('--- Migración Completada Exitosamente ---');
@@ -51,3 +71,4 @@ async function migrate() {
 }
 
 migrate();
+

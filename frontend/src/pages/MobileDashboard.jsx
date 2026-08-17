@@ -14,7 +14,7 @@ const MobileDashboard = () => {
     const { token, usuario } = useAuth();
     const esCosturera = usuario?.rol === 'Costurera';
     const [pedidosActivos, setPedidosActivos] = useState([]);
-    const [modalMedidas, setModalMedidas] = useState(null); // { abierto: true, medidas: [], cliente: '' }
+    const [modalMedidas, setModalMedidas] = useState(null);
 
     const fetchPedidos = async () => {
         try {
@@ -29,7 +29,7 @@ const MobileDashboard = () => {
                 const filtrados = data.filter(p => p.estado !== 'Terminado' && p.estado !== 'Listo para Prueba');
                 setPedidosActivos(filtrados);
             }
-        } catch (error) { console.error("Error cargando pedidos:", error); }
+        } catch (error) { console.error('Error cargando pedidos:', error); }
     };
 
     useEffect(() => {
@@ -49,10 +49,9 @@ const MobileDashboard = () => {
                 body: JSON.stringify({ estado: nuevoEstado })
             });
             if (res.ok) fetchPedidos();
-        } catch (error) { console.error("Error al actualizar estado", error); }
+        } catch (error) { console.error('Error al actualizar estado', error); }
     };
 
-    // COSTURERA: Abrir modal con medidas del cliente
     const verMedidas = async (pedido) => {
         try {
             const res = await fetch(`http://localhost:3000/api/medidas/cliente/${pedido.id_cliente}`, {
@@ -103,20 +102,18 @@ const MobileDashboard = () => {
 
                             <div className="pedido-card-fechas">
                                 <span>📅 Inicio: {new Date(p.fecha_pedido).toLocaleDateString()}</span>
-                                <span>🏁 Entrega: {new Date(p.fecha_entrega).toLocaleDateString()}</span>
+                                <span>🚚 Entrega: {new Date(p.fecha_entrega).toLocaleDateString()}</span>
                             </div>
 
-                            {/* Botones de acción */}
                             <div style={{display:'flex',gap:'10px',marginTop:'15px',flexWrap:'wrap'}}>
                                 {esCosturera && (
                                     <>
                                         {p.estado === 'Pendiente' && <button onClick={() => actualizarEstado(p.id_pedido, 'Corte')} style={{flex:1,padding:'12px',background:'#455E8B',color:'white',border:'none',borderRadius:'8px',fontSize:'16px',fontWeight:'bold'}}>Pasar a Corte</button>}
                                         {p.estado === 'Corte' && <button onClick={() => actualizarEstado(p.id_pedido, 'Armado')} style={{flex:1,padding:'12px',background:'#A3FC9A',color:'#333',border:'none',borderRadius:'8px',fontSize:'16px',fontWeight:'bold'}}>Pasar a Armado</button>}
                                         {p.estado === 'Armado' && <button onClick={() => actualizarEstado(p.id_pedido, 'Acabados')} style={{flex:1,padding:'12px',background:'#E1F0FE',color:'#333',border:'none',borderRadius:'8px',fontSize:'16px',fontWeight:'bold'}}>A Acabados</button>}
-                                        {p.estado === 'Acabados' && <button onClick={() => actualizarEstado(p.id_pedido, 'Para Entregar')} style={{flex:1,padding:'12px',background:'#8290B0',color:'white',border:'none',borderRadius:'8px',fontSize:'16px',fontWeight:'bold'}}>Pasar a Secretar�a</button>}
+                                        {p.estado === 'Acabados' && <button onClick={() => actualizarEstado(p.id_pedido, 'Para Entregar')} style={{flex:1,padding:'12px',background:'#8290B0',color:'white',border:'none',borderRadius:'8px',fontSize:'16px',fontWeight:'bold'}}>Pasar a Secretaría</button>}
                                     </>
                                 )}
-                                {/* 📏 Ver Medidas — 44x44px mínimo */}
                                 <button onClick={() => verMedidas(p)} style={{minWidth:'44px',minHeight:'44px',padding:'10px 14px',background:'#455E8B',color:'white',border:'none',borderRadius:'8px',fontSize:'15px',cursor:'pointer',whiteSpace:'nowrap'}} title="Ver medidas anatómicas">
                                     📏 Ver Medidas
                                 </button>
@@ -126,7 +123,6 @@ const MobileDashboard = () => {
                 </div>
             </section>
 
-            {/* === MODAL: Medidas Anatómicas === */}
             {modalMedidas?.abierto && (
                 <div className="modal-overlay" onClick={cerrarModal}>
                     <div className="modal-contenido" onClick={(e) => e.stopPropagation()}>
