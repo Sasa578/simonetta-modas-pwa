@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+﻿import { createContext, useContext, useState, useEffect } from 'react';
 import api from '../api/axios';
 import { requestFirebaseToken } from '../api/firebaseClient';
+import ModalCambioPasswordObligatorio from '../components/ModalCambioPasswordObligatorio';
 
 const AuthContext = createContext(null);
 
@@ -13,7 +14,11 @@ export const AuthProvider = ({ children }) => {
         const token = localStorage.getItem('token');
         const usuarioGuardado = localStorage.getItem('usuario');
         if (token && usuarioGuardado) {
-            setUsuario(JSON.parse(usuarioGuardado));
+            try {
+                setUsuario(JSON.parse(usuarioGuardado));
+            } catch {
+                localStorage.removeItem('usuario');
+            }
         }
         setCargando(false);
     }, []);
@@ -35,12 +40,20 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('usuario', JSON.stringify(data.usuario));
         setUsuario(data.usuario);
         
-        // TI-4.4: Solicitar permisos push después de login exitoso
+        // Solicitar permisos push después de login exitoso
         setTimeout(() => {
             registrarFCMToken();
         }, 1000);
 
         return data;
+    };
+
+    const marcarPasswordCambiada = () => {
+        if (usuario) {
+            const usuarioActualizado = { ...usuario, debe_cambiar_password: false };
+            localStorage.setItem('usuario', JSON.stringify(usuarioActualizado));
+            setUsuario(usuarioActualizado);
+        }
     };
 
     const logout = () => {
@@ -50,8 +63,21 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ usuario, cargando, login, logout, token: localStorage.getItem('token') }}>
+        <AuthContext.Provider value={{
+            usuario,
+            cargando,
+            login,
+            logout,
+            marcarPasswordCambiada,
+            token: localStorage.getItem('token')
+        }}>
             {children}
+
+            {/* Modal de cambio obligatorio de contraseña cuando debe_cambiar_password es true */}
+            <ModalCambioPasswordObligatorio
+                isOpen={Boolean(usuario && usuario.debe_cambiar_password)}
+                onSuccess={marcarPasswordCambiada}
+            />
         </AuthContext.Provider>
     );
 };

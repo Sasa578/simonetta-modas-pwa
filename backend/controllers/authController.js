@@ -1,15 +1,22 @@
-const bcrypt = require('bcrypt');
+﻿const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const UsuarioModel = require('../models/UsuarioModel');
 const db = require('../config/db');
+const { sanearTexto, validarCorreo } = require('../middleware/validaciones');
 require('dotenv').config();
 
 // POST /api/auth/login
 const login = async (req, res) => {
-    const { correo, password } = req.body;
+    let { correo, password } = req.body;
 
     if (!correo || !password) {
         return res.status(400).json({ error: 'Correo y contraseña son obligatorios.' });
+    }
+
+    correo = sanearTexto(correo);
+
+    if (!validarCorreo(correo)) {
+        return res.status(400).json({ error: 'Formato de correo electrónico inválido.' });
     }
 
     try {
@@ -31,8 +38,7 @@ const login = async (req, res) => {
                 rol: usuario.nombre_rol,
                 nombre_completo: usuario.nombre_completo,
                 telefono: usuario.telefono,
-                nombre_completo: usuario.nombre_completo,
-                telefono: usuario.telefono,
+                debe_cambiar_password: Boolean(usuario.debe_cambiar_password),
             },
             process.env.JWT_SECRET,
             { expiresIn: '8h' }
@@ -45,10 +51,52 @@ const login = async (req, res) => {
                 id_usuario: usuario.id_usuario,
                 correo: usuario.correo,
                 rol: usuario.nombre_rol,
+                nombre_completo: usuario.nombre_completo,
+                telefono: usuario.telefono,
+                debe_cambiar_password: Boolean(usuario.debe_cambiar_password),
             },
         });
     } catch (error) {
         console.error('Error en login:', error);
+        return res.status(500).json({ error: 'Error interno del servidor.' });
+    }
+};
+
+// PUT /api/auth/cambiar-password-inicial — Cambio obligatorio de contraseña genérica inicial
+const cambiarPasswordInicial = async (req, res) => {
+    const id_usuario = req.usuario?.id_usuario;
+    let { passwordActual, nuevaPassword } = req.body;
+
+    if (!id_usuario) {
+        return res.status(401).json({ error: 'Usuario no autenticado.' });
+    }
+
+    if (!passwordActual || !nuevaPassword) {
+        return res.status(400).json({ error: 'La contraseña actual y la nueva contraseña son obligatorias.' });
+    }
+
+    if (nuevaPassword.trim().length < 6) {
+        return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres.' });
+    }
+
+    try {
+        const userRes = await db.query('SELECT id_usuario, password_hash FROM usuarios WHERE id_usuario = $1', [id_usuario]);
+        const usuario = userRes.rows[0];
+
+        if (!usuario) {
+            return res.status(404).json({ error: 'Usuario no encontrado.' });
+        }
+
+        const valido = await bcrypt.compare(passwordActual, usuario.password_hash);
+        if (!valido) {
+            return res.status(400).json({ error: 'La contraseña actual es incorrecta.' });
+        }
+
+        await UsuarioModel.actualizarPasswordInicial(id_usuario, nuevaPassword.trim());
+
+        return res.json({ mensaje: 'Contraseña actualizada exitosamente.' });
+    } catch (error) {
+        console.error('Error al cambiar contraseña inicial:', error);
         return res.status(500).json({ error: 'Error interno del servidor.' });
     }
 };
@@ -86,10 +134,18 @@ const listarRoles = async (req, res) => {
 
 // POST /api/auth/register — Registro de clientes
 const registrarCliente = async (req, res) => {
-    const { correo, password, nombre_completo, telefono_whatsapp, carnet_identidad } = req.body;
+    let { correo, password, nombre_completo, telefono_whatsapp, carnet_identidad } = req.body;
 
     if (!correo || !password || !nombre_completo || !telefono_whatsapp) {
         return res.status(400).json({ error: 'Todos los campos son obligatorios.' });
+    }
+
+    correo = sanearTexto(correo);
+    nombre_completo = sanearTexto(nombre_completo);
+    telefono_whatsapp = sanearTexto(telefono_whatsapp);
+
+    if (!validarCorreo(correo)) {
+        return res.status(400).json({ error: 'Formato de correo electrónico inválido.' });
     }
 
     try {
@@ -99,7 +155,7 @@ const registrarCliente = async (req, res) => {
         const usuarioExistente = await UsuarioModel.buscarPorCorreo(correo);
         if (usuarioExistente) {
             await db.query('ROLLBACK');
-            return res.status(400).json({ error: 'El correo ya está registrado.' });
+            return res.status(400).json({ error: 'El correo electrónico ya está registrado.' });
         }
 
         // Obtener ID del rol Cliente
@@ -116,7 +172,7 @@ const registrarCliente = async (req, res) => {
 
         // Insertar usuario
         const usuarioRes = await db.query(
-            'INSERT INTO usuarios (id_rol, correo, password_hash, nombre_completo, telefono, carnet_identidad) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id_usuario',
+            'INSERT INTO usuarios (id_rol, correo, password_hash, nombre_completo, telefono, carnet_identidad, debe_cambiar_password) VALUES ($1, $2, $3, $4, $5, $6, false) RETURNING id_usuario',
             [id_rol, correo, hash, nombre_completo, telefono_whatsapp, carnet_identidad || null]
         );
         const id_usuario = usuarioRes.rows[0].id_usuario;
@@ -136,4 +192,4 @@ const registrarCliente = async (req, res) => {
     }
 };
 
-module.exports = { login, registrarFcmToken, listarRoles, registrarCliente };
+module.exports = { login, cambiarPasswordInicial, registrarFcmToken, listarRoles, registrarCliente };

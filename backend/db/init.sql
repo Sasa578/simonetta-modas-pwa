@@ -1,4 +1,4 @@
--- ============================================================
+﻿-- ============================================================
 -- SIMONETTA MODAS - Script de inicialización de Base de Datos
 -- PostgreSQL - Tercera Forma Normal (3FN)
 -- ============================================================
@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     nombre_completo VARCHAR(200),
     carnet_identidad VARCHAR(50),
     telefono VARCHAR(50),
+    debe_cambiar_password BOOLEAN DEFAULT false,
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_usuario_rol FOREIGN KEY (id_rol) REFERENCES roles(id_rol) ON DELETE RESTRICT
 );
