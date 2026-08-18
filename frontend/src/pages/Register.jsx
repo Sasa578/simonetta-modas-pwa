@@ -1,7 +1,7 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import './Login.css'; // Reutilizamos el estilo minimalista
+import './Login.css';
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -21,6 +21,11 @@ const Register = () => {
         e.preventDefault();
         setError('');
         
+        if (!/^\+?[0-9\s-]{7,15}$/.test(formData.telefono_whatsapp.trim())) {
+            setError('El número de WhatsApp sólo debe contener dígitos numéricos (7 a 15 números).');
+            return;
+        }
+
         if (formData.password !== confirmPassword) {
             setError('Las contraseñas no coinciden.');
             return;
@@ -29,8 +34,13 @@ const Register = () => {
         setCargando(true);
 
         try {
-            await api.post('/auth/register', formData);
-            // Registro exitoso, redirigimos a login
+            await api.post('/auth/register', {
+                ...formData,
+                correo: formData.correo.trim(),
+                nombre_completo: formData.nombre_completo.trim(),
+                telefono_whatsapp: formData.telefono_whatsapp.trim(),
+                carnet_identidad: formData.carnet_identidad.trim(),
+            });
             navigate('/login');
         } catch (err) {
             setError(err.response?.data?.error || 'Error al registrarse.');
@@ -43,8 +53,8 @@ const Register = () => {
         <div className="login-container">
             <div className="login-card">
                 <div className="login-header">
-                    <div className="login-logo">🧵</div>
-                    <h1>Simonetta</h1>
+                    <div className="login-logo">👗</div>
+                    <h1>Simonetta Modas</h1>
                     <p className="login-subtitle">Registro de Cliente</p>
                 </div>
 
@@ -74,11 +84,11 @@ const Register = () => {
                     </div>
 
                     <div className="form-group">
-                        <label>WhatsApp</label>
+                        <label>WhatsApp (Solo números)</label>
                         <input
                             type="tel"
                             value={formData.telefono_whatsapp}
-                            onChange={(e) => setFormData({ ...formData, telefono_whatsapp: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, telefono_whatsapp: e.target.value.replace(/[^0-9+ -]/g, '') })}
                             placeholder="60012345"
                             required
                         />
@@ -108,7 +118,7 @@ const Register = () => {
                             position: 'absolute', right: '10px', top: '35px', background: 'transparent',
                             border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: 'var(--color-texto-secundario)'
                         }}>
-                            {showPassword ? '👁️' : '👁️‍🗨️'}
+                            {showPassword ? '👁️' : '🙈'}
                         </button>
                     </div>
 

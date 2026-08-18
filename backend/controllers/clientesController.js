@@ -1,4 +1,5 @@
-const ClienteModel = require('../models/ClienteModel');
+﻿const ClienteModel = require('../models/ClienteModel');
+const { sanearTexto, validarCorreo, validarTelefono } = require('../middleware/validaciones');
 
 // GET /api/clientes — Listar todos los clientes
 const listarClientes = async (req, res) => {
@@ -27,7 +28,7 @@ const obtenerCliente = async (req, res) => {
 
 // POST /api/clientes — Crear un nuevo cliente
 const crearCliente = async (req, res) => {
-    const { nombre_completo, telefono_whatsapp, id_usuario, carnet_identidad, correo } = req.body;
+    let { nombre_completo, telefono_whatsapp, id_usuario, carnet_identidad, correo, password } = req.body;
 
     if (!nombre_completo) {
         return res.status(400).json({ error: 'El nombre completo es obligatorio.' });
@@ -37,11 +38,25 @@ const crearCliente = async (req, res) => {
         return res.status(400).json({ error: 'El número de WhatsApp es obligatorio.' });
     }
 
+    nombre_completo = sanearTexto(nombre_completo);
+    telefono_whatsapp = sanearTexto(telefono_whatsapp);
+    if (correo) correo = sanearTexto(correo);
+
+    if (!validarTelefono(telefono_whatsapp)) {
+        return res.status(400).json({ error: 'El número de WhatsApp sólo debe contener dígitos numéricos (7 a 15 números).' });
+    }
+
+    if (correo && !validarCorreo(correo)) {
+        return res.status(400).json({ error: 'Formato de correo electrónico inválido.' });
+    }
+
     try {
         const cliente = await ClienteModel.crear({
             nombre_completo,
             telefono_whatsapp: telefono_whatsapp.trim(),
             id_usuario,
+            correo,
+            password,
         });
 
         return res.status(201).json({
@@ -49,6 +64,9 @@ const crearCliente = async (req, res) => {
             cliente,
         });
     } catch (error) {
+        if (error.constraint === 'usuarios_correo_key') {
+            return res.status(409).json({ error: 'El correo electrónico ya está registrado.' });
+        }
         console.error('Error al crear cliente:', error);
         return res.status(500).json({ error: 'Error interno del servidor.' });
     }
@@ -57,11 +75,18 @@ const crearCliente = async (req, res) => {
 // PUT /api/clientes/:id — Actualizar un cliente
 const actualizarCliente = async (req, res) => {
     const { id } = req.params;
-    const { nombre_completo, telefono_whatsapp, id_usuario, carnet_identidad, correo } = req.body;
+    let { nombre_completo, telefono_whatsapp, id_usuario, carnet_identidad, correo, password } = req.body;
 
-    // Si se envía telefono_whatsapp, no puede ser vacío
-    if (telefono_whatsapp !== undefined && telefono_whatsapp.trim() === '') {
-        return res.status(400).json({ error: 'El número de WhatsApp no puede estar vacío.' });
+    if (nombre_completo) nombre_completo = sanearTexto(nombre_completo);
+    if (telefono_whatsapp) telefono_whatsapp = sanearTexto(telefono_whatsapp);
+    if (correo) correo = sanearTexto(correo);
+
+    if (telefono_whatsapp !== undefined && !validarTelefono(telefono_whatsapp)) {
+        return res.status(400).json({ error: 'El número de WhatsApp sólo debe contener dígitos numéricos (7 a 15 números).' });
+    }
+
+    if (correo && !validarCorreo(correo)) {
+        return res.status(400).json({ error: 'Formato de correo electrónico inválido.' });
     }
 
     try {
@@ -69,6 +94,8 @@ const actualizarCliente = async (req, res) => {
             nombre_completo,
             telefono_whatsapp: telefono_whatsapp?.trim() || undefined,
             id_usuario,
+            correo,
+            password,
         });
 
         if (!cliente) {
@@ -80,6 +107,9 @@ const actualizarCliente = async (req, res) => {
             cliente,
         });
     } catch (error) {
+        if (error.constraint === 'usuarios_correo_key') {
+            return res.status(409).json({ error: 'El correo electrónico ya está registrado.' });
+        }
         console.error('Error al actualizar cliente:', error);
         return res.status(500).json({ error: 'Error interno del servidor.' });
     }

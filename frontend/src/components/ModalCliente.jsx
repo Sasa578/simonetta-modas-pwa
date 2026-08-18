@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import api from '../api/axios';
 
 const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
@@ -18,10 +18,22 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+
+        if (!/^\+?[0-9\s-]{7,15}$/.test(form.telefono_whatsapp.trim())) {
+            setError('El número de WhatsApp sólo debe contener dígitos numéricos (7 a 15 números).');
+            return;
+        }
+
         setCargando(true);
 
         try {
-            await api.post('/clientes', form);
+            await api.post('/clientes', {
+                ...form,
+                nombre_completo: form.nombre_completo.trim(),
+                telefono_whatsapp: form.telefono_whatsapp.trim(),
+                carnet_identidad: form.carnet_identidad.trim(),
+                correo: form.correo.trim(),
+            });
             onSuccess();
             onClose();
         } catch (err) {
@@ -92,8 +104,15 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
                             <input type="text" placeholder="Ej. 1234567" value={form.carnet_identidad} onChange={(e) => setForm({...form, carnet_identidad: e.target.value})} style={inputStyle} />
                         </div>
                         <div style={{display: 'flex', flexDirection: 'column', flex: 1}}>
-                            <label style={labelStyle}>WhatsApp *</label>
-                            <input type="tel" placeholder="Ej. 70000000" value={form.telefono_whatsapp} onChange={(e) => setForm({...form, telefono_whatsapp: e.target.value})} style={inputStyle} required />
+                            <label style={labelStyle}>WhatsApp (Solo números) *</label>
+                            <input 
+                                type="tel" 
+                                placeholder="Ej. 70000000" 
+                                value={form.telefono_whatsapp} 
+                                onChange={(e) => setForm({...form, telefono_whatsapp: e.target.value.replace(/[^0-9+ -]/g, '')})} 
+                                style={inputStyle} 
+                                required 
+                            />
                         </div>
                     </div>
 

@@ -1,18 +1,26 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import api from '../api/axios';
 
 const ModalUsuario = ({ isOpen, onClose, onSuccess, usuarioEdit = null, roles = [] }) => {
-    const [form, setForm] = useState({ id_usuario: null, correo: '', password: '', id_rol: '', nombre_completo: '', carnet_identidad: '', telefono: '' });
+    const [form, setForm] = useState({ 
+        id_usuario: null, 
+        correo: '', 
+        password: '', 
+        id_rol: '', 
+        nombre_completo: '', 
+        carnet_identidad: '',
+        telefono: '' 
+    });
     const [cargando, setCargando] = useState(false);
     const [error, setError] = useState('');
 
     useEffect(() => {
         if (isOpen) {
             if (usuarioEdit) {
-                setForm({ 
-                    id_usuario: usuarioEdit.id_usuario, 
-                    correo: usuarioEdit.correo, 
-                    password: '', 
+                setForm({
+                    id_usuario: usuarioEdit.id_usuario,
+                    correo: usuarioEdit.correo,
+                    password: '',
                     id_rol: usuarioEdit.id_rol,
                     nombre_completo: usuarioEdit.nombre_completo || '',
                     carnet_identidad: usuarioEdit.carnet_identidad || '',
@@ -30,21 +38,36 @@ const ModalUsuario = ({ isOpen, onClose, onSuccess, usuarioEdit = null, roles = 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+
+        if (form.telefono && !/^\+?[0-9\s-]{7,15}$/.test(form.telefono.trim())) {
+            setError('El número de teléfono sólo debe contener dígitos numéricos (7 a 15 números).');
+            return;
+        }
+
         setCargando(true);
 
         try {
             if (usuarioEdit) {
                 const data = { 
-                    correo: form.correo, 
+                    correo: form.correo.trim(), 
                     id_rol: form.id_rol, 
-                    nombre_completo: form.nombre_completo,
-                    carnet_identidad: form.carnet_identidad,
-                    telefono: form.telefono,
-                    ...(form.password ? { password: form.password } : {}) 
+                    nombre_completo: form.nombre_completo.trim(),
+                    carnet_identidad: form.carnet_identidad.trim(),
+                    telefono: form.telefono.trim(),
+                    ...(form.password ? { password: form.password.trim() } : {}) 
                 };
                 await api.put(`/usuarios/${usuarioEdit.id_usuario}`, data);
             } else {
-                await api.post('/usuarios', form);
+                const data = {
+                    ...form,
+                    correo: form.correo.trim(),
+                    nombre_completo: form.nombre_completo.trim(),
+                    carnet_identidad: form.carnet_identidad.trim(),
+                    telefono: form.telefono.trim(),
+                    password: form.password.trim() || '12345678',
+                    debe_cambiar_password: true,
+                };
+                await api.post('/usuarios', data);
             }
             onSuccess();
             onClose();
@@ -80,7 +103,7 @@ const ModalUsuario = ({ isOpen, onClose, onSuccess, usuarioEdit = null, roles = 
         }}>
             <div style={{
                 background: '#ffffff', padding: '2.5rem', borderRadius: '16px',
-                width: '90%', maxWidth: '420px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+                width: '90%', maxWidth: '440px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
                 maxHeight: '90vh', overflowY: 'auto'
             }}>
                 <header style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem'}}>
@@ -118,8 +141,15 @@ const ModalUsuario = ({ isOpen, onClose, onSuccess, usuarioEdit = null, roles = 
                             <input type="text" placeholder="Ej. 1234567" value={form.carnet_identidad} onChange={(e) => setForm({...form, carnet_identidad: e.target.value})} style={inputStyle} />
                         </div>
                         <div style={{display: 'flex', flexDirection: 'column', flex: 1}}>
-                            <label style={labelStyle}>Teléfono *</label>
-                            <input type="tel" placeholder="Ej. 70000000" value={form.telefono} onChange={(e) => setForm({...form, telefono: e.target.value})} style={inputStyle} required />
+                            <label style={labelStyle}>Teléfono (Solo números) *</label>
+                            <input 
+                                type="tel" 
+                                placeholder="Ej. 70000000" 
+                                value={form.telefono} 
+                                onChange={(e) => setForm({...form, telefono: e.target.value.replace(/[^0-9+ -]/g, '')})} 
+                                style={inputStyle} 
+                                required 
+                            />
                         </div>
                     </div>
 
@@ -129,8 +159,21 @@ const ModalUsuario = ({ isOpen, onClose, onSuccess, usuarioEdit = null, roles = 
                     </div>
 
                     <div style={{display: 'flex', flexDirection: 'column'}}>
-                        <label style={labelStyle}>Contraseña {usuarioEdit && <span style={{fontWeight: 400, color: '#94A3B8'}}>(Dejar vacío para no cambiar)</span>}</label>
-                        <input type="password" placeholder="••••••••" value={form.password} onChange={(e) => setForm({...form, password: e.target.value})} style={inputStyle} required={!usuarioEdit} />
+                        <label style={labelStyle}>
+                            Contraseña {usuarioEdit ? <span style={{fontWeight: 400, color: '#94A3B8'}}>(Vacio para mantener)</span> : <span style={{fontWeight: 400, color: 'var(--color-azul-oscuro)'}}>(Opcional)</span>}
+                        </label>
+                        <input 
+                            type="password" 
+                            placeholder={usuarioEdit ? "••••••••" : "Por defecto: 12345678"} 
+                            value={form.password} 
+                            onChange={(e) => setForm({...form, password: e.target.value})} 
+                            style={inputStyle} 
+                        />
+                        {!usuarioEdit && (
+                            <span style={{ fontSize: '0.75rem', color: '#64748B', marginTop: '0.3rem' }}>
+                                💡 Se asignará la clave genérica <b>12345678</b> y el usuario cambiará su contraseña obligatoriamente en su primer ingreso.
+                            </span>
+                        )}
                     </div>
 
                     <div style={{display: 'flex', flexDirection: 'column'}}>
