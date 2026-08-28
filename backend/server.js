@@ -9,6 +9,7 @@ const pedidosRoutes = require('./routes/pedidosRoutes');
 const almacenRoutes = require('./routes/almacenRoutes');
 const usuariosRoutes = require('./routes/usuariosRoutes');
 const citasRoutes = require('./routes/citasRoutes');
+const pruebasRoutes = require('./routes/pruebasRoutes');
 
 const app = express();
 const PUERTO = process.env.PUERTO || 3000;
@@ -25,6 +26,7 @@ app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/almacen', almacenRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/citas', citasRoutes);
+app.use('/api/pruebas', pruebasRoutes);
 
 // --- Ruta de salud ---
 app.get('/api/salud', (req, res) => {
@@ -38,7 +40,7 @@ const { Server } = require('socket.io');
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: '*', // Permitir cualquier origen por simplicidad en desarrollo local
+        origin: '*',
         methods: ['GET', 'POST', 'PUT', 'DELETE']
     }
 });
@@ -47,14 +49,14 @@ const io = new Server(server, {
 app.set('io', io);
 
 io.on('connection', (socket) => {
-    console.log(`🟢 Cliente conectado (Socket ID: ${socket.id})`);
+    console.log(\🔌 Cliente conectado (Socket ID: \)\);
     socket.on('disconnect', () => {
-        console.log(`🔴 Cliente desconectado (Socket ID: ${socket.id})`);
+        console.log(\🔌 Cliente desconectado (Socket ID: \)\);
     });
 });
 
 server.listen(PUERTO, () => {
-    console.log(`🧵 Simonetta Modas API corriendo en http://localhost:${PUERTO} (Con WebSockets)`);
+    console.log(\👗 Simonetta Modas API corriendo en http://localhost:\ (Con WebSockets)\);
 });
 
 module.exports = { app, server, io };
