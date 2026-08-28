@@ -13,8 +13,6 @@ const AdminLayout = () => {
 
     const handleLogout = () => { logout(); navigate('/login'); };
 
-    const isActive = (path) => location.pathname.startsWith(path) ? 'active' : '';
-
     useEffect(() => {
         api.get('/usuarios').then(({ data }) => setPersonal(data.slice(0, 5))).catch(() => {});
         api.get('/pedidos').then(({ data }) => {
@@ -28,7 +26,7 @@ const AdminLayout = () => {
             {/* Sidebar Izquierdo */}
             <aside className="sidebar-left">
                 <div className="sidebar-brand">
-                    <span className="brand-icon">🧵</span>
+                    <span className="brand-icon">👗</span>
                     <h1 className="brand-name">SIMONETTA</h1>
                     <p className="brand-subtitle">Panel Admin</p>
                 </div>
@@ -46,7 +44,7 @@ const AdminLayout = () => {
                         ))}
                     </div>
                 </div>
-                <button className="sidebar-logout" onClick={handleLogout}>⏻ Cerrar sesión</button>
+                <button className="sidebar-logout" onClick={handleLogout}>🚪 Cerrar sesión</button>
             </aside>
 
             {/* Topbar */}
@@ -57,6 +55,7 @@ const AdminLayout = () => {
                     <NavLink to="/admin/almacen" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Almacén</NavLink>
                     <NavLink to="/admin/clientes" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Clientes</NavLink>
                     <NavLink to="/admin/usuarios" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Usuarios</NavLink>
+                    <NavLink to="/admin/pruebas" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>🧪 Pruebas</NavLink>
                 </nav>
                 <div className="topbar-perfil">
                     <div className="perfil-avatar">{usuario?.correo?.charAt(0).toUpperCase() || 'A'}</div>

@@ -8,6 +8,7 @@ import AdminUsuarios from './pages/AdminUsuarios';
 import AdminPedidos from './pages/AdminPedidos';
 import AlmacenView from './pages/AlmacenView';
 import ClientesView from './pages/ClientesView';
+import AdminPruebasView from './pages/AdminPruebasView';
 import SecretariaDashboard from './pages/SecretariaDashboard';
 import MobileDashboard from './pages/MobileDashboard';
 import MobilePerfil from './pages/MobilePerfil';
@@ -45,6 +46,7 @@ const App = () => (
                     <Route path="clientes" element={<ClientesView />} />
                     <Route path="almacen" element={<AlmacenView />} />
                     <Route path="pedidos" element={<AdminPedidos />} />
+                    <Route path="pruebas" element={<AdminPruebasView />} />
                 </Route>
 
                 {/* SECRETARÍA */}

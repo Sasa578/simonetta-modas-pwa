@@ -17,6 +17,8 @@ Registro de la evolución del documento de trabajo de grado, arquitectura del si
 | 18/08/2026 | **v1.1-security** | Implementación de verificación CAPTCHA dinámica visual en inicio de sesión y desinfección contra SQLi. | **Hito de Subsanación (Tribunal):** Seguridad reforzada en pantalla de Login. |
 | 18/08/2026 | **v1.2-validation** | Aplicación de máscaras estrictas para números de teléfono/WhatsApp y validación de campos. | **Hito de Subsanación (Tribunal):** Resguardo de integridad de datos en formularios. |
 | 18/08/2026 | **v1.3-password-flow**| Asignación de contraseña genérica `12345678` a operarias y modal de cambio obligatorio en primer inicio. | **Hito de Subsanación (Tribunal):** Flujo de seguridad para contraseñas de personal. |
+| 28/08/2026 | **v1.4-jest-testing** | Configuración de marco de pruebas automatizadas Jest/Supertest y controlador de reporte de estado de API. | **Hito:** Pruebas automatizadas del sistema con 100% de tasa de éxito. |
+| 28/08/2026 | **v1.5-mini-postman** | Nuevo menú `🧪 Pruebas` en Admin, Dashboard de resultados Jest y cliente interactivo Mini Postman. | **Hito:** Herramienta interactiva de pruebas de usabilidad y cliente HTTP en panel Admin. |
 
 ---
 
@@ -29,3 +31,5 @@ Registro de la evolución del documento de trabajo de grado, arquitectura del si
 - **`v1.1-security`**: CAPTCHA dinámico y sanitización contra inyecciones SQL en Login.
 - **`v1.2-validation`**: Validación estricta de campos telefónicos y numéricos.
 - **`v1.3-password-flow`**: Clave genérica `12345678` y cambio obligatorio en primer ingreso de operarias.
+- **`v1.4-jest-testing`**: Suite de pruebas Jest/Supertest backend y ejecutor de reportes API.
+- **`v1.5-mini-postman`**: Dashboard de pruebas de usabilidad Jest y cliente interactivo Mini Postman en panel Admin.
