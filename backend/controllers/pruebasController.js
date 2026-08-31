@@ -1,4 +1,4 @@
-const fs = require('fs');
+﻿const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 
@@ -52,7 +52,8 @@ const ejecutarPeticionPostman = async (req, res) => {
     const startTime = Date.now();
 
     try {
-        const fullUrl = url.startsWith('http') ? url : \http://127.0.0.1:3000\\;
+        const prefix = url.startsWith('/') ? '' : '/';
+        const fullUrl = url.startsWith('http') ? url : ('http://127.0.0.1:3000' + prefix + url);
         
         const fetchOptions = {
             method: method.toUpperCase(),
