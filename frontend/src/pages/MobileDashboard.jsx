@@ -18,17 +18,12 @@ const MobileDashboard = () => {
 
     const fetchPedidos = async () => {
         try {
-            const url = esCosturera 
-                ? `http://localhost:3000/api/pedidos/costurera/${usuario.id_usuario}`
-                : `http://localhost:3000/api/pedidos`;
-            const res = await fetch(url, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                const filtrados = data.filter(p => p.estado !== 'Terminado' && p.estado !== 'Listo para Prueba');
-                setPedidosActivos(filtrados);
-            }
+            const endpoint = esCosturera 
+                ? `/pedidos/costurera/${usuario.id_usuario}`
+                : `/pedidos`;
+            const res = await api.get(endpoint);
+            const filtrados = (res.data || []).filter(p => p.estado !== 'Terminado' && p.estado !== 'Listo para Prueba');
+            setPedidosActivos(filtrados);
         } catch (error) { console.error("Error cargando pedidos:", error); }
     };
 
@@ -43,25 +38,16 @@ const MobileDashboard = () => {
 
     const actualizarEstado = async (id_pedido, nuevoEstado) => {
         try {
-            const res = await fetch(`http://localhost:3000/api/pedidos/${id_pedido}/estado`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ estado: nuevoEstado })
-            });
-            if (res.ok) fetchPedidos();
+            await api.put(`/pedidos/${id_pedido}/estado`, { estado: nuevoEstado });
+            fetchPedidos();
         } catch (error) { console.error("Error al actualizar estado", error); }
     };
 
     // COSTURERA: Abrir modal con medidas del cliente
     const verMedidas = async (pedido) => {
         try {
-            const res = await fetch(`http://localhost:3000/api/medidas/cliente/${pedido.id_cliente}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setModalMedidas({ abierto: true, medidas: data, cliente: pedido.cliente, caducadas: data[0]?.medidas_caducadas });
-            }
+            const res = await api.get(`/medidas/cliente/${pedido.id_cliente}`);
+            setModalMedidas({ abierto: true, medidas: res.data, cliente: pedido.cliente, caducadas: res.data[0]?.medidas_caducadas });
         } catch (err) { console.error('Error cargando medidas:', err); }
     };
 
