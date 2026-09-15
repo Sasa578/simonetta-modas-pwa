@@ -1,4 +1,6 @@
 const ClienteModel = require('../models/ClienteModel');
+const UsuarioModel = require('../models/UsuarioModel');
+const db = require('../config/db');
 
 // GET /api/clientes — Listar todos los clientes
 const listarClientes = async (req, res) => {
@@ -25,30 +27,78 @@ const obtenerCliente = async (req, res) => {
     }
 };
 
-// POST /api/clientes — Crear un nuevo cliente
+// POST /api/clientes — Crear un nuevo cliente (Persona o Institucional)
 const crearCliente = async (req, res) => {
-    const { nombre_completo, telefono_whatsapp, id_usuario, carnet_identidad, correo } = req.body;
-
-    if (!nombre_completo) {
-        return res.status(400).json({ error: 'El nombre completo es obligatorio.' });
-    }
-
-    if (!telefono_whatsapp || telefono_whatsapp.trim() === '') {
-        return res.status(400).json({ error: 'El número de WhatsApp es obligatorio.' });
-    }
-
     try {
-        const cliente = await ClienteModel.crear({
+        const {
+            id_tipo_cliente = 1,
+            tipo_cliente = 'Persona',
+            correo_electronico,
+            correo,
+            password,
+            // Persona
+            nombre,
+            apellido,
             nombre_completo,
-            telefono_whatsapp: telefono_whatsapp.trim(),
-            id_usuario,
+            telefono,
+            telefono_whatsapp,
+            carnet_identidad,
+            fecha_nacimiento,
+            // Institucional
+            razon_social,
+            nit,
+            nombre_contacto,
+            telefono_contacto,
+            // Atributos y Contrato
+            atributos,
+            contrato
+        } = req.body;
+
+        const isInstitucional = Number(id_tipo_cliente) === 2 || tipo_cliente === 'Institucional';
+
+        if (isInstitucional) {
+            if (!razon_social && !nombre_completo) {
+                return res.status(400).json({ error: 'La razón social de la institución es obligatoria.' });
+            }
+            if (!nit && !carnet_identidad) {
+                return res.status(400).json({ error: 'El NIT de la institución es obligatorio.' });
+            }
+        } else {
+            if (!nombre_completo && !nombre) {
+                return res.status(400).json({ error: 'El nombre del cliente es obligatorio.' });
+            }
+            if (!telefono_whatsapp && !telefono) {
+                return res.status(400).json({ error: 'El número de teléfono o WhatsApp es obligatorio.' });
+            }
+        }
+
+        const cliente = await ClienteModel.crear({
+            id_tipo_cliente: isInstitucional ? 2 : 1,
+            correo: correo || correo_electronico,
+            password: password || '123456',
+            nombre,
+            apellido,
+            nombre_completo,
+            telefono: telefono || telefono_whatsapp,
+            telefono_whatsapp: telefono_whatsapp || telefono,
+            carnet_identidad,
+            fecha_nacimiento,
+            razon_social,
+            nit,
+            nombre_contacto,
+            telefono_contacto,
+            atributos,
+            contrato
         });
 
         return res.status(201).json({
-            mensaje: 'Cliente creado exitosamente.',
-            cliente,
+            mensaje: 'Cliente registrado exitosamente.',
+            cliente
         });
     } catch (error) {
+        if (error.constraint === 'clientes_correo_electronico_key') {
+            return res.status(409).json({ error: 'El correo electrónico ya se encuentra registrado.' });
+        }
         console.error('Error al crear cliente:', error);
         return res.status(500).json({ error: 'Error interno del servidor.' });
     }
@@ -56,20 +106,9 @@ const crearCliente = async (req, res) => {
 
 // PUT /api/clientes/:id — Actualizar un cliente
 const actualizarCliente = async (req, res) => {
-    const { id } = req.params;
-    const { nombre_completo, telefono_whatsapp, id_usuario, carnet_identidad, correo } = req.body;
-
-    // Si se envía telefono_whatsapp, no puede ser vacío
-    if (telefono_whatsapp !== undefined && telefono_whatsapp.trim() === '') {
-        return res.status(400).json({ error: 'El número de WhatsApp no puede estar vacío.' });
-    }
-
     try {
-        const cliente = await ClienteModel.actualizar(id, {
-            nombre_completo,
-            telefono_whatsapp: telefono_whatsapp?.trim() || undefined,
-            id_usuario,
-        });
+        const { id } = req.params;
+        const cliente = await ClienteModel.actualizar(id, req.body);
 
         if (!cliente) {
             return res.status(404).json({ error: 'Cliente no encontrado.' });
@@ -77,7 +116,7 @@ const actualizarCliente = async (req, res) => {
 
         return res.json({
             mensaje: 'Cliente actualizado exitosamente.',
-            cliente,
+            cliente
         });
     } catch (error) {
         console.error('Error al actualizar cliente:', error);
@@ -99,40 +138,51 @@ const eliminarCliente = async (req, res) => {
     }
 };
 
-// GET /api/clientes/mi-perfil — Obtener perfil y medidas del cliente logueado
+// GET /api/clientes/mi-perfil — Perfil del usuario o cliente autenticado
 const obtenerMiPerfil = async (req, res) => {
     try {
-        const id_usuario = req.usuario.id_usuario;
+        const esCliente = req.usuario.tipo_cuenta === 'cliente' || req.usuario.rol === 'Cliente';
         const correo = req.usuario.correo;
-        const db = require('../config/db');
-        const { obtenerIdsClienteParaUsuario } = require('../utils/clienteHelper');
 
-        const idsCliente = await obtenerIdsClienteParaUsuario(id_usuario, correo);
+        if (esCliente) {
+            // Buscar por id_cliente o correo
+            let cliente = null;
+            if (req.usuario.id_cliente) {
+                cliente = await ClienteModel.buscarPorId(req.usuario.id_cliente);
+            }
+            if (!cliente && correo) {
+                cliente = await ClienteModel.buscarPorCorreo(correo);
+            }
 
-        if (idsCliente.length === 0) {
-            const userRes = await db.pool.query('SELECT id_usuario, correo, id_rol as rol, nombre_completo, telefono, carnet_identidad, fecha_registro FROM usuarios WHERE id_usuario = $1', [id_usuario]);
-            return res.json({ cliente: userRes.rows[0] || null, medidas: null });
+            // Buscar últimas medidas registradas en algún pedido del cliente
+            let medidas = null;
+            if (cliente) {
+                const medidasRes = await db.query(
+                    `SELECT ma.*, p.fecha_inicio as fecha_toma, pr.tipo_prenda
+                     FROM pedidos p
+                     JOIN detalle_pedido dp ON p.id_pedido = dp.id_pedido
+                     JOIN prendas pr ON dp.id_prenda = pr.id_prenda
+                     JOIN medidas_anatomicas ma ON dp.id_detalle = ma.id_detalle
+                     WHERE p.id_cliente = $1
+                     ORDER BY p.fecha_inicio DESC, ma.id_medida_anatomica DESC
+                     LIMIT 1`,
+                    [cliente.id_cliente]
+                );
+                medidas = medidasRes.rows[0] || null;
+            }
+
+            return res.json({
+                cliente,
+                medidas
+            });
+        } else {
+            // Personal interno
+            const usuario = await UsuarioModel.buscarPorId(req.usuario.id_usuario);
+            return res.json({
+                cliente: usuario,
+                medidas: null
+            });
         }
-
-        const clienteRes = await db.pool.query(
-            `SELECT c.id_cliente, COALESCE(u.nombre_completo, c.nombre_completo) as nombre_completo, COALESCE(u.telefono, c.telefono_whatsapp) as telefono_whatsapp, u.correo, u.id_rol as rol, u.carnet_identidad, u.fecha_registro
-             FROM clientes c
-             LEFT JOIN usuarios u ON c.id_usuario = u.id_usuario
-             WHERE c.id_cliente = ANY($1::int[])
-             ORDER BY c.id_cliente DESC LIMIT 1`,
-            [idsCliente]
-        );
-
-        const cliente = clienteRes.rows[0];
-        const medidasRes = await db.pool.query(
-            `SELECT * FROM medidas WHERE id_cliente = ANY($1::int[]) ORDER BY fecha_toma DESC, id_medida DESC LIMIT 1`,
-            [idsCliente]
-        );
-
-        return res.json({
-            cliente,
-            medidas: medidasRes.rows[0] || null
-        });
     } catch (error) {
         console.error('Error al obtener mi perfil:', error);
         return res.status(500).json({ error: 'Error interno del servidor.' });
@@ -145,5 +195,5 @@ module.exports = {
     crearCliente,
     actualizarCliente,
     eliminarCliente,
-    obtenerMiPerfil,
+    obtenerMiPerfil
 };

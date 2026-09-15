@@ -83,7 +83,7 @@ const MobileDashboard = () => {
     return (
         <>
             <section className="mobile-section">
-                <h2 className="mobile-section-title">📋 Tareas Pendientes</h2>
+                <h2 className="mobile-section-title">ð Tareas Pendientes</h2>
                 <div className="pedidos-cards">
                     {pedidosActivos.length === 0 ? (
                         <p style={{textAlign:'center',color:'#666'}}>No hay tareas pendientes.</p>
@@ -102,23 +102,23 @@ const MobileDashboard = () => {
                             </div>
 
                             <div className="pedido-card-fechas">
-                                <span>📅 Inicio: {new Date(p.fecha_pedido).toLocaleDateString()}</span>
-                                <span>🏁 Entrega: {new Date(p.fecha_entrega).toLocaleDateString()}</span>
+                                <span>ð Inicio: {new Date(p.fecha_pedido).toLocaleDateString()}</span>
+                                <span>ð Entrega: {new Date(p.fecha_entrega).toLocaleDateString()}</span>
                             </div>
 
-                            {/* Botones de acción */}
+                            {/* Botones de acciÃ³n */}
                             <div style={{display:'flex',gap:'10px',marginTop:'15px',flexWrap:'wrap'}}>
                                 {esCosturera && (
                                     <>
                                         {p.estado === 'Pendiente' && <button onClick={() => actualizarEstado(p.id_pedido, 'Corte')} style={{flex:1,padding:'12px',background:'#455E8B',color:'white',border:'none',borderRadius:'8px',fontSize:'16px',fontWeight:'bold'}}>Pasar a Corte</button>}
                                         {p.estado === 'Corte' && <button onClick={() => actualizarEstado(p.id_pedido, 'Armado')} style={{flex:1,padding:'12px',background:'#A3FC9A',color:'#333',border:'none',borderRadius:'8px',fontSize:'16px',fontWeight:'bold'}}>Pasar a Armado</button>}
                                         {p.estado === 'Armado' && <button onClick={() => actualizarEstado(p.id_pedido, 'Acabados')} style={{flex:1,padding:'12px',background:'#E1F0FE',color:'#333',border:'none',borderRadius:'8px',fontSize:'16px',fontWeight:'bold'}}>A Acabados</button>}
-                                        {p.estado === 'Acabados' && <button onClick={() => actualizarEstado(p.id_pedido, 'Para Entregar')} style={{flex:1,padding:'12px',background:'#8290B0',color:'white',border:'none',borderRadius:'8px',fontSize:'16px',fontWeight:'bold'}}>Pasar a Secretar�a</button>}
+                                        {p.estado === 'Acabados' && <button onClick={() => actualizarEstado(p.id_pedido, 'Para Entregar')} style={{flex:1,padding:'12px',background:'#8290B0',color:'white',border:'none',borderRadius:'8px',fontSize:'16px',fontWeight:'bold'}}>Pasar a Secretaría</button>}
                                     </>
                                 )}
-                                {/* 📏 Ver Medidas — 44x44px mínimo */}
-                                <button onClick={() => verMedidas(p)} style={{minWidth:'44px',minHeight:'44px',padding:'10px 14px',background:'#455E8B',color:'white',border:'none',borderRadius:'8px',fontSize:'15px',cursor:'pointer',whiteSpace:'nowrap'}} title="Ver medidas anatómicas">
-                                    📏 Ver Medidas
+                                {/* ð Ver Medidas â 44x44px mÃ­nimo */}
+                                <button onClick={() => verMedidas(p)} style={{minWidth:'44px',minHeight:'44px',padding:'10px 14px',background:'#455E8B',color:'white',border:'none',borderRadius:'8px',fontSize:'15px',cursor:'pointer',whiteSpace:'nowrap'}} title="Ver medidas anatÃ³micas">
+                                    ð Ver Medidas
                                 </button>
                             </div>
                         </div>
@@ -126,17 +126,17 @@ const MobileDashboard = () => {
                 </div>
             </section>
 
-            {/* === MODAL: Medidas Anatómicas === */}
+            {/* === MODAL: Medidas AnatÃ³micas === */}
             {modalMedidas?.abierto && (
                 <div className="modal-overlay" onClick={cerrarModal}>
                     <div className="modal-contenido" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h3>📏 Medidas de {modalMedidas.cliente}</h3>
-                            <button className="modal-cerrar" onClick={cerrarModal}>✕</button>
+                            <h3>ð Medidas de {modalMedidas.cliente}</h3>
+                            <button className="modal-cerrar" onClick={cerrarModal}>â</button>
                         </div>
                         {modalMedidas.caducadas && (
                             <div className="alerta-caducada" style={{margin:'0 0 1rem'}}>
-                                ⚠️ Medidas desactualizadas (Más de 6 meses). Se sugiere retomar.
+                                â ï¸ Medidas desactualizadas (MÃ¡s de 6 meses). Se sugiere retomar.
                             </div>
                         )}
                         {modalMedidas.medidas.length > 0 ? (
@@ -144,7 +144,7 @@ const MobileDashboard = () => {
                                 {Object.entries(ETIQUETAS_MEDIDAS).map(([key, label]) => (
                                     <div key={key} className="modal-medida-item">
                                         <span className="modal-medida-label">{label}</span>
-                                        <span className="modal-medida-valor">{modalMedidas.medidas[0][key] ?? '—'} cm</span>
+                                        <span className="modal-medida-valor">{modalMedidas.medidas[0][key] ?? 'â'} cm</span>
                                     </div>
                                 ))}
                             </div>

@@ -14,15 +14,31 @@ const listarUsuarios = async (req, res) => {
 // POST /api/usuarios — Crear usuario
 const crearUsuario = async (req, res) => {
     try {
-        const { correo, password, id_rol, nombre_completo, carnet_identidad, telefono } = req.body;
-        if (!correo || !password || !id_rol) {
+        const { correo, correo_electronico, password, id_rol, nombre, apellido, nombre_completo, carnet_identidad, telefono, fecha_nacimiento } = req.body;
+        const email = correo_electronico || correo;
+        
+        if (!email || !password || !id_rol) {
             return res.status(400).json({ error: 'Correo, contraseña y rol son obligatorios.' });
         }
-        const usuario = await UsuarioModel.crear({ correo, password, id_rol, nombre_completo, carnet_identidad, telefono });
-        return res.status(201).json({ mensaje: 'Usuario creado.', usuario });
+
+        const usuario = await UsuarioModel.crear({
+            correo: email,
+            password,
+            id_rol,
+            nombre,
+            apellido,
+            nombre_completo,
+            carnet_identidad,
+            telefono,
+            fecha_nacimiento
+        });
+        return res.status(201).json({ mensaje: 'Usuario creado exitosamente.', usuario });
     } catch (error) {
-        if (error.constraint === 'usuarios_correo_key') {
+        if (error.constraint === 'usuarios_correo_electronico_key') {
             return res.status(409).json({ error: 'El correo ya está registrado.' });
+        }
+        if (error.constraint === 'datos_usuario_carnet_identidad_key') {
+            return res.status(409).json({ error: 'El número de carnet ya está registrado.' });
         }
         console.error('Error al crear usuario:', error);
         return res.status(500).json({ error: 'Error interno del servidor.' });
@@ -34,7 +50,7 @@ const actualizarUsuario = async (req, res) => {
     try {
         const usuario = await UsuarioModel.actualizar(req.params.id, req.body);
         if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado.' });
-        return res.json({ mensaje: 'Usuario actualizado.', usuario });
+        return res.json({ mensaje: 'Usuario actualizado exitosamente.', usuario });
     } catch (error) {
         console.error('Error al actualizar usuario:', error);
         return res.status(500).json({ error: 'Error interno del servidor.' });
@@ -53,7 +69,7 @@ const eliminarUsuario = async (req, res) => {
     }
 };
 
-// GET /api/usuarios/costureras — Listar solo costureras (acceso para Secretaria/Admin)
+// GET /api/usuarios/costureras — Listar solo costureras
 const listarCostureras = async (req, res) => {
     try {
         const usuarios = await UsuarioModel.listarTodos();

@@ -39,7 +39,7 @@ const AdminUsuarios = () => {
     };
 
     const handleEliminar = async (id) => {
-        if (!window.confirm('¿Eliminar este usuario?')) return;
+        if (!window.confirm('¿Eliminar este usuario del personal?')) return;
         try { 
             await api.delete(`/usuarios/${id}`); 
             cargarUsuarios(); 
@@ -51,37 +51,64 @@ const AdminUsuarios = () => {
 
     return (
         <section className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
-                    <h2>👤 Usuarios del Sistema</h2>
-                    <span className="card-subtitle">Administradores, Secretarias y Costureras</span>
+                    <h2>👤 Personal del Taller</h2>
+                    <span className="card-subtitle">Administradores, Secretarias y Costureras (Particionamiento Vertical)</span>
                 </div>
-                <button onClick={handleAdd} className="btn-primario" style={{ borderRadius: '50%', width: '45px', height: '45px', fontSize: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    +
+                <button onClick={handleAdd} className="btn-primario" style={{ borderRadius: '8px', padding: '0.6rem 1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
+                    <span>+</span> Nuevo Usuario
                 </button>
             </div>
-            <div className="card-body" style={{ flex: 1, overflowY: 'auto' }}>
-                {msg && <div className={msg.startsWith('✅') ? 'pedido-exito' : 'pedido-error'} style={{ marginBottom: '1rem', padding: '0.5rem 1rem', borderRadius: '8px', fontSize: '0.85rem' }}>{msg}</div>}
+            <div className="card-body" style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
+                {msg && <div className={msg.startsWith('✅') ? 'pedido-exito' : 'pedido-error'} style={{ marginBottom: '1rem', padding: '0.6rem 1rem', borderRadius: '8px', fontSize: '0.88rem' }}>{msg}</div>}
                 
                 <div style={{ overflowX: 'auto' }}>
-                    <table className="usuarios-tabla">
-                        <thead><tr><th>ID</th><th>Correo</th><th>Rol</th><th>Acciones</th></tr></thead>
+                    <table className="usuarios-tabla" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                            <tr style={{ textAlign: 'left', borderBottom: '2px solid #E2E8F0' }}>
+                                <th style={{ padding: '0.75rem' }}>ID</th>
+                                <th style={{ padding: '0.75rem' }}>Nombre Completo</th>
+                                <th style={{ padding: '0.75rem' }}>CI</th>
+                                <th style={{ padding: '0.75rem' }}>Teléfono</th>
+                                <th style={{ padding: '0.75rem' }}>Correo</th>
+                                <th style={{ padding: '0.75rem' }}>Rol</th>
+                                <th style={{ padding: '0.75rem' }}>Estado</th>
+                                <th style={{ padding: '0.75rem', textAlign: 'center' }}>Acciones</th>
+                            </tr>
+                        </thead>
                         <tbody>
                             {usuarios.map((u) => {
                                 const esYo = u.id_usuario === yoId;
                                 return (
-                                    <tr key={u.id_usuario} style={esYo ? { background: 'rgba(69,94,139,0.06)' } : {}}>
-                                        <td>{u.id_usuario}{esYo && ' (tú)'}</td>
-                                        <td>{u.correo}</td>
-                                        <td><span className="rol-badge">{u.nombre_rol}</span></td>
-                                        <td>
-                                            {!esYo && (
-                                                <>
-                                                    <button onClick={() => handleEditar(u)} style={{ background: 'var(--color-azul-claro)', color: 'var(--color-azul-oscuro)', border: 'none', borderRadius: '6px', padding: '0.3rem 0.6rem', cursor: 'pointer', marginRight: '0.3rem' }}>✏️</button>
-                                                    <button onClick={() => handleEliminar(u.id_usuario)} style={{ background: 'var(--color-rojo-suave)', color: 'var(--color-rojo-texto)', border: 'none', borderRadius: '6px', padding: '0.3rem 0.6rem', cursor: 'pointer' }}>🗑</button>
-                                                </>
+                                    <tr key={u.id_usuario} style={{ borderBottom: '1px solid #F1F5F9', background: esYo ? 'rgba(69,94,139,0.06)' : 'transparent' }}>
+                                        <td style={{ padding: '0.75rem', fontWeight: 600, color: '#64748B' }}>#{u.id_usuario}</td>
+                                        <td style={{ padding: '0.75rem', fontWeight: 600, color: '#0F172A' }}>
+                                            {u.nombre_completo || 'Sin nombre'}
+                                            {esYo && <span style={{ marginLeft: '0.4rem', fontSize: '0.75rem', color: 'var(--color-azul-oscuro)', fontWeight: 'bold' }}>(tú)</span>}
+                                        </td>
+                                        <td style={{ padding: '0.75rem', color: '#475569' }}>{u.carnet_identidad || '-'}</td>
+                                        <td style={{ padding: '0.75rem', color: '#475569' }}>{u.telefono || '-'}</td>
+                                        <td style={{ padding: '0.75rem', color: '#475569' }}>{u.correo_electronico || u.correo}</td>
+                                        <td style={{ padding: '0.75rem' }}>
+                                            <span className="rol-badge" style={{ padding: '0.2rem 0.6rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600 }}>
+                                                {u.nombre_rol}
+                                            </span>
+                                        </td>
+                                        <td style={{ padding: '0.75rem' }}>
+                                            <span style={{ fontSize: '0.8rem', padding: '0.2rem 0.5rem', borderRadius: '4px', background: '#DCFCE7', color: '#166534', fontWeight: 600 }}>
+                                                {u.estado || 'Activo'}
+                                            </span>
+                                        </td>
+                                        <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                                            {!esYo ? (
+                                                <div style={{ display: 'inline-flex', gap: '0.3rem' }}>
+                                                    <button onClick={() => handleEditar(u)} title="Editar" style={{ background: 'var(--color-azul-claro)', color: 'var(--color-azul-oscuro)', border: 'none', borderRadius: '6px', padding: '0.35rem 0.65rem', cursor: 'pointer' }}>✏️</button>
+                                                    <button onClick={() => handleEliminar(u.id_usuario)} title="Eliminar" style={{ background: 'var(--color-rojo-suave)', color: 'var(--color-rojo-texto)', border: 'none', borderRadius: '6px', padding: '0.35rem 0.65rem', cursor: 'pointer' }}>🗑</button>
+                                                </div>
+                                            ) : (
+                                                <span style={{ fontSize: '0.75rem', color: 'var(--color-texto-secundario)', fontStyle: 'italic' }}>Sesión actual</span>
                                             )}
-                                            {esYo && <span style={{ fontSize: '0.7rem', color: 'var(--color-texto-secundario)' }}>Usuario actual</span>}
                                         </td>
                                     </tr>
                                 );

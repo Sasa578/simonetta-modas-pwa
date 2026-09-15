@@ -1,5 +1,8 @@
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
+
+const JWT_SECRET = process.env.JWT_SECRET || 'simonetta_modas_jwt_secreto_2025';
 
 const verificarToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -10,7 +13,7 @@ const verificarToken = (req, res, next) => {
     }
 
     try {
-        const verificado = jwt.verify(token, process.env.JWT_SECRET);
+        const verificado = jwt.verify(token, JWT_SECRET);
         req.usuario = verificado;
         next();
     } catch (error) {

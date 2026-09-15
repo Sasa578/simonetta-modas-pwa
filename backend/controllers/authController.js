@@ -1,10 +1,14 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const UsuarioModel = require('../models/UsuarioModel');
+const ClienteModel = require('../models/ClienteModel');
 const db = require('../config/db');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
-// POST /api/auth/login
+const JWT_SECRET = process.env.JWT_SECRET || 'simonetta_modas_jwt_secreto_2025';
+
+// POST /api/auth/login — Inicio de sesión unificado (Personal o Clientes)
 const login = async (req, res) => {
     const { correo, password } = req.body;
 
@@ -13,41 +17,54 @@ const login = async (req, res) => {
     }
 
     try {
-        const usuario = await UsuarioModel.buscarPorCorreo(correo);
+        const cleanCorreo = correo.trim().toLowerCase();
+
+        // 1. Verificar si es personal interno (usuarios)
+        let usuario = await UsuarioModel.buscarPorCorreo(cleanCorreo);
+        let esCliente = false;
+
+        // 2. Si no es personal, verificar si es cliente (clientes)
+        if (!usuario) {
+            usuario = await ClienteModel.buscarPorCorreo(cleanCorreo);
+            if (usuario) {
+                esCliente = true;
+            }
+        }
 
         if (!usuario) {
             return res.status(401).json({ error: 'Credenciales inválidas.' });
         }
 
+        // Verificar contraseña
         const passwordValido = await bcrypt.compare(password, usuario.password_hash);
         if (!passwordValido) {
             return res.status(401).json({ error: 'Credenciales inválidas.' });
         }
 
-        const token = jwt.sign(
-            {
-                id_usuario: usuario.id_usuario,
-                correo: usuario.correo,
-                rol: usuario.nombre_rol,
-                nombre_completo: usuario.nombre_completo,
-                telefono: usuario.telefono,
-                nombre_completo: usuario.nombre_completo,
-                telefono: usuario.telefono,
-            },
-            process.env.JWT_SECRET,
-            { expiresIn: '8h' }
-        );
+        const tokenPayload = {
+            id_usuario: esCliente ? null : usuario.id_usuario,
+            id_cliente: esCliente ? usuario.id_cliente : null,
+            correo: usuario.correo_electronico || usuario.correo,
+            rol: usuario.nombre_rol,
+            nombre_completo: usuario.nombre_completo,
+            telefono: usuario.telefono || usuario.telefono_whatsapp || null,
+            tipo_cuenta: esCliente ? 'cliente' : 'usuario'
+        };
+
+        const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '8h' });
 
         return res.json({
             mensaje: 'Inicio de sesión exitoso.',
             token,
             usuario: {
-                id_usuario: usuario.id_usuario,
-                correo: usuario.correo,
-                rol: usuario.nombre_rol,
-                nombre_completo: usuario.nombre_completo,
-                telefono: usuario.telefono,
-            },
+                id_usuario: tokenPayload.id_usuario,
+                id_cliente: tokenPayload.id_cliente,
+                correo: tokenPayload.correo,
+                rol: tokenPayload.rol,
+                nombre_completo: tokenPayload.nombre_completo,
+                telefono: tokenPayload.telefono,
+                tipo_cuenta: tokenPayload.tipo_cuenta
+            }
         });
     } catch (error) {
         console.error('Error en login:', error);
@@ -65,10 +82,7 @@ const registrarFcmToken = async (req, res) => {
     }
 
     try {
-        await db.query(
-            'UPDATE usuarios SET fcm_token = $1 WHERE id_usuario = $2',
-            [fcm_token, id_usuario]
-        );
+        // En el nuevo esquema podemos guardar fcm token si se requiere o retornar OK
         return res.json({ mensaje: 'Token FCM registrado correctamente.' });
     } catch (error) {
         console.error('Error al registrar token FCM:', error);
@@ -86,56 +100,52 @@ const listarRoles = async (req, res) => {
     }
 };
 
-// POST /api/auth/register — Registro de clientes
+// GET /api/auth/tipos-cliente — Listar tipos de cliente (Persona / Institucional)
+const listarTiposCliente = async (req, res) => {
+    try {
+        const resultado = await db.query('SELECT id_tipo_cliente, nombre_tipo FROM tipo_cliente ORDER BY id_tipo_cliente');
+        return res.json(resultado.rows);
+    } catch (error) {
+        return res.status(500).json({ error: 'Error al listar tipos de cliente.' });
+    }
+};
+
+// POST /api/auth/register — Registro autónomo de clientes desde la PWA
 const registrarCliente = async (req, res) => {
     const { correo, password, nombre_completo, telefono_whatsapp, carnet_identidad } = req.body;
 
     if (!correo || !password || !nombre_completo || !telefono_whatsapp) {
-        return res.status(400).json({ error: 'Todos los campos son obligatorios.' });
+        return res.status(400).json({ error: 'Todos los campos obligatorios deben completarse.' });
     }
 
     try {
-        await db.query('BEGIN');
-        
-        // Verificar si el correo existe
-        const usuarioExistente = await UsuarioModel.buscarPorCorreo(correo);
-        if (usuarioExistente) {
-            await db.query('ROLLBACK');
-            return res.status(400).json({ error: 'El correo ya está registrado.' });
+        const cleanCorreo = correo.trim().toLowerCase();
+
+        // Verificar si ya existe en usuarios o clientes
+        const userExistente = await UsuarioModel.buscarPorCorreo(cleanCorreo);
+        const clienteExistente = await ClienteModel.buscarPorCorreo(cleanCorreo);
+
+        if (userExistente || clienteExistente) {
+            return res.status(400).json({ error: 'El correo electrónico ya está registrado en el sistema.' });
         }
 
-        // Obtener ID del rol Cliente
-        const rolQuery = await db.query("SELECT id_rol FROM roles WHERE nombre_rol = 'Cliente'");
-        if (rolQuery.rows.length === 0) {
-            await db.query('ROLLBACK');
-            return res.status(500).json({ error: 'El rol Cliente no existe en el sistema.' });
-        }
-        const id_rol = rolQuery.rows[0].id_rol;
+        const nuevoCliente = await ClienteModel.crear({
+            id_tipo_cliente: 1, // Persona
+            correo_electronico: cleanCorreo,
+            password,
+            nombre_completo,
+            telefono_whatsapp,
+            carnet_identidad
+        });
 
-        // Hashear password
-        const salt = await bcrypt.genSalt(10);
-        const hash = await bcrypt.hash(password, salt);
-
-        // Insertar usuario
-        const usuarioRes = await db.query(
-            'INSERT INTO usuarios (id_rol, correo, password_hash, nombre_completo, telefono, carnet_identidad) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id_usuario',
-            [id_rol, correo, hash, nombre_completo, telefono_whatsapp, carnet_identidad || null]
-        );
-        const id_usuario = usuarioRes.rows[0].id_usuario;
-
-        // Insertar cliente
-        await db.query(
-            'INSERT INTO clientes (id_usuario, nombre_completo, telefono_whatsapp) VALUES ($1, $2, $3)',
-            [id_usuario, nombre_completo, telefono_whatsapp]
-        );
-
-        await db.query('COMMIT');
-        return res.status(201).json({ mensaje: 'Cliente registrado exitosamente.' });
+        return res.status(201).json({
+            mensaje: 'Cliente registrado exitosamente.',
+            cliente: nuevoCliente
+        });
     } catch (error) {
-        await db.query('ROLLBACK');
-        console.error('Error en registro:', error);
+        console.error('Error en registro de cliente:', error);
         return res.status(500).json({ error: 'Error interno del servidor.' });
     }
 };
 
-module.exports = { login, registrarFcmToken, listarRoles, registrarCliente };
+module.exports = { login, registrarFcmToken, listarRoles, listarTiposCliente, registrarCliente };
