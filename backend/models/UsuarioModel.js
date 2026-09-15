@@ -1,85 +1,211 @@
-﻿const db = require('../config/db');
+const db = require('../config/db');
 const bcrypt = require('bcrypt');
 
 const UsuarioModel = {
+    /**
+     * Busca un usuario interno por correo electrónico.
+     */
     buscarPorCorreo: async (correo) => {
         const resultado = await db.query(
-            `SELECT u.id_usuario, u.correo, u.password_hash, r.nombre_rol, u.nombre_completo, u.telefono, u.debe_cambiar_password
-             FROM usuarios u JOIN roles r ON u.id_rol = r.id_rol
-             WHERE u.correo = $1`, [correo]
+            `SELECT u.id_usuario, u.correo_electronico, u.correo_electronico as correo,
+                    u.password_hash, u.id_rol, r.nombre_rol,
+                    u.id_estado_usuario, eu.nombre_estado as estado,
+                    u.debe_cambiar_password,
+                    du.id_datos_usuario, du.nombre, du.apellido,
+                    TRIM(CONCAT(du.nombre, ' ', du.apellido)) as nombre_completo,
+                    du.carnet_identidad, du.telefono, du.fecha_nacimiento, du.fecha_registro
+             FROM usuarios u
+             JOIN roles r ON u.id_rol = r.id_rol
+             JOIN estados_usuario eu ON u.id_estado_usuario = eu.id_estado_usuario
+             LEFT JOIN datos_usuario du ON u.id_usuario = du.id_usuario
+             WHERE LOWER(u.correo_electronico) = LOWER($1)`,
+            [correo]
         );
         return resultado.rows[0] || null;
     },
 
-    /** Lista todos los usuarios con su rol y estado de clave inicial (para Admin) */
+    /**
+     * Busca un usuario interno por ID.
+     */
+    buscarPorId: async (id) => {
+        const resultado = await db.query(
+            `SELECT u.id_usuario, u.correo_electronico, u.correo_electronico as correo,
+                    u.id_rol, r.nombre_rol, u.id_estado_usuario, eu.nombre_estado as estado,
+                    u.debe_cambiar_password,
+                    du.id_datos_usuario, du.nombre, du.apellido,
+                    TRIM(CONCAT(du.nombre, ' ', du.apellido)) as nombre_completo,
+                    du.carnet_identidad, du.telefono, du.fecha_nacimiento, du.fecha_registro
+             FROM usuarios u
+             JOIN roles r ON u.id_rol = r.id_rol
+             JOIN estados_usuario eu ON u.id_estado_usuario = eu.id_estado_usuario
+             LEFT JOIN datos_usuario du ON u.id_usuario = du.id_usuario
+             WHERE u.id_usuario = $1`,
+            [id]
+        );
+        return resultado.rows[0] || null;
+    },
+
+    /**
+     * Lista todos los usuarios internos con su información personal y de rol.
+     */
     listarTodos: async () => {
         const resultado = await db.query(
-            `SELECT u.id_usuario, u.correo, u.fcm_token, r.id_rol, r.nombre_rol, u.nombre_completo, u.carnet_identidad, u.telefono, u.debe_cambiar_password, u.fecha_registro
-             FROM usuarios u JOIN roles r ON u.id_rol = r.id_rol
-             ORDER BY u.id_usuario`
+            `SELECT u.id_usuario, u.correo_electronico, u.correo_electronico as correo,
+                    u.id_rol, r.nombre_rol, u.id_estado_usuario, eu.nombre_estado as estado,
+                    u.debe_cambiar_password,
+                    du.id_datos_usuario, du.nombre, du.apellido,
+                    TRIM(CONCAT(du.nombre, ' ', du.apellido)) as nombre_completo,
+                    du.carnet_identidad, du.telefono, du.fecha_nacimiento, du.fecha_registro
+             FROM usuarios u
+             JOIN roles r ON u.id_rol = r.id_rol
+             JOIN estados_usuario eu ON u.id_estado_usuario = eu.id_estado_usuario
+             LEFT JOIN datos_usuario du ON u.id_usuario = du.id_usuario
+             ORDER BY u.id_usuario ASC`
         );
         return resultado.rows;
     },
 
-    /** Crea un nuevo usuario (password hasheado) con bandera opcional de debe_cambiar_password */
-    crear: async ({ correo, password, id_rol, nombre_completo, carnet_identidad, telefono, debe_cambiar_password = false }) => {
+    /**
+     * Crea un nuevo usuario interno en transacción (usuarios + datos_usuario).
+     */
+    crear: async ({ correo, correo_electronico, password, id_rol, nombre, apellido, nombre_completo, carnet_identidad, telefono, fecha_nacimiento, id_estado_usuario = 1, debe_cambiar_password = false }) => {
+        const email = correo_electronico || correo;
         const hash = await bcrypt.hash(password, 10);
-        const resultado = await db.query(
-            `INSERT INTO usuarios (correo, password_hash, id_rol, nombre_completo, carnet_identidad, telefono, debe_cambiar_password) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id_usuario, correo, debe_cambiar_password`,
-            [correo, hash, id_rol, nombre_completo || null, carnet_identidad || null, telefono || null, debe_cambiar_password]
-        );
-        return resultado.rows[0];
+
+        let finalNombre = nombre;
+        let finalApellido = apellido;
+
+        if (!finalNombre && nombre_completo) {
+            const parts = nombre_completo.trim().split(' ');
+            finalNombre = parts[0] || '';
+            finalApellido = parts.slice(1).join(' ') || '';
+        }
+
+        const client = await db.pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            const uRes = await client.query(
+                `INSERT INTO usuarios (id_rol, id_estado_usuario, correo_electronico, password_hash, debe_cambiar_password)
+                 VALUES ($1, $2, $3, $4, $5)
+                 RETURNING id_usuario, correo_electronico, debe_cambiar_password`,
+                [id_rol, id_estado_usuario, email, hash, Boolean(debe_cambiar_password)]
+            );
+            const idUsuario = uRes.rows[0].id_usuario;
+
+            await client.query(
+                `INSERT INTO datos_usuario (id_usuario, nombre, apellido, carnet_identidad, fecha_nacimiento, telefono)
+                 VALUES ($1, $2, $3, $4, $5, $6)`,
+                [idUsuario, finalNombre || '', finalApellido || '', carnet_identidad || null, fecha_nacimiento || null, telefono || null]
+            );
+
+            await client.query('COMMIT');
+            return UsuarioModel.buscarPorId(idUsuario);
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
     },
 
-    /** Actualiza datos de un usuario */
-    actualizar: async (id, { correo, password, id_rol, nombre_completo, carnet_identidad, telefono, debe_cambiar_password }) => {
-        const sets = [];
-        const vals = [];
-        let idx = 1;
-        if (correo) { sets.push(`correo = $${idx++}`); vals.push(correo); }
-        if (id_rol)  { sets.push(`id_rol = $${idx++}`); vals.push(id_rol); }
-        if (nombre_completo !== undefined) { sets.push(`nombre_completo = $${idx++}`); vals.push(nombre_completo); }
-        if (carnet_identidad !== undefined) { sets.push(`carnet_identidad = $${idx++}`); vals.push(carnet_identidad); }
-        if (telefono !== undefined) { sets.push(`telefono = $${idx++}`); vals.push(telefono); }
-        if (debe_cambiar_password !== undefined) { sets.push(`debe_cambiar_password = $${idx++}`); vals.push(debe_cambiar_password); }
-        if (password) {
-            const hash = await bcrypt.hash(password, 10);
-            sets.push(`password_hash = $${idx++}`); vals.push(hash);
+    /**
+     * Actualiza datos de un usuario (usuarios + datos_usuario) en transacción.
+     */
+    actualizar: async (id, { correo, correo_electronico, password, id_rol, id_estado_usuario, nombre, apellido, nombre_completo, carnet_identidad, telefono, fecha_nacimiento, debe_cambiar_password }) => {
+        const email = correo_electronico || correo;
+        const client = await db.pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            // 1. Actualizar tabla usuarios si aplica
+            const uSets = [];
+            const uVals = [];
+            let uIdx = 1;
+
+            if (email) { uSets.push(`correo_electronico = $${uIdx++}`); uVals.push(email); }
+            if (id_rol) { uSets.push(`id_rol = $${uIdx++}`); uVals.push(id_rol); }
+            if (id_estado_usuario) { uSets.push(`id_estado_usuario = $${uIdx++}`); uVals.push(id_estado_usuario); }
+            if (debe_cambiar_password !== undefined) { uSets.push(`debe_cambiar_password = $${uIdx++}`); uVals.push(Boolean(debe_cambiar_password)); }
+            if (password) {
+                const hash = await bcrypt.hash(password, 10);
+                uSets.push(`password_hash = $${uIdx++}`);
+                uVals.push(hash);
+            }
+
+            if (uSets.length > 0) {
+                uVals.push(id);
+                await client.query(
+                    `UPDATE usuarios SET ${uSets.join(', ')} WHERE id_usuario = $${uIdx}`,
+                    uVals
+                );
+            }
+
+            // 2. Actualizar tabla datos_usuario si aplica
+            let finalNombre = nombre;
+            let finalApellido = apellido;
+            if (finalNombre === undefined && nombre_completo !== undefined) {
+                const parts = nombre_completo.trim().split(' ');
+                finalNombre = parts[0] || '';
+                finalApellido = parts.slice(1).join(' ') || '';
+            }
+
+            const dSets = [];
+            const dVals = [];
+            let dIdx = 1;
+
+            if (finalNombre !== undefined) { dSets.push(`nombre = $${dIdx++}`); dVals.push(finalNombre); }
+            if (finalApellido !== undefined) { dSets.push(`apellido = $${dIdx++}`); dVals.push(finalApellido); }
+            if (carnet_identidad !== undefined) { dSets.push(`carnet_identidad = $${dIdx++}`); dVals.push(carnet_identidad); }
+            if (telefono !== undefined) { dSets.push(`telefono = $${dIdx++}`); dVals.push(telefono); }
+            if (fecha_nacimiento !== undefined) { dSets.push(`fecha_nacimiento = $${dIdx++}`); dVals.push(fecha_nacimiento); }
+
+            if (dSets.length > 0) {
+                dVals.push(id);
+                const check = await client.query('SELECT id_datos_usuario FROM datos_usuario WHERE id_usuario = $1', [id]);
+                if (check.rows.length > 0) {
+                    await client.query(
+                        `UPDATE datos_usuario SET ${dSets.join(', ')} WHERE id_usuario = $${dIdx}`,
+                        dVals
+                    );
+                } else {
+                    await client.query(
+                        `INSERT INTO datos_usuario (id_usuario, nombre, apellido, carnet_identidad, telefono, fecha_nacimiento)
+                         VALUES ($1, $2, $3, $4, $5, $6)`,
+                        [id, finalNombre || '', finalApellido || '', carnet_identidad || null, telefono || null, fecha_nacimiento || null]
+                    );
+                }
+            }
+
+            await client.query('COMMIT');
+            return UsuarioModel.buscarPorId(id);
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
         }
-        if (sets.length === 0) return null;
-        vals.push(id);
-        const resultado = await db.query(
-            `UPDATE usuarios SET ${sets.join(', ')} WHERE id_usuario = $${idx} RETURNING id_usuario, correo, debe_cambiar_password`,
-            vals
-        );
-        return resultado.rows[0] || null;
     },
 
     /** Actualiza contraseña inicial y desactiva debe_cambiar_password */
     actualizarPasswordInicial: async (id_usuario, nuevaPassword) => {
         const hash = await bcrypt.hash(nuevaPassword, 10);
         const resultado = await db.query(
-            `UPDATE usuarios SET password_hash = $1, debe_cambiar_password = false WHERE id_usuario = $2 RETURNING id_usuario, correo, debe_cambiar_password`,
+            `UPDATE usuarios SET password_hash = $1, debe_cambiar_password = false WHERE id_usuario = $2 RETURNING id_usuario, correo_electronico, debe_cambiar_password`,
             [hash, id_usuario]
         );
         return resultado.rows[0] || null;
     },
 
-    /** Elimina un usuario */
+    /**
+     * Elimina un usuario por ID. La cascada elimina datos_usuario.
+     */
     eliminar: async (id) => {
         const resultado = await db.query(
-            `DELETE FROM usuarios WHERE id_usuario = $1 RETURNING id_usuario`, [id]
+            `DELETE FROM usuarios WHERE id_usuario = $1 RETURNING id_usuario`,
+            [id]
         );
         return resultado.rows.length > 0;
-    },
-
-    /** Registra o actualiza el FCM Token de un usuario */
-    guardarFcmToken: async (id_usuario, token) => {
-        await db.query(
-            `UPDATE usuarios SET fcm_token = $1 WHERE id_usuario = $2`,
-            [token, id_usuario]
-        );
     }
 };
 

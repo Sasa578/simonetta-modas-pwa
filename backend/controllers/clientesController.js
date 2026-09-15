@@ -1,4 +1,6 @@
-﻿const ClienteModel = require('../models/ClienteModel');
+const ClienteModel = require('../models/ClienteModel');
+const UsuarioModel = require('../models/UsuarioModel');
+const db = require('../config/db');
 const { sanearTexto, validarCorreo, validarTelefono } = require('../middleware/validaciones');
 
 // GET /api/clientes — Listar todos los clientes
@@ -26,46 +28,83 @@ const obtenerCliente = async (req, res) => {
     }
 };
 
-// POST /api/clientes — Crear un nuevo cliente
+// POST /api/clientes — Crear un nuevo cliente (Persona o Institucional)
 const crearCliente = async (req, res) => {
-    let { nombre_completo, telefono_whatsapp, id_usuario, carnet_identidad, correo, password } = req.body;
-
-    if (!nombre_completo) {
-        return res.status(400).json({ error: 'El nombre completo es obligatorio.' });
-    }
-
-    if (!telefono_whatsapp || telefono_whatsapp.trim() === '') {
-        return res.status(400).json({ error: 'El número de WhatsApp es obligatorio.' });
-    }
-
-    nombre_completo = sanearTexto(nombre_completo);
-    telefono_whatsapp = sanearTexto(telefono_whatsapp);
-    if (correo) correo = sanearTexto(correo);
-
-    if (!validarTelefono(telefono_whatsapp)) {
-        return res.status(400).json({ error: 'El número de WhatsApp sólo debe contener dígitos numéricos (7 a 15 números).' });
-    }
-
-    if (correo && !validarCorreo(correo)) {
-        return res.status(400).json({ error: 'Formato de correo electrónico inválido.' });
-    }
-
     try {
-        const cliente = await ClienteModel.crear({
-            nombre_completo,
-            telefono_whatsapp: telefono_whatsapp.trim(),
-            id_usuario,
+        const {
+            id_tipo_cliente = 1,
+            tipo_cliente = 'Persona',
+            correo_electronico,
             correo,
             password,
+            nombre,
+            apellido,
+            nombre_completo,
+            telefono,
+            telefono_whatsapp,
+            carnet_identidad,
+            fecha_nacimiento,
+            razon_social,
+            nit,
+            nombre_contacto,
+            telefono_contacto,
+            atributos,
+            contrato
+        } = req.body;
+
+        const isInstitucional = Number(id_tipo_cliente) === 2 || tipo_cliente === 'Institucional';
+        const rawPhone = telefono_whatsapp || telefono || telefono_contacto;
+
+        if (isInstitucional) {
+            if (!razon_social && !nombre_completo) {
+                return res.status(400).json({ error: 'La razón social de la institución es obligatoria.' });
+            }
+            if (!nit && !carnet_identidad) {
+                return res.status(400).json({ error: 'El NIT de la institución es obligatorio.' });
+            }
+        } else {
+            if (!nombre_completo && !nombre) {
+                return res.status(400).json({ error: 'El nombre del cliente es obligatorio.' });
+            }
+            if (!rawPhone) {
+                return res.status(400).json({ error: 'El número de WhatsApp o teléfono es obligatorio.' });
+            }
+            if (rawPhone && !validarTelefono(rawPhone)) {
+                return res.status(400).json({ error: 'El número de teléfono sólo debe contener dígitos numéricos (7 a 15 números).' });
+            }
+        }
+
+        const email = correo || correo_electronico;
+        if (email && !validarCorreo(sanearTexto(email))) {
+            return res.status(400).json({ error: 'Formato de correo electrónico inválido.' });
+        }
+
+        const cliente = await ClienteModel.crear({
+            id_tipo_cliente: isInstitucional ? 2 : 1,
+            correo: email ? sanearTexto(email) : undefined,
+            password: password || '123456',
+            nombre: nombre ? sanearTexto(nombre) : undefined,
+            apellido: apellido ? sanearTexto(apellido) : undefined,
+            nombre_completo: nombre_completo ? sanearTexto(nombre_completo) : undefined,
+            telefono: rawPhone ? sanearTexto(rawPhone) : undefined,
+            telefono_whatsapp: rawPhone ? sanearTexto(rawPhone) : undefined,
+            carnet_identidad: carnet_identidad ? sanearTexto(carnet_identidad) : undefined,
+            fecha_nacimiento,
+            razon_social: razon_social ? sanearTexto(razon_social) : undefined,
+            nit: nit ? sanearTexto(nit) : undefined,
+            nombre_contacto: nombre_contacto ? sanearTexto(nombre_contacto) : undefined,
+            telefono_contacto: telefono_contacto ? sanearTexto(telefono_contacto) : undefined,
+            atributos,
+            contrato
         });
 
         return res.status(201).json({
-            mensaje: 'Cliente creado exitosamente.',
-            cliente,
+            mensaje: 'Cliente registrado exitosamente.',
+            cliente
         });
     } catch (error) {
-        if (error.constraint === 'usuarios_correo_key') {
-            return res.status(409).json({ error: 'El correo electrónico ya está registrado.' });
+        if (error.constraint === 'clientes_correo_electronico_key' || error.constraint === 'usuarios_correo_key') {
+            return res.status(409).json({ error: 'El correo electrónico ya se encuentra registrado.' });
         }
         console.error('Error al crear cliente:', error);
         return res.status(500).json({ error: 'Error interno del servidor.' });
@@ -74,29 +113,13 @@ const crearCliente = async (req, res) => {
 
 // PUT /api/clientes/:id — Actualizar un cliente
 const actualizarCliente = async (req, res) => {
-    const { id } = req.params;
-    let { nombre_completo, telefono_whatsapp, id_usuario, carnet_identidad, correo, password } = req.body;
-
-    if (nombre_completo) nombre_completo = sanearTexto(nombre_completo);
-    if (telefono_whatsapp) telefono_whatsapp = sanearTexto(telefono_whatsapp);
-    if (correo) correo = sanearTexto(correo);
-
-    if (telefono_whatsapp !== undefined && !validarTelefono(telefono_whatsapp)) {
-        return res.status(400).json({ error: 'El número de WhatsApp sólo debe contener dígitos numéricos (7 a 15 números).' });
-    }
-
-    if (correo && !validarCorreo(correo)) {
-        return res.status(400).json({ error: 'Formato de correo electrónico inválido.' });
-    }
-
     try {
-        const cliente = await ClienteModel.actualizar(id, {
-            nombre_completo,
-            telefono_whatsapp: telefono_whatsapp?.trim() || undefined,
-            id_usuario,
-            correo,
-            password,
-        });
+        const { id } = req.params;
+        const body = { ...req.body };
+        if (body.telefono_whatsapp && !validarTelefono(body.telefono_whatsapp)) {
+            return res.status(400).json({ error: 'El número de WhatsApp sólo debe contener dígitos numéricos (7 a 15 números).' });
+        }
+        const cliente = await ClienteModel.actualizar(id, body);
 
         if (!cliente) {
             return res.status(404).json({ error: 'Cliente no encontrado.' });
@@ -104,10 +127,10 @@ const actualizarCliente = async (req, res) => {
 
         return res.json({
             mensaje: 'Cliente actualizado exitosamente.',
-            cliente,
+            cliente
         });
     } catch (error) {
-        if (error.constraint === 'usuarios_correo_key') {
+        if (error.constraint === 'clientes_correo_electronico_key' || error.constraint === 'usuarios_correo_key') {
             return res.status(409).json({ error: 'El correo electrónico ya está registrado.' });
         }
         console.error('Error al actualizar cliente:', error);
@@ -129,51 +152,10 @@ const eliminarCliente = async (req, res) => {
     }
 };
 
-// GET /api/clientes/mi-perfil — Obtener perfil y medidas del cliente logueado
-const obtenerMiPerfil = async (req, res) => {
-    try {
-        const id_usuario = req.usuario.id_usuario;
-        const correo = req.usuario.correo;
-        const db = require('../config/db');
-        const { obtenerIdsClienteParaUsuario } = require('../utils/clienteHelper');
-
-        const idsCliente = await obtenerIdsClienteParaUsuario(id_usuario, correo);
-
-        if (idsCliente.length === 0) {
-            const userRes = await db.pool.query('SELECT id_usuario, correo, id_rol as rol, nombre_completo, telefono, carnet_identidad, fecha_registro FROM usuarios WHERE id_usuario = $1', [id_usuario]);
-            return res.json({ cliente: userRes.rows[0] || null, medidas: null });
-        }
-
-        const clienteRes = await db.pool.query(
-            `SELECT c.id_cliente, COALESCE(u.nombre_completo, c.nombre_completo) as nombre_completo, COALESCE(u.telefono, c.telefono_whatsapp) as telefono_whatsapp, u.correo, u.id_rol as rol, u.carnet_identidad, u.fecha_registro
-             FROM clientes c
-             LEFT JOIN usuarios u ON c.id_usuario = u.id_usuario
-             WHERE c.id_cliente = ANY($1::int[])
-             ORDER BY c.id_cliente DESC LIMIT 1`,
-            [idsCliente]
-        );
-
-        const cliente = clienteRes.rows[0];
-        const medidasRes = await db.pool.query(
-            `SELECT * FROM medidas WHERE id_cliente = ANY($1::int[]) ORDER BY fecha_toma DESC, id_medida DESC LIMIT 1`,
-            [idsCliente]
-        );
-
-        return res.json({
-            cliente,
-            medidas: medidasRes.rows[0] || null
-        });
-    } catch (error) {
-        console.error('Error al obtener mi perfil:', error);
-        return res.status(500).json({ error: 'Error interno del servidor.' });
-    }
-};
-
 module.exports = {
     listarClientes,
     obtenerCliente,
     crearCliente,
     actualizarCliente,
-    eliminarCliente,
-    obtenerMiPerfil,
+    eliminarCliente
 };

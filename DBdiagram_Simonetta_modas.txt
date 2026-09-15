@@ -1,0 +1,372 @@
+// =====================================================================
+// MODELO RELACIONAL UNIFICADO: SIMONETTA MODAS
+// =====================================================================
+
+// ==========================================
+// MÓDULO 1: SEGURIDAD, USUARIOS Y CLIENTES
+// ==========================================
+
+Table estados_usuario { 
+  id_estado_usuario serial [pk]
+  nombre_estado varchar 
+}
+
+Table estados_cliente { 
+  id_estado_cliente serial [pk]
+  nombre_estado varchar 
+}
+
+Table roles { 
+  id_rol serial [pk]
+  nombre_rol varchar 
+}
+
+Table descripciones_rol {
+  id_descripcion_rol serial [pk]
+  id_rol int [unique, ref: - roles.id_rol]
+  descripcion text
+}
+
+Table tipo_cliente { 
+  id_tipo_cliente serial [pk]
+  nombre_tipo varchar 
+}
+
+Table descripciones_tipo_cliente {
+  id_descripcion_tipo serial [pk]
+  id_tipo_cliente int [unique, ref: - tipo_cliente.id_tipo_cliente]
+  descripcion text
+}
+
+Table usuarios {
+  id_usuario serial [pk]
+  id_rol int [ref: > roles.id_rol]
+  id_estado_usuario int [ref: > estados_usuario.id_estado_usuario]
+  correo_electronico varchar [unique]
+  password_hash varchar
+}
+
+Table datos_usuario {
+  id_datos_usuario serial [pk]
+  id_usuario int [unique, ref: - usuarios.id_usuario]
+  nombre varchar
+  apellido varchar
+  carnet_identidad varchar [unique]
+  fecha_nacimiento date
+  telefono varchar
+  fecha_registro timestamp
+}
+
+Table clientes {
+  id_cliente serial [pk]
+  id_tipo_cliente int [ref: > tipo_cliente.id_tipo_cliente]
+  id_rol int [ref: > roles.id_rol]
+  id_estado_cliente int [ref: > estados_cliente.id_estado_cliente]
+  correo_electronico varchar [unique]
+  password_hash varchar
+  fecha_registro timestamp
+}
+
+Table datos_cliente_persona {
+  id_datos_persona serial [pk]
+  id_cliente int [unique, ref: - clientes.id_cliente]
+  nombre varchar
+  apellido varchar
+  telefono varchar
+  fecha_nacimiento date
+}
+
+Table datos_cliente_institucional {
+  id_datos_institucional serial [pk]
+  id_cliente int [unique, ref: - clientes.id_cliente]
+  razon_social varchar
+  nit varchar
+  nombre_contacto varchar
+  telefono_contacto varchar
+}
+
+Table atributos_cliente {
+  id_atributo_cliente serial [pk]
+  id_cliente int [ref: > clientes.id_cliente]
+  nombre_atributo varchar
+  valor_atributo varchar
+}
+
+Table contratos {
+  id_contrato serial [pk]
+  id_datos_institucional int [ref: > datos_cliente_institucional.id_datos_institucional]
+  numero_contrato varchar [unique]
+  fecha_firma date
+  fecha_vencimiento date
+  url_clausulas_pdf varchar
+}
+
+// ==========================================
+// MÓDULO 2: PEDIDOS Y MEDIDAS
+// ==========================================
+
+Table estados_pedido { 
+  id_estado_pedido serial [pk]
+  nombre_estado varchar 
+}
+
+Table estados_pago { 
+  id_estado_pago serial [pk]
+  nombre_estado varchar 
+}
+
+Table metodos_pago { 
+  id_metodo_pago serial [pk]
+  nombre_metodo varchar 
+}
+
+Table estados_cita { 
+  id_estado_cita serial [pk]
+  nombre_estado varchar 
+}
+
+Table pedidos {
+  id_pedido serial [pk]
+  id_cliente int [ref: > clientes.id_cliente]
+  id_estado_pedido int [ref: > estados_pedido.id_estado_pedido]
+  fecha_inicio timestamp
+  fecha_prueba timestamp
+  fecha_entrega timestamp
+  costo_total decimal
+}
+
+Table catalogo {
+  id_catalogo serial [pk]
+  nombre_catalogo varchar
+  url_imagen_catalogo varchar
+}
+
+Table descripciones_catalogo {
+  id_descripcion_catalogo serial [pk]
+  id_catalogo int [unique, ref: - catalogo.id_catalogo]
+  descripcion text
+}
+
+Table prendas {
+  id_prenda serial [pk]
+  id_catalogo int [ref: > catalogo.id_catalogo]
+  tipo_prenda varchar
+  color varchar
+}
+
+Table descripciones_prenda {
+  id_descripcion_prenda serial [pk]
+  id_prenda int [unique, ref: - prendas.id_prenda]
+  descripcion_detallada text
+}
+
+Table detalle_pedido {
+  id_detalle serial [pk]
+  id_pedido int [ref: > pedidos.id_pedido]
+  id_prenda int [ref: > prendas.id_prenda]
+  cantidad integer
+  subtotal decimal
+}
+
+Table notas_diseno_detalle {
+  id_nota_diseno serial [pk]
+  id_detalle int [unique, ref: - detalle_pedido.id_detalle]
+  notas_diseno text
+}
+
+Table medidas_anatomicas {
+  id_medida_anatomica serial [pk]
+  id_detalle int [unique, ref: - detalle_pedido.id_detalle]
+  cortas decimal
+  cintura decimal
+  frente decimal
+  alto_cadera decimal
+  cadera decimal
+  entre_busto decimal
+  busto decimal
+  espalda decimal
+  hombro decimal
+}
+
+Table medidas_convencionales {
+  id_medida_convencional serial [pk]
+  id_detalle int [unique, ref: - detalle_pedido.id_detalle]
+  talla varchar 
+  equivalencia_europea varchar 
+}
+
+Table pagos {
+  id_pago serial [pk]
+  id_pedido int [ref: > pedidos.id_pedido]
+  id_estado_pago int [ref: > estados_pago.id_estado_pago]
+  id_metodo_pago int [ref: > metodos_pago.id_metodo_pago]
+  monto_pago decimal
+  fecha_pago timestamp
+}
+
+Table citas {
+  id_cita serial [pk]
+  id_cliente int [ref: > clientes.id_cliente]
+  id_pedido int [ref: > pedidos.id_pedido]
+  id_estado_cita int [ref: > estados_cita.id_estado_cita]
+  fecha_cita timestamp
+  motivo_cita varchar
+}
+
+// ==========================================
+// MÓDULO 3: ALMACÉN E INVENTARIO
+// ==========================================
+
+Table colores { 
+  id_color serial [pk]
+  nombre_color varchar
+  codigo_hexadecimal varchar 
+}
+
+Table materiales_base { 
+  id_material_base serial [pk]
+  nombre_material varchar 
+}
+
+Table unidades_medida { 
+  id_unidad_medida serial [pk]
+  abreviatura varchar
+  descripcion varchar 
+}
+
+Table categorias_almacen { 
+  id_categoria serial [pk]
+  nombre_categoria varchar 
+}
+
+Table tipos_producto {
+  id_tipo_producto serial [pk]
+  id_categoria int [ref: > categorias_almacen.id_categoria]
+  nombre_tipo varchar 
+}
+
+Table productos_almacen {
+  id_producto serial [pk]
+  id_tipo_producto int [ref: > tipos_producto.id_tipo_producto]
+  id_unidad_medida int [ref: > unidades_medida.id_unidad_medida]
+  id_color int [ref: > colores.id_color]
+  id_material_base int [ref: > materiales_base.id_material_base]
+  nombre_articulo varchar
+  cantidad_stock decimal
+  stock_minimo decimal
+}
+
+Table esp_telas { 
+  id_producto int [pk, ref: - productos_almacen.id_producto]
+  grupo varchar
+  subgrupo varchar
+  textura varchar
+  calidad varchar 
+}
+
+Table esp_botones { 
+  id_producto int [pk, ref: - productos_almacen.id_producto]
+  tipo_boton varchar
+  tamano varchar 
+}
+
+Table esp_hilos { 
+  id_producto int [pk, ref: - productos_almacen.id_producto]
+  tipo_hilo varchar
+  grosor varchar 
+}
+
+Table esp_cierres { 
+  id_producto int [pk, ref: - productos_almacen.id_producto]
+  tipo_cierre varchar
+  tamano varchar 
+}
+
+Table esp_varillas { 
+  id_producto int [pk, ref: - productos_almacen.id_producto]
+  tipo varchar
+  grosor varchar 
+}
+
+Table esp_broches { 
+  id_producto int [pk, ref: - productos_almacen.id_producto]
+  tipo varchar 
+}
+
+Table esp_encajes { 
+  id_producto int [pk, ref: - productos_almacen.id_producto]
+  grosor varchar 
+}
+
+Table esp_cintas { 
+  id_producto int [pk, ref: - productos_almacen.id_producto]
+  grosor varchar 
+}
+
+Table esp_apliques { 
+  id_producto int [pk, ref: - productos_almacen.id_producto]
+  forma varchar
+  fijacion varchar 
+}
+
+Table esp_ribetes { 
+  id_producto int [pk, ref: - productos_almacen.id_producto]
+  ancho varchar 
+}
+
+// ==========================================
+// MÓDULO 4: KARDEX Y NOTAS DE VENTA
+// ==========================================
+
+Table descuentos {
+  id_descuento serial [pk]
+  id_tipo_cliente int [ref: > tipo_cliente.id_tipo_cliente]
+  nombre_descuento varchar 
+  porcentaje decimal 
+}
+
+Table notas_venta {
+  id_nota_venta serial [pk]
+  id_pedido int [unique, ref: - pedidos.id_pedido]
+  id_descuento int [ref: > descuentos.id_descuento] 
+  numero_nota varchar [unique] 
+  fecha_emision timestamp
+  subtotal decimal
+  total_final decimal
+  estado_envio_correo varchar 
+}
+
+Table proveedores {
+  id_proveedor serial [pk]
+  nombre_empresa varchar
+  nombre_contacto varchar
+  telefono_contacto varchar
+  direccion varchar
+}
+
+Table tipos_movimiento { 
+  id_tipo_movimiento serial [pk]
+  nombre_movimiento varchar 
+}
+
+Table origenes_material { 
+  id_origen serial [pk]
+  nombre_origen varchar 
+}
+
+Table movimientos_almacen {
+  id_movimiento serial [pk]
+  id_producto int [ref: > productos_almacen.id_producto]
+  id_proveedor int [ref: > proveedores.id_proveedor] 
+  id_detalle_pedido int [ref: > detalle_pedido.id_detalle] 
+  id_tipo_movimiento int [ref: > tipos_movimiento.id_tipo_movimiento]
+  id_origen int [ref: > origenes_material.id_origen]
+  cantidad decimal 
+  fecha_movimiento timestamp
+}
+
+Table observaciones_movimiento {
+  id_observacion serial [pk]
+  id_movimiento int [unique, ref: - movimientos_almacen.id_movimiento]
+  observacion text 
+}

@@ -1,80 +1,92 @@
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+
+// Importación de Vistas y Layouts
 import Login from './pages/Login';
 import Register from './pages/Register';
-import MedidasForm from './pages/MedidasForm';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminUsuarios from './pages/AdminUsuarios';
-import AdminPedidos from './pages/AdminPedidos';
-import AlmacenView from './pages/AlmacenView';
-import ClientesView from './pages/ClientesView';
-import AdminPruebasView from './pages/AdminPruebasView';
-import SecretariaDashboard from './pages/SecretariaDashboard';
-import MobileDashboard from './pages/MobileDashboard';
-import MobilePerfil from './pages/MobilePerfil';
-import ClienteDashboard from './pages/ClienteDashboard';
 import AdminLayout from './layouts/AdminLayout';
+import AdminHome from './pages/AdminHome';
+import AdminUsuarios from './pages/AdminUsuarios';
+import ClientesView from './pages/ClientesView';
+import AlmacenView from './pages/AlmacenView';
+import KardexView from './pages/KardexView';
+import AdminPedidos from './pages/AdminPedidos';
+import AdminTestDashboard from './pages/AdminTestDashboard';
+
 import SecretariaLayout from './layouts/SecretariaLayout';
-import MobileLayout from './layouts/MobileLayout';
+import SecretariaDashboard from './pages/SecretariaDashboard';
 
-const RutaProtegida = ({ children }) => {
-    const { usuario, cargando } = useAuth();
-    if (cargando) return <div className="pantalla-carga">Cargando...</div>;
-    return usuario ? children : <Navigate to="/login" replace />;
+import MobileDashboard from './pages/MobileDashboard';
+import ClienteDashboard from './pages/ClienteDashboard';
+
+// Ruta protegida por roles
+const RutaProtegida = ({ children, rolesPermitidos }) => {
+    const { usuario, token, cargando } = useAuth();
+
+    if (cargando) return <div className="cargando-fullscreen">Cargando Simonetta Modas...</div>;
+    if (!token || !usuario) return <Navigate to="/login" replace />;
+    
+    if (rolesPermitidos && !rolesPermitidos.includes(usuario.rol)) {
+        return <Navigate to="/login" replace />;
+    }
+
+    return children;
 };
 
-const RootRedirect = () => {
-    const { usuario } = useAuth();
-    if (!usuario) return <Navigate to="/login" replace />;
-    if (usuario.rol === 'Admin') return <Navigate to="/admin" replace />;
-    if (usuario.rol === 'Secretaria') return <Navigate to="/secretaria" replace />;
-    if (usuario.rol === 'Cliente') return <Navigate to="/cliente" replace />;
-    return <Navigate to="/mobile" replace />;
-};
-
-const App = () => (
-    <BrowserRouter>
+const App = () => {
+    return (
         <AuthProvider>
-            <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
+            <BrowserRouter>
+                <Routes>
+                    {/* Públicas */}
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
 
-                {/* ADMIN */}
-                <Route path="/admin" element={<RutaProtegida><AdminLayout /></RutaProtegida>}>
-                    <Route index element={<AdminDashboard />} />
-                    <Route path="usuarios" element={<AdminUsuarios />} />
-                    <Route path="clientes" element={<ClientesView />} />
-                    <Route path="almacen" element={<AlmacenView />} />
-                    <Route path="pedidos" element={<AdminPedidos />} />
-                    <Route path="pruebas" element={<AdminPruebasView />} />
-                </Route>
+                    {/* ADMINISTRACIÓN (Panel Web Desktop) */}
+                    <Route path="/admin" element={
+                        <RutaProtegida rolesPermitidos={['Administradora', 'Administrador']}>
+                            <AdminLayout />
+                        </RutaProtegida>
+                    }>
+                        <Route index element={<AdminHome />} />
+                        <Route path="usuarios" element={<AdminUsuarios />} />
+                        <Route path="clientes" element={<ClientesView />} />
+                        <Route path="almacen" element={<AlmacenView />} />
+                        <Route path="kardex" element={<KardexView />} />
+                        <Route path="pedidos" element={<AdminPedidos />} />
+                        <Route path="pruebas" element={<AdminTestDashboard />} />
+                    </Route>
 
-                {/* SECRETARÍA */}
-                <Route path="/secretaria" element={<RutaProtegida><SecretariaLayout /></RutaProtegida>}>
-                    <Route index element={<SecretariaDashboard />} />
-                    <Route path="pedidos" element={<AdminPedidos />} />
-                    <Route path="clientes" element={<ClientesView />} />
-                    <Route path="almacen" element={<AlmacenView readOnly={true} />} />
-                    <Route path="medidas/:id" element={<MedidasForm />} />
-                </Route>
+                    {/* SECRETARÍA */}
+                    <Route path="/secretaria" element={
+                        <RutaProtegida rolesPermitidos={['Secretaria', 'Administradora']}>
+                            <SecretariaLayout />
+                        </RutaProtegida>
+                    }>
+                        <Route index element={<SecretariaDashboard />} />
+                    </Route>
 
-                {/* MÓVIL (Costurera) */}
-                <Route path="/mobile" element={<RutaProtegida><MobileLayout /></RutaProtegida>}>
-                    <Route index element={<MobileDashboard />} />
-                    <Route path="perfil" element={<MobilePerfil />} />
-                </Route>
+                    {/* VISTA MÓVIL (Costurera) */}
+                    <Route path="/taller" element={
+                        <RutaProtegida rolesPermitidos={['Costurera', 'Administradora']}>
+                            <MobileDashboard />
+                        </RutaProtegida>
+                    } />
 
-                {/* CLIENTE */}
-                <Route path="/cliente" element={<RutaProtegida><ClienteDashboard /></RutaProtegida>} />
+                    {/* CLIENTES PWA */}
+                    <Route path="/cliente" element={
+                        <RutaProtegida rolesPermitidos={['Cliente']}>
+                            <ClienteDashboard />
+                        </RutaProtegida>
+                    } />
 
-                {/* Standalone */}
-                <Route path="/medidas/:id_cliente" element={<RutaProtegida><MedidasForm /></RutaProtegida>} />
-
-                <Route path="/" element={<RutaProtegida><RootRedirect /></RutaProtegida>} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
+                    {/* Redirección por defecto */}
+                    <Route path="*" element={<Navigate to="/login" replace />} />
+                </Routes>
+            </BrowserRouter>
         </AuthProvider>
-    </BrowserRouter>
-);
+    );
+};
 
 export default App;

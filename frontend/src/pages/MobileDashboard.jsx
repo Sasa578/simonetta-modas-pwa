@@ -18,18 +18,15 @@ const MobileDashboard = () => {
 
     const fetchPedidos = async () => {
         try {
-            const url = esCosturera 
-                ? `http://localhost:3000/api/pedidos/costurera/${usuario.id_usuario}`
-                : `http://localhost:3000/api/pedidos`;
-            const res = await fetch(url, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                const filtrados = data.filter(p => p.estado !== 'Terminado' && p.estado !== 'Listo para Prueba');
-                setPedidosActivos(filtrados);
-            }
-        } catch (error) { console.error('Error cargando pedidos:', error); }
+
+            const endpoint = esCosturera 
+                ? `/pedidos/costurera/${usuario.id_usuario}`
+                : `/pedidos`;
+            const res = await api.get(endpoint);
+            const filtrados = (res.data || []).filter(p => p.estado !== 'Terminado' && p.estado !== 'Listo para Prueba');
+            setPedidosActivos(filtrados);
+        } catch (error) { console.error("Error cargando pedidos:", error); }
+
     };
 
     useEffect(() => {
@@ -43,24 +40,17 @@ const MobileDashboard = () => {
 
     const actualizarEstado = async (id_pedido, nuevoEstado) => {
         try {
-            const res = await fetch(`http://localhost:3000/api/pedidos/${id_pedido}/estado`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ estado: nuevoEstado })
-            });
-            if (res.ok) fetchPedidos();
-        } catch (error) { console.error('Error al actualizar estado', error); }
+
+            await api.put(`/pedidos/${id_pedido}/estado`, { estado: nuevoEstado });
+            fetchPedidos();
+        } catch (error) { console.error("Error al actualizar estado", error); }
+
     };
 
     const verMedidas = async (pedido) => {
         try {
-            const res = await fetch(`http://localhost:3000/api/medidas/cliente/${pedido.id_cliente}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setModalMedidas({ abierto: true, medidas: data, cliente: pedido.cliente, caducadas: data[0]?.medidas_caducadas });
-            }
+            const res = await api.get(`/medidas/cliente/${pedido.id_cliente}`);
+            setModalMedidas({ abierto: true, medidas: res.data, cliente: pedido.cliente, caducadas: res.data[0]?.medidas_caducadas });
         } catch (err) { console.error('Error cargando medidas:', err); }
     };
 
@@ -82,7 +72,7 @@ const MobileDashboard = () => {
     return (
         <>
             <section className="mobile-section">
-                <h2 className="mobile-section-title">📋 Tareas Pendientes</h2>
+                <h2 className="mobile-section-title">ð Tareas Pendientes</h2>
                 <div className="pedidos-cards">
                     {pedidosActivos.length === 0 ? (
                         <p style={{textAlign:'center',color:'#666'}}>No hay tareas pendientes.</p>
@@ -101,9 +91,12 @@ const MobileDashboard = () => {
                             </div>
 
                             <div className="pedido-card-fechas">
-                                <span>📅 Inicio: {new Date(p.fecha_pedido).toLocaleDateString()}</span>
-                                <span>🚚 Entrega: {new Date(p.fecha_entrega).toLocaleDateString()}</span>
+
+                                <span>ð Inicio: {new Date(p.fecha_pedido).toLocaleDateString()}</span>
+                                <span>ð Entrega: {new Date(p.fecha_entrega).toLocaleDateString()}</span>
                             </div>
+
+                            {/* Botones de acción */}
 
                             <div style={{display:'flex',gap:'10px',marginTop:'15px',flexWrap:'wrap'}}>
                                 {esCosturera && (
@@ -114,8 +107,11 @@ const MobileDashboard = () => {
                                         {p.estado === 'Acabados' && <button onClick={() => actualizarEstado(p.id_pedido, 'Para Entregar')} style={{flex:1,padding:'12px',background:'#8290B0',color:'white',border:'none',borderRadius:'8px',fontSize:'16px',fontWeight:'bold'}}>Pasar a Secretaría</button>}
                                     </>
                                 )}
+
+                                {/* ð Ver Medidas â 44x44px mínimo */}
                                 <button onClick={() => verMedidas(p)} style={{minWidth:'44px',minHeight:'44px',padding:'10px 14px',background:'#455E8B',color:'white',border:'none',borderRadius:'8px',fontSize:'15px',cursor:'pointer',whiteSpace:'nowrap'}} title="Ver medidas anatómicas">
-                                    📏 Ver Medidas
+                                    ð Ver Medidas
+
                                 </button>
                             </div>
                         </div>
@@ -123,16 +119,19 @@ const MobileDashboard = () => {
                 </div>
             </section>
 
+
+            {/* === MODAL: Medidas Anatómicas === */}
+
             {modalMedidas?.abierto && (
                 <div className="modal-overlay" onClick={cerrarModal}>
                     <div className="modal-contenido" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h3>📏 Medidas de {modalMedidas.cliente}</h3>
-                            <button className="modal-cerrar" onClick={cerrarModal}>✕</button>
+                            <h3>ð Medidas de {modalMedidas.cliente}</h3>
+                            <button className="modal-cerrar" onClick={cerrarModal}>â</button>
                         </div>
                         {modalMedidas.caducadas && (
                             <div className="alerta-caducada" style={{margin:'0 0 1rem'}}>
-                                ⚠️ Medidas desactualizadas (Más de 6 meses). Se sugiere retomar.
+                                â ï¸ Medidas desactualizadas (MÃ¡s de 6 meses). Se sugiere retomar.
                             </div>
                         )}
                         {modalMedidas.medidas.length > 0 ? (
@@ -140,7 +139,7 @@ const MobileDashboard = () => {
                                 {Object.entries(ETIQUETAS_MEDIDAS).map(([key, label]) => (
                                     <div key={key} className="modal-medida-item">
                                         <span className="modal-medida-label">{label}</span>
-                                        <span className="modal-medida-valor">{modalMedidas.medidas[0][key] ?? '—'} cm</span>
+                                        <span className="modal-medida-valor">{modalMedidas.medidas[0][key] ?? 'â'} cm</span>
                                     </div>
                                 ))}
                             </div>

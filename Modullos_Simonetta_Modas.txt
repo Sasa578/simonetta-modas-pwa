@@ -1,0 +1,39 @@
+Módulo 1: Seguridad, Usuarios y Clientes
+roles, estados_usuario, estados_cliente, tipo_cliente: Tablas de catálogo estático (Lookup tables). Definen los dominios permitidos para los perfiles, limitando errores de inserción de datos.
+
+usuarios: Centraliza exclusivamente las credenciales de acceso (correo y contraseña encriptada con Bcrypt) del personal interno del taller. Está vinculada a roles para la autorización de módulos.
+
+datos_usuario: Mantiene una relación estricta 1:1 con usuarios. Aísla la información personal del trabajador (nombre, CI, teléfono), aplicando el principio de particionamiento vertical.
+
+clientes: Centraliza las credenciales de acceso de los consumidores finales para el uso de la PWA desde el exterior.
+
+datos_cliente_persona / datos_cliente_institucional: Aplican el patrón de subtipos/herencia lógica. Se conectan 1:1 con clientes, almacenando datos radicalmente distintos según si el usuario es un individuo común o una institución con razón social y NIT.
+
+atributos_cliente: Permite almacenar de forma dinámica (1:N) preferencias específicas del usuario (ej. preferencias de tela, tolerancias de ajuste) sin alterar la estructura principal.
+
+contratos: Relacionada 1:N con los clientes institucionales. Archiva los registros legales y periodos de vigencia de servicios corporativos a gran escala.
+
+Módulo 2: Pedidos y Medidas
+pedidos: Tabla cabecera transaccional. Registra el núcleo financiero de la orden total, relacionando al cliente con su línea de tiempo de producción (fechas de inicio, pruebas y entrega).
+
+prendas y catalogo: Abstraen los modelos confeccionables ofrecidos por el taller. Las descripciones largas se extraen a tablas 1:1 (descripciones_prenda y descripciones_catalogo) para optimizar consultas de lectura rápida en el frontend.
+
+detalle_pedido: Es la entidad asociativa puente (1:N). Un pedido puede contener múltiples prendas distintas. Guarda las cantidades y subtotales por prenda.
+
+medidas_anatomicas y medidas_convencionales: Conectadas 1:1 con detalle_pedido. Esta estructura garantiza que las medidas pertenezcan exclusivamente a una prenda específica dentro de un pedido, solucionando el problema de requerimientos anatómicos variables (ej. entallado vs holgado) para un mismo cliente.
+
+citas y pagos: Entidades de control de agenda y finanzas. Permiten múltiples pagos fraccionados y múltiples reuniones por pedido, normalizando el control del estado y los métodos utilizados a través de sus propias tablas de catálogo.
+
+Módulo 3: Almacén e Inventario
+colores, materiales_base, unidades_medida, categorias_almacen, tipos_producto: Constelación de catálogos paramétricos. Garantizan que el usuario elija de un menú desplegable estructurado, erradicando los errores ortográficos y la redundancia de datos.
+
+productos_almacen: Núcleo de control de stock. Contiene métricas cuantitativas universales compartidas por todo insumo (cantidad actual y stock mínimo para disparar alertas gerenciales).
+
+Tablas de Especificaciones (esp_telas, esp_botones, etc.): Arquitectura de desnormalización controlada. Se conectan 1:1 al producto principal para guardar propiedades cualitativas únicas (ej. textura, grosor, forma) sin crear columnas nulas masivas en la tabla central del almacén.
+
+Módulo 4: Kardex, Reportes y Notas de Venta
+notas_venta: Actúa como una fotografía inmutable de la orden comercial finalizada. Se vincula 1:1 con el pedido y almacena los montos calculados finales, protegiéndolos contra futuras fluctuaciones de precios en el sistema.
+
+descuentos: Entidad de reglas de negocio que asocia reducciones porcentuales parametrizadas según el tipo de cliente (ej. Frecuente).
+
+movimientos_almacen (Kardex): Tabla de auditoría transaccional. Es el único registro donde se documentan las entradas (vinculadas a proveedores) y salidas (vinculadas a detalle_pedido). Incluye la entidad origenes_material para dictaminar operativamente si la materia prima pertenece al inventario del taller (afectando stock) o fue suministrada por el cliente (protegiendo el inventario general).

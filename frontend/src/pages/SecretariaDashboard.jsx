@@ -220,7 +220,7 @@ const SecretariaDashboard = () => {
                         <h2>⭐ Entregas Próximas</h2>
                     </div>
                     <div className="card-body" style={{ maxHeight: '320px', overflowY: 'auto' }}>
-                        {pedidos.filter(p => p.estado !== 'Terminado').slice(0, 10).map((p) => (
+                        {pedidos.filter(p => p.estado !== 'Entregado' && p.estado !== 'Cancelado').slice(0, 10).map((p) => (
                             <div key={p.id_pedido} className="fila-pedido-importante" style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
                                 <div style={{display:'flex', gap:'0.6rem', flex:1, alignItems: 'center'}}>
                                     <span className="importante-id">#{p.id_pedido}</span>

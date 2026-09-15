@@ -1,6 +1,7 @@
 const PedidoModel = require('../models/PedidoModel');
+const db = require('../config/db');
 
-// POST /api/pedidos — Crear un pedido con detalle de material
+// POST /api/pedidos — Crear un pedido con detalle de prenda, medidas, pagos y citas
 const crearPedido = async (req, res) => {
     try {
         const {
@@ -10,14 +11,23 @@ const crearPedido = async (req, res) => {
             fecha_prueba,
             costo_total,
             adelanto,
-            // Material (HU-05)
+            id_metodo_pago,
+            // Prenda y diseño
+            tipo_prenda,
+            prenda,
+            color,
+            notas_diseno,
+            talla,
+            medidas,
+            medidas_anatomicas,
+            // Material (opcional o compatibilidad HU-05)
             descripcion_tela,
             origen_material,
+            id_material,
             cantidad_metros,
         } = req.body;
 
-        // --- Validaciones HU-04 ---
-
+        // --- Validaciones ---
         if (!id_cliente) {
             return res.status(400).json({ error: 'El cliente es obligatorio.' });
         }
@@ -46,36 +56,33 @@ const crearPedido = async (req, res) => {
             return res.status(400).json({ error: 'El adelanto no puede ser negativo.' });
         }
 
-        // Cálculo del saldo (NUNCA confiado del frontend)
-        const saldoCalculado = costo - adelantoFloat;
-
-        // --- Validaciones HU-05 ---
-
-        if (!descripcion_tela) {
-            return res.status(400).json({ error: 'La descripción de la tela es obligatoria.' });
-        }
-
-        if (!origen_material || !['Taller', 'Cliente'].includes(origen_material)) {
-            return res.status(400).json({ error: 'El origen del material debe ser "Taller" o "Cliente".' });
-        }
+        const nombrePrenda = tipo_prenda || prenda || descripcion_tela || 'Prenda a Medida';
+        const colorPrenda = color || 'A elección';
+        const origen = origen_material || 'Taller';
 
         // --- Persistencia (transacción atómica) ---
-
-        const resultado = await PedidoModel.crearPedido(
+        const pedidoCreado = await PedidoModel.crearPedido(
             {
-                id_cliente,
-                id_costurera,
+                id_cliente: Number(id_cliente),
+                id_costurera: id_costurera ? Number(id_costurera) : null,
                 fecha_entrega,
                 fecha_prueba: fecha_prueba || null,
                 costo_total: costo,
                 adelanto: adelantoFloat,
-                saldo: saldoCalculado,
+                id_metodo_pago: id_metodo_pago ? Number(id_metodo_pago) : 1,
                 estado: 'Pendiente',
             },
             {
-                descripcion_tela,
-                origen_material,
+                tipo_prenda: nombrePrenda,
+                color: colorPrenda,
+                descripcion_tela: descripcion_tela || nombrePrenda,
+                origen_material: origen,
                 cantidad_metros: cantidad_metros || null,
+                notas_diseno: notas_diseno || null,
+                medidas_anatomicas: medidas_anatomicas || medidas || null,
+                talla: talla || null,
+                cantidad: 1,
+                subtotal: costo
             }
         );
 
@@ -85,12 +92,29 @@ const crearPedido = async (req, res) => {
 
         return res.status(201).json({
             mensaje: 'Pedido creado exitosamente.',
-            pedido: resultado.pedido,
-            detalle_material: resultado.detalle,
+            pedido: pedidoCreado,
+            ...pedidoCreado
         });
     } catch (error) {
         console.error('Error al crear pedido:', error);
-        return res.status(500).json({ error: 'Error interno del servidor.' });
+        return res.status(500).json({ error: 'Error interno del servidor al crear pedido.' });
+    }
+};
+
+// GET /api/pedidos/catalogos
+const obtenerCatalogos = async (req, res) => {
+    try {
+        const [estados, metodos] = await Promise.all([
+            db.query('SELECT id_estado_pedido, nombre_estado FROM estados_pedido ORDER BY id_estado_pedido'),
+            db.query('SELECT id_metodo_pago, nombre_metodo FROM metodos_pago ORDER BY id_metodo_pago')
+        ]);
+        res.json({
+            estados: estados.rows,
+            metodos_pago: metodos.rows
+        });
+    } catch (error) {
+        console.error('Error al obtener catálogos de pedidos:', error);
+        res.status(500).json({ error: 'Error del servidor' });
     }
 };
 
@@ -284,4 +308,13 @@ const saldarYEntregar = async (req, res) => {
 };
 
 module.exports = {
- crearPedido, obtenerPedidos, actualizarEstado, obtenerMetricas, obtenerPedidosCosturera, obtenerPedido, actualizarPedido };
+    crearPedido,
+    obtenerCatalogos,
+    obtenerPedidos,
+    actualizarEstado,
+    obtenerMetricas,
+    obtenerPedidosCosturera,
+    obtenerPedido,
+    actualizarPedido,
+    saldarYEntregar
+};

@@ -9,7 +9,10 @@ const pedidosRoutes = require('./routes/pedidosRoutes');
 const almacenRoutes = require('./routes/almacenRoutes');
 const usuariosRoutes = require('./routes/usuariosRoutes');
 const citasRoutes = require('./routes/citasRoutes');
-const pruebasRoutes = require('./routes/pruebasRoutes');
+const pagosRoutes = require('./routes/pagosRoutes');
+const kardexRoutes = require('./routes/kardexRoutes');
+const notasVentaRoutes = require('./routes/notasVentaRoutes');
+const testsRoutes = require('./routes/testsRoutes');
 
 const app = express();
 const PUERTO = process.env.PUERTO || 3000;
@@ -23,10 +26,13 @@ app.use('/api/auth', authRoutes);
 app.use('/api/clientes', clientesRoutes);
 app.use('/api/medidas', medidasRoutes);
 app.use('/api/pedidos', pedidosRoutes);
+app.use('/api/pagos', pagosRoutes);
 app.use('/api/almacen', almacenRoutes);
+app.use('/api/kardex', kardexRoutes);
+app.use('/api/notas-venta', notasVentaRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/citas', citasRoutes);
-app.use('/api/pruebas', pruebasRoutes);
+app.use('/api/tests', testsRoutes);
 
 // --- Ruta de salud ---
 app.get('/api/salud', (req, res) => {
@@ -40,7 +46,7 @@ const { Server } = require('socket.io');
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: '*',
+        origin: '*', // Permitir cualquier origen por simplicidad en desarrollo local
         methods: ['GET', 'POST', 'PUT', 'DELETE']
     }
 });
@@ -49,14 +55,14 @@ const io = new Server(server, {
 app.set('io', io);
 
 io.on('connection', (socket) => {
-    console.log(\🔌 Cliente conectado (Socket ID: \)\);
+    console.log(`🟢 Cliente conectado (Socket ID: ${socket.id})`);
     socket.on('disconnect', () => {
-        console.log(\🔌 Cliente desconectado (Socket ID: \)\);
+        console.log(`🔴 Cliente desconectado (Socket ID: ${socket.id})`);
     });
 });
 
 server.listen(PUERTO, () => {
-    console.log(\👗 Simonetta Modas API corriendo en http://localhost:\ (Con WebSockets)\);
+    console.log(`🧵 Simonetta Modas API corriendo en http://localhost:${PUERTO} (Con WebSockets)`);
 });
 
 module.exports = { app, server, io };
