@@ -197,6 +197,15 @@ const AdminTestDashboard = () => {
                     <div className="card glass-effect" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                         <h2 style={{ color: 'var(--color-texto-principal)', margin: 0 }}>Parámetros de Ruta</h2>
 
+                        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--color-texto-secundario)', width: '100%', fontWeight: 600 }}>Rutas Rápidas de Prueba:</span>
+                            <button type="button" onClick={() => { setApiMethod('GET'); setApiUrl('/api/pedidos'); }} style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--color-borde)', background: '#f8fafc', cursor: 'pointer' }}>📦 /api/pedidos</button>
+                            <button type="button" onClick={() => { setApiMethod('GET'); setApiUrl('/api/pedidos/catalogos'); }} style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--color-borde)', background: '#f8fafc', cursor: 'pointer' }}>🏷️ /api/pedidos/catalogos</button>
+                            <button type="button" onClick={() => { setApiMethod('GET'); setApiUrl('/api/pagos/catalogos'); }} style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--color-borde)', background: '#f8fafc', cursor: 'pointer' }}>💳 /api/pagos/catalogos</button>
+                            <button type="button" onClick={() => { setApiMethod('GET'); setApiUrl('/api/citas/pendientes'); }} style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--color-borde)', background: '#f8fafc', cursor: 'pointer' }}>📅 /api/citas/pendientes</button>
+                            <button type="button" onClick={() => { setApiMethod('GET'); setApiUrl('/api/almacen/catalogos'); }} style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--color-borde)', background: '#f8fafc', cursor: 'pointer' }}>🧵 /api/almacen/catalogos</button>
+                        </div>
+
                         <div>
                             <label className="modal-label">Método HTTP</label>
                             <select
