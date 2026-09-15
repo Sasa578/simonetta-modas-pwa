@@ -9,6 +9,7 @@ const pedidosRoutes = require('./routes/pedidosRoutes');
 const almacenRoutes = require('./routes/almacenRoutes');
 const usuariosRoutes = require('./routes/usuariosRoutes');
 const citasRoutes = require('./routes/citasRoutes');
+const testsRoutes = require('./routes/testsRoutes');
 
 const app = express();
 const PUERTO = process.env.PUERTO || 3000;
@@ -25,6 +26,7 @@ app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/almacen', almacenRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/citas', citasRoutes);
+app.use('/api/tests', testsRoutes);
 
 // --- Ruta de salud ---
 app.get('/api/salud', (req, res) => {

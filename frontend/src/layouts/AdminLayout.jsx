@@ -57,6 +57,7 @@ const AdminLayout = () => {
                     <NavLink to="/admin/almacen" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Almacén</NavLink>
                     <NavLink to="/admin/clientes" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Clientes</NavLink>
                     <NavLink to="/admin/usuarios" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Usuarios</NavLink>
+                    <NavLink to="/admin/pruebas" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Pruebas API</NavLink>
                 </nav>
                 <div className="topbar-perfil">
                     <div className="perfil-avatar">{usuario?.correo?.charAt(0).toUpperCase() || 'A'}</div>

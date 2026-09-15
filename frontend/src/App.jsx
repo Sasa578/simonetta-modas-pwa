@@ -12,6 +12,7 @@ import SecretariaDashboard from './pages/SecretariaDashboard';
 import MobileDashboard from './pages/MobileDashboard';
 import MobilePerfil from './pages/MobilePerfil';
 import ClienteDashboard from './pages/ClienteDashboard';
+import AdminTestDashboard from './pages/AdminTestDashboard';
 import AdminLayout from './layouts/AdminLayout';
 import SecretariaLayout from './layouts/SecretariaLayout';
 import MobileLayout from './layouts/MobileLayout';
@@ -45,6 +46,7 @@ const App = () => (
                     <Route path="clientes" element={<ClientesView />} />
                     <Route path="almacen" element={<AlmacenView />} />
                     <Route path="pedidos" element={<AdminPedidos />} />
+                    <Route path="pruebas" element={<AdminTestDashboard />} />
                 </Route>
 
                 {/* SECRETARÍA */}
