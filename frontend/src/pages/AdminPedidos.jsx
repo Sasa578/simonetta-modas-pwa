@@ -4,6 +4,7 @@ import ModalPedido from '../components/ModalPedido';
 import ModalEntrega from '../components/ModalEntrega';
 import ModalEditarPedido from '../components/ModalEditarPedido';
 import ModalPago from '../components/ModalPago';
+import ModalNotaVenta from '../components/ModalNotaVenta';
 
 const AdminPedidos = () => {
     const [pedidos, setPedidos] = useState([]);
@@ -11,6 +12,7 @@ const AdminPedidos = () => {
     const [editarPedidoId, setEditarPedidoId] = useState(null);
     const [pedidoAEntregar, setPedidoAEntregar] = useState(null);
     const [pedidoAbono, setPedidoAbono] = useState(null);
+    const [pedidoNotaVentaId, setPedidoNotaVentaId] = useState(null);
     const [filtroEstado, setFiltroEstado] = useState('todos');
     const [busqueda, setBusqueda] = useState('');
     const [msg, setMsg] = useState('');
@@ -203,6 +205,19 @@ const AdminPedidos = () => {
                                                     💳 Pagos
                                                 </button>
 
+                                                {/* Botón Nota de Venta */}
+                                                <button
+                                                    onClick={() => setPedidoNotaVentaId(p.id_pedido)}
+                                                    title="Ver o emitir Nota de Venta oficial inmutable"
+                                                    style={{
+                                                        background: '#f8fafc', color: '#0284c7',
+                                                        border: '1px solid #bae6fd', borderRadius: '6px',
+                                                        padding: '0.35rem 0.6rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600
+                                                    }}
+                                                >
+                                                    🧾 Nota
+                                                </button>
+
                                                 {/* Botón Entregar */}
                                                 {p.estado !== 'Entregado' && p.estado !== 'Cancelado' && (
                                                     <button
@@ -272,6 +287,12 @@ const AdminPedidos = () => {
                 onClose={() => setPedidoAbono(null)}
                 onSuccess={cargarPedidos}
                 pedido={pedidoAbono}
+            />
+
+            <ModalNotaVenta
+                isOpen={!!pedidoNotaVentaId}
+                onClose={() => setPedidoNotaVentaId(null)}
+                idPedido={pedidoNotaVentaId}
             />
         </section>
     );

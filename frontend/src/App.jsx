@@ -13,6 +13,7 @@ import MobileDashboard from './pages/MobileDashboard';
 import MobilePerfil from './pages/MobilePerfil';
 import ClienteDashboard from './pages/ClienteDashboard';
 import AdminTestDashboard from './pages/AdminTestDashboard';
+import KardexView from './pages/KardexView';
 import AdminLayout from './layouts/AdminLayout';
 import SecretariaLayout from './layouts/SecretariaLayout';
 import MobileLayout from './layouts/MobileLayout';
@@ -45,6 +46,7 @@ const App = () => (
                     <Route path="usuarios" element={<AdminUsuarios />} />
                     <Route path="clientes" element={<ClientesView />} />
                     <Route path="almacen" element={<AlmacenView />} />
+                    <Route path="kardex" element={<KardexView />} />
                     <Route path="pedidos" element={<AdminPedidos />} />
                     <Route path="pruebas" element={<AdminTestDashboard />} />
                 </Route>
@@ -55,6 +57,7 @@ const App = () => (
                     <Route path="pedidos" element={<AdminPedidos />} />
                     <Route path="clientes" element={<ClientesView />} />
                     <Route path="almacen" element={<AlmacenView readOnly={true} />} />
+                    <Route path="kardex" element={<KardexView />} />
                     <Route path="medidas/:id" element={<MedidasForm />} />
                 </Route>
 
