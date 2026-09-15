@@ -111,4 +111,17 @@ const eliminarUsuario = async (req, res) => {
     }
 };
 
-module.exports = { listarUsuarios, crearUsuario, actualizarUsuario, eliminarUsuario };
+
+// GET /api/usuarios/costureras — Listar solo costureras
+const listarCostureras = async (req, res) => {
+    try {
+        const usuarios = await UsuarioModel.listarTodos();
+        const costureras = usuarios.filter(u => u.nombre_rol === 'Costurera');
+        return res.json(costureras);
+    } catch (error) {
+        console.error('Error al listar costureras:', error);
+        return res.status(500).json({ error: 'Error interno del servidor.' });
+    }
+};
+
+module.exports = { listarUsuarios, crearUsuario, actualizarUsuario, eliminarUsuario, listarCostureras };
