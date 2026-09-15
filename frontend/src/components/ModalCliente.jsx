@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../api/axios';
 
 const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
@@ -47,16 +47,9 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-
-        if (!/^\+?[0-9\s-]{7,15}$/.test(form.telefono_whatsapp.trim())) {
-            setError('El número de WhatsApp sólo debe contener dígitos numéricos (7 a 15 números).');
-            return;
-        }
-
         setCargando(true);
 
         try {
-
             const payload = {
                 id_tipo_cliente: tipoCliente,
                 correo: form.correo || undefined
@@ -84,7 +77,6 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
             }
 
             await api.post('/clientes', payload);
-
             onSuccess();
             onClose();
         } catch (err) {
@@ -185,25 +177,6 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
                                 <input type="text" placeholder="Ej. Ana García Rojas" value={form.nombre_completo} onChange={(e) => setForm({ ...form, nombre_completo: e.target.value })} style={inputStyle} required />
                             </div>
 
-<<<<<<< HEAD
-                    <div style={{display: 'flex', gap: '1rem'}}>
-                        <div style={{display: 'flex', flexDirection: 'column', flex: 1}}>
-                            <label style={labelStyle}>CI</label>
-                            <input type="text" placeholder="Ej. 1234567" value={form.carnet_identidad} onChange={(e) => setForm({...form, carnet_identidad: e.target.value})} style={inputStyle} />
-                        </div>
-                        <div style={{display: 'flex', flexDirection: 'column', flex: 1}}>
-                            <label style={labelStyle}>WhatsApp (Solo números) *</label>
-                            <input 
-                                type="tel" 
-                                placeholder="Ej. 70000000" 
-                                value={form.telefono_whatsapp} 
-                                onChange={(e) => setForm({...form, telefono_whatsapp: e.target.value.replace(/[^0-9+ -]/g, '')})} 
-                                style={inputStyle} 
-                                required 
-                            />
-                        </div>
-                    </div>
-=======
                             <div style={{ display: 'flex', gap: '0.8rem' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                                     <label style={labelStyle}>CI / Cédula</label>
@@ -211,10 +184,9 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                                     <label style={labelStyle}>WhatsApp / Celular *</label>
-                                    <input type="tel" placeholder="Ej. 77712345" value={form.telefono_whatsapp} onChange={(e) => setForm({ ...form, telefono_whatsapp: e.target.value })} style={inputStyle} required />
+                                    <input type="tel" placeholder="Ej. 77712345" value={form.telefono_whatsapp} onChange={(e) => setForm({ ...form, telefono_whatsapp: e.target.value.replace(/[^0-9+ -]/g, "") })} style={inputStyle} required />
                                 </div>
                             </div>
->>>>>>> origin/main
 
                             <div style={{ display: 'flex', gap: '0.8rem' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
