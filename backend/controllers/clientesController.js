@@ -152,10 +152,60 @@ const eliminarCliente = async (req, res) => {
     }
 };
 
+
+// GET /api/clientes/mi-perfil — Perfil del usuario o cliente autenticado
+const obtenerMiPerfil = async (req, res) => {
+    try {
+        const esCliente = req.usuario.tipo_cuenta === 'cliente' || req.usuario.rol === 'Cliente';
+        const correo = req.usuario.correo;
+
+        if (esCliente) {
+            let cliente = null;
+            if (req.usuario.id_cliente) {
+                cliente = await ClienteModel.buscarPorId(req.usuario.id_cliente);
+            }
+            if (!cliente && correo) {
+                cliente = await ClienteModel.buscarPorCorreo(correo);
+            }
+
+            let medidas = null;
+            if (cliente) {
+                const medidasRes = await db.query(
+                    `SELECT ma.*, p.fecha_inicio as fecha_toma, pr.tipo_prenda
+                     FROM pedidos p
+                     JOIN detalle_pedido dp ON p.id_pedido = dp.id_pedido
+                     JOIN prendas pr ON dp.id_prenda = pr.id_prenda
+                     JOIN medidas_anatomicas ma ON dp.id_detalle = ma.id_detalle
+                     WHERE p.id_cliente = $1
+                     ORDER BY p.fecha_inicio DESC, ma.id_medida_anatomica DESC
+                     LIMIT 1`,
+                    [cliente.id_cliente]
+                );
+                medidas = medidasRes.rows[0] || null;
+            }
+
+            return res.json({
+                cliente,
+                medidas
+            });
+        } else {
+            const usuario = await UsuarioModel.buscarPorId(req.usuario.id_usuario);
+            return res.json({
+                cliente: usuario,
+                medidas: null
+            });
+        }
+    } catch (error) {
+        console.error('Error al obtener mi perfil:', error);
+        return res.status(500).json({ error: 'Error interno del servidor.' });
+    }
+};
+
 module.exports = {
     listarClientes,
     obtenerCliente,
     crearCliente,
     actualizarCliente,
-    eliminarCliente
+    eliminarCliente,
+    obtenerMiPerfil
 };
