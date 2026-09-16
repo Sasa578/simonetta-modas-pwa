@@ -25,6 +25,7 @@ const crearPedido = async (req, res) => {
             origen_material,
             id_material,
             cantidad_metros,
+            insumos,
         } = req.body;
 
         // --- Validaciones ---
@@ -82,7 +83,8 @@ const crearPedido = async (req, res) => {
                 medidas_anatomicas: medidas_anatomicas || medidas || null,
                 talla: talla || null,
                 cantidad: 1,
-                subtotal: costo
+                subtotal: costo,
+                insumos: Array.isArray(insumos) ? insumos : []
             }
         );
 

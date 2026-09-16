@@ -12,18 +12,18 @@ const SecretariaLayout = () => {
         <div className="admin-layout">
             <aside className="sidebar-left">
                 <div className="sidebar-brand">
-                    <span className="brand-icon">🧵</span>
+                    
                     <h1 className="brand-name">SIMONETTA</h1>
                     <p className="brand-subtitle">Panel Secretaría</p>
                 </div>
                 <div className="sidebar-section">
                     <h3 className="sidebar-heading">Accesos rápidos</h3>
                     <div className="accesos-lista">
-                        <NavLink to="/secretaria" end className={({ isActive }) => `acceso-item ${isActive ? 'active' : ''}`}>📅 Calendario</NavLink>
-                        <NavLink to="/secretaria/pedidos" className={({ isActive }) => `acceso-item ${isActive ? 'active' : ''}`}>📦 Pedidos</NavLink>
+                        <NavLink to="/secretaria" end className={({ isActive }) => `acceso-item ${isActive ? 'active' : ''}`}>Calendario</NavLink>
+                        <NavLink to="/secretaria/pedidos" className={({ isActive }) => `acceso-item ${isActive ? 'active' : ''}`}>Pedidos</NavLink>
                     </div>
                 </div>
-                <button className="sidebar-logout" onClick={handleLogout}>⏻ Cerrar sesión</button>
+                <button className="sidebar-logout" onClick={handleLogout}>Cerrar sesion</button>
             </aside>
 
             <header className="topbar">

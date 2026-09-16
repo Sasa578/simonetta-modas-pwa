@@ -84,7 +84,7 @@ const ModalNotaVenta = ({ isOpen, onClose, idPedido }) => {
                         cursor: 'pointer', color: 'var(--color-texto-secundario)'
                     }}
                 >
-                    ×
+                    X
                 </button>
 
                 {error && <div style={{ padding: '0.8rem', marginBottom: '1rem', borderRadius: '8px', background: 'var(--color-rojo-suave)', color: 'var(--color-rojo-texto)', fontSize: '0.85rem' }}>{error}</div>}
@@ -96,7 +96,7 @@ const ModalNotaVenta = ({ isOpen, onClose, idPedido }) => {
                     <div id="comprobante-imprimible">
                         {/* Cabecera Comercial */}
                         <div style={{ textAlign: 'center', borderBottom: '2px solid #e2e8f0', paddingBottom: '1.2rem', marginBottom: '1.5rem' }}>
-                            <div style={{ fontSize: '2rem' }}>🧵</div>
+                            <div style={{ fontSize: '2rem' }}></div>
                             <h2 style={{ margin: '0.3rem 0 0', letterSpacing: '2px', color: 'var(--color-azul-oscuro)', fontSize: '1.4rem' }}>
                                 SIMONETTA MODAS
                             </h2>
@@ -166,7 +166,7 @@ const ModalNotaVenta = ({ isOpen, onClose, idPedido }) => {
                         </div>
 
                         <div style={{ textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8', fontStyle: 'italic', marginBottom: '1.5rem' }}>
-                            🔒 Este comprobante es un registro inmutable emitido de acuerdo a las políticas de taller de Simonetta Modas.
+                             Este comprobante es un registro inmutable emitido de acuerdo a las políticas de taller de Simonetta Modas.
                         </div>
 
                         {/* Botones de Acción */}
@@ -178,7 +178,7 @@ const ModalNotaVenta = ({ isOpen, onClose, idPedido }) => {
                                     border: '1px solid var(--color-borde)', borderRadius: '6px', fontWeight: 600, cursor: 'pointer'
                                 }}
                             >
-                                🖨️ Imprimir
+                                 Imprimir
                             </button>
                             <button
                                 onClick={onClose}
@@ -195,7 +195,7 @@ const ModalNotaVenta = ({ isOpen, onClose, idPedido }) => {
                     /* FORMULARIO PARA EMITIR NOTA DE VENTA */
                     <div>
                         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                            <h3 style={{ margin: '0 0 0.4rem', color: 'var(--color-azul-oscuro)' }}>🧾 Emitir Nota de Venta Inmutable</h3>
+                            <h3 style={{ margin: '0 0 0.4rem', color: 'var(--color-azul-oscuro)' }}> Emitir Nota de Venta Inmutable</h3>
                             <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-texto-secundario)' }}>
                                 Genera la fotografía comercial final para el Pedido #{idPedido}. Una vez emitida, sus montos quedarán congelados para auditoría.
                             </p>
@@ -237,7 +237,7 @@ const ModalNotaVenta = ({ isOpen, onClose, idPedido }) => {
                                     border: 'none', borderRadius: '6px', fontWeight: 600, cursor: generando ? 'not-allowed' : 'pointer'
                                 }}
                             >
-                                {generando ? 'Emitiendo...' : '⚡ Emitir Comprobante Oficial'}
+                                {generando ? 'Emitiendo...' : ' Emitir Comprobante Oficial'}
                             </button>
                         </div>
                     </div>

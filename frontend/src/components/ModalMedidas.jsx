@@ -108,19 +108,19 @@ const ModalMedidas = ({ isOpen, onClose, onSuccess, cliente }) => {
             }}>
                 <header style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem'}}>
                     <div>
-                        <h2 style={{color: 'var(--color-azul-oscuro)', margin: 0}}>📏 Medidas de Cliente</h2>
+                        <h2 style={{color: 'var(--color-azul-oscuro)', margin: 0}}> Medidas de Cliente</h2>
                         <span style={{fontSize: '0.85rem', color: 'var(--color-texto-secundario)'}}>{cliente.nombre_completo}</span>
                     </div>
                     <button onClick={onClose} style={{
                         background: 'transparent', border: 'none', fontSize: '1.5rem',
                         cursor: 'pointer', color: 'var(--color-texto-secundario)'
-                    }}>×</button>
+                    }}>X</button>
                 </header>
 
                 {error && <div style={{padding:'0.8rem', marginBottom:'1rem', borderRadius:'8px', background:'var(--color-rojo-suave)', color:'var(--color-rojo-texto)'}}>{error}</div>}
                 {alertaCaducada && (
                     <div style={{padding:'0.8rem', marginBottom:'1rem', borderRadius:'8px', background:'#fef08a', color:'#854d0e', fontWeight:'bold', fontSize:'0.85rem'}}>
-                        ⚠️ Medidas Posiblemente Caducadas - Requiere Medición
+                        [!] Medidas Posiblemente Caducadas - Requiere Medición
                     </div>
                 )}
 
@@ -163,7 +163,7 @@ const ModalMedidas = ({ isOpen, onClose, onSuccess, cliente }) => {
                         marginTop: '1rem', background: 'var(--color-azul-oscuro)', color: '#fff', padding: '1rem',
                         border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: cargando ? 'not-allowed' : 'pointer'
                     }}>
-                        {cargando ? 'Guardando...' : '💾 Guardar medidas'}
+                        {cargando ? 'Guardando...' : ' Guardar medidas'}
                     </button>
                 </form>
             </div>

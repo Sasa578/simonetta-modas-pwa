@@ -86,7 +86,7 @@ const ModalUsuario = ({ isOpen, onClose, onSuccess, usuarioEdit = null, roles = 
                 <header style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem'}}>
                     <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
                         <div style={{background: 'var(--color-azul-claro)', padding: '0.5rem', borderRadius: '8px', color: 'var(--color-azul-oscuro)', fontSize: '1.2rem'}}>
-                            {usuarioEdit ? '✏️' : '👤'}
+                            {usuarioEdit ? '✏️' : ''}
                         </div>
                         <h2 style={{color: '#0F172A', margin: 0, fontSize: '1.4rem', fontWeight: 700}}>
                             {usuarioEdit ? 'Editar Usuario' : 'Nuevo Usuario'}
@@ -96,12 +96,12 @@ const ModalUsuario = ({ isOpen, onClose, onSuccess, usuarioEdit = null, roles = 
                         background: '#F1F5F9', border: 'none', width: '32px', height: '32px', borderRadius: '50%',
                         cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center',
                         transition: 'background 0.2s'
-                    }}>✕</button>
+                    }}>X</button>
                 </header>
 
                 {error && (
                     <div style={{padding:'0.8rem 1rem', marginBottom:'1.5rem', borderRadius:'8px', background:'#FEF2F2', border: '1px solid #FCA5A5', color:'#991B1B', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
-                        ⚠️ {error}
+                        [!] {error}
                     </div>
                 )}
 

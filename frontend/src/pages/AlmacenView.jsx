@@ -34,9 +34,9 @@ const AlmacenView = ({ readOnly = false }) => {
         try { 
             await api.delete(`/almacen/${id}`); 
             cargar(); 
-            setMsg('✅ Insumo eliminado correctamente.'); 
+            setMsg('[OK] Insumo eliminado correctamente.'); 
         } catch (err) { 
-            setMsg('❌ ' + (err.response?.data?.error || 'Error al eliminar el insumo.')); 
+            setMsg('[X] ' + (err.response?.data?.error || 'Error al eliminar el insumo.')); 
         }
     };
 
@@ -78,7 +78,7 @@ const AlmacenView = ({ readOnly = false }) => {
             {/* ENCABEZADO */}
             <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
-                    <h2>📦 Almacén e Inventario de Insumos {readOnly && '(Solo Lectura)'}</h2>
+                    <h2> Almacén e Inventario de Insumos {readOnly && '(Solo Lectura)'}</h2>
                     <span className="card-subtitle">Control cuantitativo centralizado y especificaciones técnicas</span>
                 </div>
                 {!readOnly && (
@@ -140,14 +140,14 @@ const AlmacenView = ({ readOnly = false }) => {
                             fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer'
                         }}
                     >
-                        {filtroStockBajo ? '⚠️ Solo Stock Bajo (Activo)' : '⚠️ Ver Stock Bajo'}
+                        {filtroStockBajo ? '[!] Solo Stock Bajo (Activo)' : '[!] Ver Stock Bajo'}
                     </button>
                 </div>
             </div>
 
             {/* TABLA DE INSUMOS */}
             <div className="card-body" style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
-                {msg && <div className={msg.startsWith('✅') ? 'pedido-exito' : 'pedido-error'} style={{ marginBottom: '1rem', padding: '0.6rem 1rem', borderRadius: '8px', fontSize: '0.88rem' }}>{msg}</div>}
+                {msg && <div className={msg.startsWith('[OK]') ? 'pedido-exito' : 'pedido-error'} style={{ marginBottom: '1rem', padding: '0.6rem 1rem', borderRadius: '8px', fontSize: '0.88rem' }}>{msg}</div>}
                 
                 <div style={{ overflowX: 'auto' }}>
                     <table className="usuarios-tabla" style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -216,7 +216,7 @@ const AlmacenView = ({ readOnly = false }) => {
                                         <td style={{ padding: '0.75rem' }}>
                                             {bajo ? (
                                                 <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', borderRadius: '6px', background: '#FEF3C7', color: '#92400E', fontWeight: 700 }}>
-                                                    ⚠️ Stock Bajo
+                                                    [!] Stock Bajo
                                                 </span>
                                             ) : (
                                                 <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', borderRadius: '6px', background: '#DCFCE7', color: '#166534', fontWeight: 600 }}>
@@ -239,7 +239,7 @@ const AlmacenView = ({ readOnly = false }) => {
                             {itemsFiltrados.length === 0 && (
                                 <tr>
                                     <td colSpan={readOnly ? 8 : 9} style={{ textAlign: 'center', padding: '3rem', color: '#94A3B8' }}>
-                                        📦 No se encontraron insumos con el filtro seleccionado.
+                                         No se encontraron insumos con el filtro seleccionado.
                                     </td>
                                 </tr>
                             )}
@@ -252,7 +252,7 @@ const AlmacenView = ({ readOnly = false }) => {
                 <ModalAlmacen 
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
-                    onSuccess={() => { cargar(); setMsg('✅ Almacén actualizado.'); }}
+                    onSuccess={() => { cargar(); setMsg('[OK] Almacén actualizado.'); }}
                     materialEdit={materialEdit}
                 />
             )}

@@ -80,14 +80,14 @@ const ClientesView = () => {
                                 transition: 'all 0.2s'
                             }}
                         >
-                            {t === 'Todos' ? '🌐 Todos' : t === 'Persona' ? '👤 Personas' : '🏢 Instituciones'}
+                            {t === 'Todos' ? '🌐 Todos' : t === 'Persona' ? ' Personas' : ' Instituciones'}
                         </button>
                     ))}
                 </div>
             </div>
             
             <div className="card-body" style={{ flex: 1, overflowY: 'auto', padding: '1.2rem' }}>
-                {msg && <div className={msg.startsWith('✅') ? 'pedido-exito' : 'pedido-error'} style={{ marginBottom: '1rem', padding: '0.6rem 1rem', borderRadius: '8px', fontSize: '0.88rem' }}>{msg}</div>}
+                {msg && <div className={msg.startsWith('[OK]') ? 'pedido-exito' : 'pedido-error'} style={{ marginBottom: '1rem', padding: '0.6rem 1rem', borderRadius: '8px', fontSize: '0.88rem' }}>{msg}</div>}
                 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.2rem' }}>
                     {clientesFiltrados.map(c => {
@@ -107,7 +107,7 @@ const ClientesView = () => {
                                             color: esInst ? '#3730A3' : '#166534',
                                             border: esInst ? '1px solid #C7D2FE' : '1px solid #BBF7D0'
                                         }}>
-                                            {esInst ? '🏢 Institucional' : '👤 Persona Natural'}
+                                            {esInst ? ' Institucional' : ' Persona Natural'}
                                         </span>
                                         <h3 style={{ margin: '0 0 0.2rem', color: 'var(--color-azul-oscuro)', fontSize: '1.1rem' }}>
                                             {c.nombre_completo}
@@ -149,7 +149,7 @@ const ClientesView = () => {
                                         fontWeight: '600', cursor: 'pointer', marginTop: 'auto', fontSize: '0.85rem',
                                         transition: 'background 0.2s'
                                     }}>
-                                        📏 Ver / Registrar Medidas
+                                         Ver / Registrar Medidas
                                     </button>
                                 )}
                             </div>
@@ -168,13 +168,13 @@ const ClientesView = () => {
             <ModalCliente 
                 isOpen={isModalClienteOpen}
                 onClose={() => setIsModalClienteOpen(false)}
-                onSuccess={() => { cargarClientes(); setMsg('✅ Cliente creado exitosamente.'); }}
+                onSuccess={() => { cargarClientes(); setMsg('[OK] Cliente creado exitosamente.'); }}
             />
 
             <ModalMedidas
                 isOpen={isModalMedidasOpen}
                 onClose={() => setIsModalMedidasOpen(false)}
-                onSuccess={() => { cargarClientes(); setMsg('✅ Medidas actualizadas exitosamente.'); }}
+                onSuccess={() => { cargarClientes(); setMsg('[OK] Medidas actualizadas exitosamente.'); }}
                 cliente={clienteSeleccionado}
             />
         </section>

@@ -43,9 +43,9 @@ const AdminUsuarios = () => {
         try { 
             await api.delete(`/usuarios/${id}`); 
             cargarUsuarios(); 
-            setMsg('✅ Usuario eliminado.'); 
+            setMsg('[OK] Usuario eliminado.'); 
         } catch (err) { 
-            setMsg('❌ ' + (err.response?.data?.error || 'Error al eliminar.')); 
+            setMsg('[X] ' + (err.response?.data?.error || 'Error al eliminar.')); 
         }
     };
 
@@ -53,7 +53,7 @@ const AdminUsuarios = () => {
         <section className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
-                    <h2>👤 Personal del Taller</h2>
+                    <h2> Personal del Taller</h2>
                     <span className="card-subtitle">Administradores, Secretarias y Costureras (Particionamiento Vertical)</span>
                 </div>
                 <button onClick={handleAdd} className="btn-primario" style={{ borderRadius: '8px', padding: '0.6rem 1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
@@ -61,7 +61,7 @@ const AdminUsuarios = () => {
                 </button>
             </div>
             <div className="card-body" style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
-                {msg && <div className={msg.startsWith('✅') ? 'pedido-exito' : 'pedido-error'} style={{ marginBottom: '1rem', padding: '0.6rem 1rem', borderRadius: '8px', fontSize: '0.88rem' }}>{msg}</div>}
+                {msg && <div className={msg.startsWith('[OK]') ? 'pedido-exito' : 'pedido-error'} style={{ marginBottom: '1rem', padding: '0.6rem 1rem', borderRadius: '8px', fontSize: '0.88rem' }}>{msg}</div>}
                 
                 <div style={{ overflowX: 'auto' }}>
                     <table className="usuarios-tabla" style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -121,7 +121,7 @@ const AdminUsuarios = () => {
             <ModalUsuario 
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                onSuccess={() => { cargarUsuarios(); setMsg('✅ Operación exitosa.'); }}
+                onSuccess={() => { cargarUsuarios(); setMsg('[OK] Operación exitosa.'); }}
                 usuarioEdit={usuarioEdit}
                 roles={roles}
             />

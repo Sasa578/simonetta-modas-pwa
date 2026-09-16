@@ -124,7 +124,7 @@ const SecretariaDashboard = () => {
             {/* Fila 1: Calendario a Ancho Completo */}
             <section className="card card-calendario" style={{ width: '100%' }}>
                 <div className="card-header">
-                    <h2>📅 {mesActual.charAt(0).toUpperCase() + mesActual.slice(1)}</h2>
+                    <h2> {mesActual.charAt(0).toUpperCase() + mesActual.slice(1)}</h2>
                     <span className="card-subtitle">Haz clic en un día para agendar un nuevo pedido</span>
                 </div>
                 <div className="calendario-grid-wrapper">
@@ -198,7 +198,7 @@ const SecretariaDashboard = () => {
                 {/* Vistazo de Almacén */}
                 <section className="card card-almacen-sec">
                     <div className="card-header">
-                        <h2>📦 Vistazo de Almacén</h2>
+                        <h2> Vistazo de Almacén</h2>
                     </div>
                     <div className="card-body" style={{ maxHeight: '320px', overflowY: 'auto' }}>
                         {almacen.length === 0 ? <p>Cargando almacén...</p> : almacen.map((item, i) => {

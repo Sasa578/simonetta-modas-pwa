@@ -28,7 +28,7 @@ const AdminLayout = () => {
             {/* Sidebar Izquierdo */}
             <aside className="sidebar-left">
                 <div className="sidebar-brand">
-                    <span className="brand-icon">🧵</span>
+                    
                     <h1 className="brand-name">SIMONETTA</h1>
                     <p className="brand-subtitle">Panel Admin</p>
                 </div>
@@ -46,7 +46,7 @@ const AdminLayout = () => {
                         ))}
                     </div>
                 </div>
-                <button className="sidebar-logout" onClick={handleLogout}>⏻ Cerrar sesión</button>
+                <button className="sidebar-logout" onClick={handleLogout}>Cerrar sesion</button>
             </aside>
 
             {/* Topbar */}
@@ -77,7 +77,7 @@ const AdminLayout = () => {
             {/* Sidebar Derecho: Próximas Entregas */}
             <aside className="sidebar-right">
                 <div className="sidebar-right-header">
-                    <h2>📅 Próximas Entregas</h2>
+                    <h2>Proximas Entregas</h2>
                 </div>
                 <div className="mini-cards-lista">
                     {proximasEntregas.map((p) => (

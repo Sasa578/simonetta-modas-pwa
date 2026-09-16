@@ -65,7 +65,7 @@ const ModalMovimientoKardex = ({ isOpen, onClose, onSuccess }) => {
                 observacion: observacion.trim() || null
             });
 
-            setExito(`✅ Movimiento registrado exitosamente. Stock resultante: ${res.data?.movimiento?.stock_resultante}`);
+            setExito(`[OK] Movimiento registrado exitosamente. Stock resultante: ${res.data?.movimiento?.stock_resultante}`);
 
             setTimeout(() => {
                 setCantidad('');
@@ -97,12 +97,12 @@ const ModalMovimientoKardex = ({ isOpen, onClose, onSuccess }) => {
             }}>
                 <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
                     <h2 style={{ color: 'var(--color-azul-oscuro)', margin: 0, fontSize: '1.3rem' }}>
-                        📊 Registrar Movimiento en Kardex
+                         Registrar Movimiento en Kardex
                     </h2>
                     <button onClick={onClose} style={{
                         background: 'transparent', border: 'none', fontSize: '1.5rem',
                         cursor: 'pointer', color: 'var(--color-texto-secundario)'
-                    }}>×</button>
+                    }}>X</button>
                 </header>
 
                 {error && <div style={{ padding: '0.8rem', marginBottom: '1rem', borderRadius: '8px', background: 'var(--color-rojo-suave)', color: 'var(--color-rojo-texto)', fontSize: '0.85rem' }}>{error}</div>}
@@ -216,7 +216,7 @@ const ModalMovimientoKardex = ({ isOpen, onClose, onSuccess }) => {
                         </label>
                         <textarea
                             rows="2"
-                            placeholder="Ej: Factura Nº 1023, o corte para saco sastre..."
+                            placeholder="Ej: Factura No 1023, o corte para saco sastre..."
                             value={observacion}
                             onChange={(e) => setObservacion(e.target.value)}
                             style={{ width: '100%', padding: '0.7rem', borderRadius: '6px', border: '1px solid var(--color-borde)', resize: 'vertical', boxSizing: 'border-box' }}
@@ -231,7 +231,7 @@ const ModalMovimientoKardex = ({ isOpen, onClose, onSuccess }) => {
                             borderRadius: '8px', padding: '0.9rem', fontWeight: 'bold', cursor: cargando ? 'not-allowed' : 'pointer', fontSize: '1rem'
                         }}
                     >
-                        {cargando ? 'Procesando...' : '💾 Registrar en Kardex'}
+                        {cargando ? 'Procesando...' : ' Registrar en Kardex'}
                     </button>
                 </form>
             </div>

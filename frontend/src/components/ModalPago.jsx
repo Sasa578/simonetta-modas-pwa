@@ -70,7 +70,7 @@ const ModalPago = ({ isOpen, onClose, onSuccess, pedido }) => {
                 id_estado_pago: monto >= saldoPendiente ? 3 : 2
             });
 
-            setExito(`✅ Abono de Bs. ${monto.toFixed(2)} registrado exitosamente.`);
+            setExito(`[OK] Abono de Bs. ${monto.toFixed(2)} registrado exitosamente.`);
             setMontoAbono('');
             await cargarHistorialYCatalogos();
             if (onSuccess) onSuccess();
@@ -95,7 +95,7 @@ const ModalPago = ({ isOpen, onClose, onSuccess, pedido }) => {
                 <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
                     <div>
                         <h2 style={{ color: 'var(--color-azul-oscuro)', margin: 0, fontSize: '1.3rem' }}>
-                            💳 Pagos y Abonos - Pedido #{pedido.id_pedido}
+                             Pagos y Abonos - Pedido #{pedido.id_pedido}
                         </h2>
                         <span style={{ fontSize: '0.85rem', color: 'var(--color-texto-secundario)' }}>
                             Cliente: <strong>{pedido.cliente}</strong> | Prenda: <strong>{pedido.prenda}</strong>
@@ -104,7 +104,7 @@ const ModalPago = ({ isOpen, onClose, onSuccess, pedido }) => {
                     <button onClick={onClose} style={{
                         background: 'transparent', border: 'none', fontSize: '1.5rem',
                         cursor: 'pointer', color: 'var(--color-texto-secundario)'
-                    }}>×</button>
+                    }}>X</button>
                 </header>
 
                 {error && <div style={{ padding: '0.7rem', marginBottom: '1rem', borderRadius: '8px', background: 'var(--color-rojo-suave)', color: 'var(--color-rojo-texto)', fontSize: '0.85rem' }}>{error}</div>}

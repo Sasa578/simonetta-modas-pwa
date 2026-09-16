@@ -59,7 +59,7 @@ const ClienteDashboard = () => {
     return (
         <div className="cliente-dashboard-container">
             <header className="cliente-header" style={{ position: 'sticky', top: 0, zIndex: 100 }}>
-                <div className="cliente-logo">🧵 Simonetta Modas</div>
+                <div className="cliente-logo"> Simonetta Modas</div>
             </header>
 
             <main className="cliente-main" style={{ paddingBottom: '80px' }}>
@@ -103,7 +103,7 @@ const ClienteDashboard = () => {
                                                             padding: '0.2rem 0.6rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600
                                                         }}>{c.estado}</span>
                                                     </div>
-                                                    <p style={{ margin: '0 0 0.5rem', fontSize: '0.9rem' }}>📅 Fecha reunión: {new Date(c.fecha_cita).toLocaleDateString()}</p>
+                                                    <p style={{ margin: '0 0 0.5rem', fontSize: '0.9rem' }}> Fecha reunión: {new Date(c.fecha_cita).toLocaleDateString()}</p>
                                                     {c.detalles && <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-texto-secundario)', fontStyle: 'italic' }}>"{c.detalles}"</p>}
                                                 </div>
                                             ))}
@@ -138,7 +138,7 @@ const ClienteDashboard = () => {
                                                     </div>
 
                                                     <div className="cliente-fechas">
-                                                        <span>📅 Pedido: {new Date(p.fecha_pedido).toLocaleDateString()}</span>
+                                                        <span> Pedido: {new Date(p.fecha_pedido).toLocaleDateString()}</span>
                                                         {p.fecha_prueba && <span>✂️ Prueba: {new Date(p.fecha_prueba).toLocaleDateString()}</span>}
                                                         <span>🏁 Entrega: {new Date(p.fecha_entrega).toLocaleDateString()}</span>
                                                     </div>
@@ -155,7 +155,7 @@ const ClienteDashboard = () => {
                             <div className="tab-content fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                                 <section style={{ background: '#fff', border: '1px solid var(--color-borde)', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                                     <h3 style={{ fontSize: '1.1rem', color: 'var(--color-azul-oscuro)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        👤 Datos Personales
+                                         Datos Personales
                                     </h3>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', fontSize: '0.9rem' }}>
                                         <div>
@@ -183,7 +183,7 @@ const ClienteDashboard = () => {
 
                                 <section style={{ background: '#fff', border: '1px solid var(--color-borde)', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                                     <h3 style={{ fontSize: '1.1rem', color: 'var(--color-azul-oscuro)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        📏 Mis Medidas Anatómicas Registradas
+                                         Mis Medidas Anatómicas Registradas
                                     </h3>
 
                                     {medidas ? (
@@ -224,7 +224,7 @@ const ClienteDashboard = () => {
                                             </div>
                                             {medidas.fecha_toma && (
                                                 <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-texto-secundario)', textAlign: 'right', fontStyle: 'italic' }}>
-                                                    📅 Última actualización: {new Date(medidas.fecha_toma).toLocaleDateString()}
+                                                     Última actualización: {new Date(medidas.fecha_toma).toLocaleDateString()}
                                                 </p>
                                             )}
                                         </div>
@@ -257,7 +257,7 @@ const ClienteDashboard = () => {
                     className={`nav-item ${activeTab === 'perfil' ? 'active' : ''}`}
                     onClick={() => setActiveTab('perfil')}
                 >
-                    <span className="nav-icon">👤</span>
+                    <span className="nav-icon"></span>
                     <span className="nav-text">Perfil</span>
                 </button>
             </nav>
@@ -267,7 +267,7 @@ const ClienteDashboard = () => {
                 onClose={() => setIsModalOpen(false)}
                 onSuccess={() => {
                     setIsModalOpen(false);
-                    setMsg('✅ Tu cita ha sido solicitada correctamente. Te esperamos en el taller.');
+                    setMsg('[OK] Tu cita ha sido solicitada correctamente. Te esperamos en el taller.');
                     cargarDatos();
                     setTimeout(() => setMsg(''), 5000);
                 }}

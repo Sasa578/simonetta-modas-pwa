@@ -124,6 +124,40 @@ const PedidoModel = {
                 );
             }
 
+            
+            // 5.1 Registrar insumos múltiples del almacén en Kardex y descontar stock
+            if (Array.isArray(datosDetalle.insumos) && datosDetalle.insumos.length > 0) {
+                for (const ins of datosDetalle.insumos) {
+                    const idProd = Number(ins.id_producto);
+                    const cant = parseFloat(ins.cantidad) || 0;
+                    if (idProd && cant > 0) {
+                        const esTaller = (datosDetalle.origen_material || 'Taller') === 'Taller';
+                        if (esTaller) {
+                            await client.query(
+                                'UPDATE productos_almacen SET cantidad_stock = GREATEST(0, cantidad_stock - $1) WHERE id_producto = $2',
+                                [cant, idProd]
+                            );
+                        }
+                        const stRes = await client.query('SELECT cantidad_stock FROM productos_almacen WHERE id_producto = $1', [idProd]);
+                        const stockActualizado = stRes.rows[0]?.cantidad_stock || 0;
+                        const idOrigen = esTaller ? 1 : 2;
+
+                        const movRes = await client.query(
+                            `INSERT INTO movimientos_almacen (id_producto, id_tipo_movimiento, id_origen, id_detalle_pedido, cantidad, stock_resultante)
+                             VALUES ($1, 2, $2, $3, $4, $5)
+                             RETURNING id_movimiento`,
+                            [idProd, idOrigen, idDetalle, cant, stockActualizado]
+                        );
+                        const idMov = movRes.rows[0].id_movimiento;
+                        await client.query(
+                            `INSERT INTO observaciones_movimiento (id_movimiento, observacion)
+                             VALUES ($1, $2)`,
+                            [idMov, `Consumo para confección pedido #${idPedido} (${ins.nombre_articulo || 'Insumo'}: ${cant} ${ins.unidad_medida || 'un'})`]
+                        );
+                    }
+                }
+            }
+
             await client.query('COMMIT');
 
             return PedidoModel.obtenerPedidoPorId(idPedido);

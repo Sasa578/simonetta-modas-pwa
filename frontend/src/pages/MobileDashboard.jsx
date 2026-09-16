@@ -92,7 +92,7 @@ const MobileDashboard = () => {
                                 <span>ð Entrega: {new Date(p.fecha_entrega).toLocaleDateString()}</span>
                             </div>
 
-                            {/* Botones de acciÃ³n */}
+                            {/* Botones de accion */}
                             <div style={{display:'flex',gap:'10px',marginTop:'15px',flexWrap:'wrap'}}>
                                 {esCosturera && (
                                     <>
@@ -102,8 +102,8 @@ const MobileDashboard = () => {
                                         {p.estado === 'Acabados' && <button onClick={() => actualizarEstado(p.id_pedido, 'Para Entregar')} style={{flex:1,padding:'12px',background:'#8290B0',color:'white',border:'none',borderRadius:'8px',fontSize:'16px',fontWeight:'bold'}}>Pasar a Secretaría</button>}
                                     </>
                                 )}
-                                {/* ð Ver Medidas â 44x44px mÃ­nimo */}
-                                <button onClick={() => verMedidas(p)} style={{minWidth:'44px',minHeight:'44px',padding:'10px 14px',background:'#455E8B',color:'white',border:'none',borderRadius:'8px',fontSize:'15px',cursor:'pointer',whiteSpace:'nowrap'}} title="Ver medidas anatÃ³micas">
+                                {/* ð Ver Medidas â 44x44px minimo */}
+                                <button onClick={() => verMedidas(p)} style={{minWidth:'44px',minHeight:'44px',padding:'10px 14px',background:'#455E8B',color:'white',border:'none',borderRadius:'8px',fontSize:'15px',cursor:'pointer',whiteSpace:'nowrap'}} title="Ver medidas anatomicas">
                                     ð Ver Medidas
                                 </button>
                             </div>
@@ -112,7 +112,7 @@ const MobileDashboard = () => {
                 </div>
             </section>
 
-            {/* === MODAL: Medidas AnatÃ³micas === */}
+            {/* === MODAL: Medidas Anatomicas === */}
             {modalMedidas?.abierto && (
                 <div className="modal-overlay" onClick={cerrarModal}>
                     <div className="modal-contenido" onClick={(e) => e.stopPropagation()}>
@@ -122,7 +122,7 @@ const MobileDashboard = () => {
                         </div>
                         {modalMedidas.caducadas && (
                             <div className="alerta-caducada" style={{margin:'0 0 1rem'}}>
-                                â ï¸ Medidas desactualizadas (MÃ¡s de 6 meses). Se sugiere retomar.
+                                â ï¸ Medidas desactualizadas (Mas de 6 meses). Se sugiere retomar.
                             </div>
                         )}
                         {modalMedidas.medidas.length > 0 ? (

@@ -43,7 +43,7 @@ const Register = () => {
         <div className="login-container">
             <div className="login-card">
                 <div className="login-header">
-                    <div className="login-logo">🧵</div>
+                    <div className="login-logo"></div>
                     <h1>Simonetta</h1>
                     <p className="login-subtitle">Registro de Cliente</p>
                 </div>
@@ -108,7 +108,7 @@ const Register = () => {
                             position: 'absolute', right: '10px', top: '35px', background: 'transparent',
                             border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: 'var(--color-texto-secundario)'
                         }}>
-                            {showPassword ? '👁️' : '👁️‍🗨️'}
+                            {showPassword ? 'Ver' : 'Ver‍🗨️'}
                         </button>
                     </div>
 
