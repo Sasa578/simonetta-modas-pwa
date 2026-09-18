@@ -91,10 +91,14 @@ const UsuarioModel = {
             );
             const idUsuario = uRes.rows[0].id_usuario;
 
+            const ciClean = (carnet_identidad && String(carnet_identidad).trim()) ? String(carnet_identidad).trim() : null;
+            const telClean = (telefono && String(telefono).trim()) ? String(telefono).trim() : null;
+            const fnClean = fecha_nacimiento ? fecha_nacimiento : null;
+
             await client.query(
                 `INSERT INTO datos_usuario (id_usuario, nombre, apellido, carnet_identidad, fecha_nacimiento, telefono)
                  VALUES ($1, $2, $3, $4, $5, $6)`,
-                [idUsuario, finalNombre || '', finalApellido || '', carnet_identidad || null, fecha_nacimiento || null, telefono || null]
+                [idUsuario, finalNombre || '', finalApellido || '', ciClean, fnClean, telClean]
             );
 
             await client.query('COMMIT');
@@ -153,7 +157,11 @@ const UsuarioModel = {
 
             if (finalNombre !== undefined) { dSets.push(`nombre = $${dIdx++}`); dVals.push(finalNombre); }
             if (finalApellido !== undefined) { dSets.push(`apellido = $${dIdx++}`); dVals.push(finalApellido); }
-            if (carnet_identidad !== undefined) { dSets.push(`carnet_identidad = $${dIdx++}`); dVals.push(carnet_identidad); }
+            if (carnet_identidad !== undefined) {
+                const ciClean = (carnet_identidad && String(carnet_identidad).trim()) ? String(carnet_identidad).trim() : null;
+                dSets.push(`carnet_identidad = $${dIdx++}`);
+                dVals.push(ciClean);
+            }
             if (telefono !== undefined) { dSets.push(`telefono = $${dIdx++}`); dVals.push(telefono); }
             if (fecha_nacimiento !== undefined) { dSets.push(`fecha_nacimiento = $${dIdx++}`); dVals.push(fecha_nacimiento); }
 
@@ -167,10 +175,11 @@ const UsuarioModel = {
                         dVals
                     );
                 } else {
+                    const ciInsert = (carnet_identidad && String(carnet_identidad).trim()) ? String(carnet_identidad).trim() : null;
                     await client.query(
                         `INSERT INTO datos_usuario (id_usuario, nombre, apellido, carnet_identidad, telefono, fecha_nacimiento)
                          VALUES ($1, $2, $3, $4, $5, $6)`,
-                        [id, finalNombre || '', finalApellido || '', carnet_identidad || null, telefono || null, fecha_nacimiento || null]
+                        [id, finalNombre || '', finalApellido || '', ciInsert, telefono || null, fecha_nacimiento || null]
                     );
                 }
             }

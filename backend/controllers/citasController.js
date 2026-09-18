@@ -4,25 +4,33 @@ const db = require('../config/db');
 // POST /api/citas
 const crearCita = async (req, res) => {
     try {
-        const { fecha_cita, detalles } = req.body;
-        const { id_usuario } = req.usuario; // Extraído del token JWT
+        const { fecha_cita, detalles, motivo_cita, id_cliente: bodyIdCliente } = req.body;
 
         if (!fecha_cita) {
             return res.status(400).json({ error: 'La fecha de la cita es obligatoria.' });
         }
 
-        // Buscar el id_cliente asociado al usuario actual
-        const clienteRes = await db.pool.query('SELECT id_cliente FROM clientes WHERE id_usuario = $1', [id_usuario]);
-        if (clienteRes.rows.length === 0) {
-            return res.status(403).json({ error: 'Usuario no registrado como cliente.' });
+        // Resolver id_cliente: desde el body o desde el token del cliente autenticado
+        let id_cliente = bodyIdCliente || req.usuario?.id_cliente;
+
+        if (!id_cliente && req.usuario?.correo) {
+            const clienteRes = await db.pool.query(
+                'SELECT id_cliente FROM clientes WHERE LOWER(correo_electronico) = LOWER($1)',
+                [req.usuario.correo.trim()]
+            );
+            if (clienteRes.rows.length > 0) {
+                id_cliente = clienteRes.rows[0].id_cliente;
+            }
         }
-        
-        const id_cliente = clienteRes.rows[0].id_cliente;
+
+        if (!id_cliente) {
+            return res.status(400).json({ error: 'Debe especificar el cliente para la cita o estar autenticado como cliente.' });
+        }
 
         const nuevaCita = await CitaModel.crearCita({
-            id_cliente,
+            id_cliente: Number(id_cliente),
             fecha_cita,
-            detalles
+            detalles: detalles || motivo_cita
         });
 
         // Emitir evento en tiempo real
@@ -32,7 +40,7 @@ const crearCita = async (req, res) => {
         res.status(201).json({ mensaje: 'Cita solicitada con éxito.', cita: nuevaCita });
     } catch (error) {
         console.error('Error al crear cita:', error);
-        res.status(500).json({ error: 'Error del servidor' });
+        res.status(500).json({ error: 'Error del servidor al crear la cita.' });
     }
 };
 
@@ -50,22 +58,27 @@ const obtenerCitasPendientes = async (req, res) => {
 // GET /api/citas/mis-citas (Cliente)
 const obtenerMisCitas = async (req, res) => {
     try {
-        const { id_usuario, correo } = req.usuario;
-        const { obtenerIdsClienteParaUsuario } = require('../utils/clienteHelper');
-        const idsCliente = await obtenerIdsClienteParaUsuario(id_usuario, correo);
+        let id_cliente = req.usuario?.id_cliente;
 
-        if (idsCliente.length === 0) {
+        if (!id_cliente && req.usuario?.correo) {
+            const clienteRes = await db.pool.query(
+                'SELECT id_cliente FROM clientes WHERE LOWER(correo_electronico) = LOWER($1)',
+                [req.usuario.correo.trim()]
+            );
+            if (clienteRes.rows.length > 0) {
+                id_cliente = clienteRes.rows[0].id_cliente;
+            }
+        }
+
+        if (!id_cliente) {
             return res.json([]);
         }
 
-        const citasRes = await db.pool.query(
-            `SELECT * FROM citas WHERE id_cliente = ANY($1::int[]) ORDER BY fecha_cita DESC`,
-            [idsCliente]
-        );
-        res.json(citasRes.rows);
+        const citas = await CitaModel.obtenerPorCliente(Number(id_cliente));
+        res.json(citas);
     } catch (error) {
         console.error('Error al obtener citas del cliente:', error);
-        res.status(500).json({ error: 'Error del servidor' });
+        res.status(500).json({ error: 'Error del servidor al obtener citas.' });
     }
 };
 

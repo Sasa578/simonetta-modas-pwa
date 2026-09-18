@@ -55,14 +55,19 @@ const CitaModel = {
      * Actualiza el estado de una cita.
      */
     actualizarEstado: async (id_cita, estado) => {
-        // Buscar el id_estado_cita por nombre
+        // Buscar el id_estado_cita por nombre o ID
         let idEstado = estado;
         if (typeof estado === 'string') {
-            const estadoRes = await db.query('SELECT id_estado_cita FROM estados_cita WHERE LOWER(nombre_estado) = LOWER($1)', [estado]);
-            if (estadoRes.rows.length > 0) {
-                idEstado = estadoRes.rows[0].id_estado_cita;
-            } else {
+            const estadoLower = estado.toLowerCase().trim();
+            if (estadoLower === 'atendida' || estadoLower === 'completada') {
                 idEstado = 2; // 'Realizada'
+            } else {
+                const estadoRes = await db.query('SELECT id_estado_cita FROM estados_cita WHERE LOWER(nombre_estado) = LOWER($1)', [estadoLower]);
+                if (estadoRes.rows.length > 0) {
+                    idEstado = estadoRes.rows[0].id_estado_cita;
+                } else {
+                    idEstado = 2; // 'Realizada'
+                }
             }
         }
 

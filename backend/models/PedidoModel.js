@@ -143,10 +143,10 @@ const PedidoModel = {
                         const idOrigen = esTaller ? 1 : 2;
 
                         const movRes = await client.query(
-                            `INSERT INTO movimientos_almacen (id_producto, id_tipo_movimiento, id_origen, id_detalle_pedido, cantidad, stock_resultante)
-                             VALUES ($1, 2, $2, $3, $4, $5)
+                            `INSERT INTO movimientos_almacen (id_producto, id_tipo_movimiento, id_origen, id_detalle_pedido, cantidad)
+                             VALUES ($1, 2, $2, $3, $4)
                              RETURNING id_movimiento`,
-                            [idProd, idOrigen, idDetalle, cant, stockActualizado]
+                            [idProd, idOrigen, idDetalle, cant]
                         );
                         const idMov = movRes.rows[0].id_movimiento;
                         await client.query(

@@ -22,7 +22,10 @@ const ClienteModel = {
                     COALESCE(NULLIF(TRIM(CONCAT(dp.nombre, ' ', dp.apellido)), ''), di.razon_social) as nombre_completo,
                     COALESCE(dp.telefono, di.telefono_contacto) as telefono_whatsapp,
                     COALESCE(dp.telefono, di.telefono_contacto) as telefono,
-                    di.nit as carnet_identidad
+                    COALESCE(
+                        (SELECT valor_atributo FROM atributos_cliente WHERE id_cliente = c.id_cliente AND LOWER(nombre_atributo) = 'carnet_identidad' LIMIT 1),
+                        di.nit
+                    ) as carnet_identidad
              FROM clientes c
              JOIN roles r ON c.id_rol = r.id_rol
              JOIN estados_cliente ec ON c.id_estado_cliente = ec.id_estado_cliente
@@ -54,7 +57,10 @@ const ClienteModel = {
                     COALESCE(NULLIF(TRIM(CONCAT(dp.nombre, ' ', dp.apellido)), ''), di.razon_social) as nombre_completo,
                     COALESCE(dp.telefono, di.telefono_contacto) as telefono_whatsapp,
                     COALESCE(dp.telefono, di.telefono_contacto) as telefono,
-                    di.nit as carnet_identidad
+                    COALESCE(
+                        (SELECT valor_atributo FROM atributos_cliente WHERE id_cliente = c.id_cliente AND LOWER(nombre_atributo) = 'carnet_identidad' LIMIT 1),
+                        di.nit
+                    ) as carnet_identidad
              FROM clientes c
              JOIN roles r ON c.id_rol = r.id_rol
              JOIN estados_cliente ec ON c.id_estado_cliente = ec.id_estado_cliente
@@ -105,7 +111,10 @@ const ClienteModel = {
                     COALESCE(NULLIF(TRIM(CONCAT(dp.nombre, ' ', dp.apellido)), ''), di.razon_social) as nombre_completo,
                     COALESCE(dp.telefono, di.telefono_contacto) as telefono_whatsapp,
                     COALESCE(dp.telefono, di.telefono_contacto) as telefono,
-                    di.nit as carnet_identidad,
+                    COALESCE(
+                        (SELECT valor_atributo FROM atributos_cliente WHERE id_cliente = c.id_cliente AND LOWER(nombre_atributo) = 'carnet_identidad' LIMIT 1),
+                        di.nit
+                    ) as carnet_identidad,
                     -- Contrato vigente si aplica
                     (SELECT numero_contrato FROM contratos WHERE id_datos_institucional = di.id_datos_institucional ORDER BY id_contrato DESC LIMIT 1) as numero_contrato
              FROM clientes c
@@ -191,6 +200,14 @@ const ClienteModel = {
                      VALUES ($1, $2, $3, $4, $5)`,
                     [idCliente, finalNombre || '', finalApellido || '', tel, fecha_nacimiento || null]
                 );
+
+                if (carnet_identidad && String(carnet_identidad).trim()) {
+                    await client.query(
+                        `INSERT INTO atributos_cliente (id_cliente, nombre_atributo, valor_atributo)
+                         VALUES ($1, 'carnet_identidad', $2)`,
+                        [idCliente, String(carnet_identidad).trim()]
+                    );
+                }
             } 
             // Si es Institucional (id_tipo_cliente === 2)
             else {
@@ -288,6 +305,14 @@ const ClienteModel = {
                         `UPDATE datos_cliente_persona SET ${pSets.join(', ')} WHERE id_cliente = $${pIdx}`,
                         pVals
                     );
+                }
+
+                if (datos.carnet_identidad !== undefined) {
+                    await client.query("DELETE FROM atributos_cliente WHERE id_cliente = $1 AND LOWER(nombre_atributo) = 'carnet_identidad'", [id]);
+                    const ciVal = (datos.carnet_identidad && String(datos.carnet_identidad).trim()) ? String(datos.carnet_identidad).trim() : null;
+                    if (ciVal) {
+                        await client.query("INSERT INTO atributos_cliente (id_cliente, nombre_atributo, valor_atributo) VALUES ($1, 'carnet_identidad', $2)", [id, ciVal]);
+                    }
                 }
             } else {
                 // Institucional
