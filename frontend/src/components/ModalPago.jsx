@@ -28,9 +28,15 @@ const ModalPago = ({ isOpen, onClose, onSuccess, pedido }) => {
                 api.get('/pagos/catalogos')
             ]);
             setPagos(resPagos.data || []);
-            setMetodos(resCat.data?.metodos || []);
-            if (resCat.data?.metodos?.length > 0) {
-                setIdMetodo(resCat.data.metodos[0].id_metodo_pago);
+            const metodosDisponibles = (resCat.data?.metodos || []).filter(m => m.id_metodo_pago === 1 || m.id_metodo_pago === 2);
+            setMetodos(metodosDisponibles.length > 0 ? metodosDisponibles : [
+                { id_metodo_pago: 1, nombre_metodo: 'Efectivo' },
+                { id_metodo_pago: 2, nombre_metodo: 'QR / Transferencia' }
+            ]);
+            if (metodosDisponibles.length > 0) {
+                setIdMetodo(metodosDisponibles[0].id_metodo_pago);
+            } else {
+                setIdMetodo(1);
             }
         } catch (err) {
             console.error('Error cargando pagos:', err);

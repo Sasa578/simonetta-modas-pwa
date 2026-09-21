@@ -108,7 +108,7 @@ const obtenerCatalogos = async (req, res) => {
     try {
         const [estados, metodos] = await Promise.all([
             db.query('SELECT id_estado_pedido, nombre_estado FROM estados_pedido ORDER BY id_estado_pedido'),
-            db.query('SELECT id_metodo_pago, nombre_metodo FROM metodos_pago ORDER BY id_metodo_pago')
+            db.query('SELECT id_metodo_pago, nombre_metodo FROM metodos_pago WHERE id_metodo_pago IN (1, 2) ORDER BY id_metodo_pago')
         ]);
         res.json({
             estados: estados.rows,

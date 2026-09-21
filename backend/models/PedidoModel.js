@@ -136,35 +136,32 @@ const PedidoModel = {
             }
 
             
-            // 5.1 Registrar insumos múltiples del almacén en Kardex y descontar stock
+            // 5.1 Registrar insumos múltiples del almacén en Kardex y descontar stock incondicionalmente
             if (Array.isArray(d.insumos) && d.insumos.length > 0) {
                 for (const ins of d.insumos) {
-                    const idProd = Number(ins.id_producto);
+                    const idProd = Number(ins.id_producto || ins.id_material);
                     const cant = parseFloat(ins.cantidad) || 0;
                     if (idProd && cant > 0) {
-                        const esTaller = (d.origen_material || 'Taller') === 'Taller';
-                        if (esTaller) {
-                            await client.query(
-                                'UPDATE productos_almacen SET cantidad_stock = GREATEST(0, cantidad_stock - $1) WHERE id_producto = $2',
-                                [cant, idProd]
-                            );
-                        }
-                        const stRes = await client.query('SELECT cantidad_stock FROM productos_almacen WHERE id_producto = $1', [idProd]);
-                        const stockActualizado = stRes.rows[0]?.cantidad_stock || 0;
-                        const idOrigen = esTaller ? 1 : 2;
+                        // Insumos seleccionados del almacén siempre descuentan stock físico del taller
+                        await client.query(
+                            'UPDATE productos_almacen SET cantidad_stock = GREATEST(0, cantidad_stock - $1) WHERE id_producto = $2',
+                            [cant, idProd]
+                        );
 
                         const movRes = await client.query(
                             `INSERT INTO movimientos_almacen (id_producto, id_tipo_movimiento, id_origen, id_detalle_pedido, cantidad)
-                             VALUES ($1, 2, $2, $3, $4)
+                             VALUES ($1, 2, 1, $2, $3)
                              RETURNING id_movimiento`,
-                            [idProd, idOrigen, idDetalle, cant]
+                            [idProd, idDetalle, cant]
                         );
-                        const idMov = movRes.rows[0].id_movimiento;
-                        await client.query(
-                            `INSERT INTO observaciones_movimiento (id_movimiento, observacion)
-                             VALUES ($1, $2)`,
-                            [idMov, `Consumo para confección pedido #${idPedido} (${ins.nombre_articulo || 'Insumo'}: ${cant} ${ins.unidad_medida || 'un'})`]
-                        );
+                        const idMov = movRes.rows[0]?.id_movimiento;
+                        if (idMov) {
+                            await client.query(
+                                `INSERT INTO observaciones_movimiento (id_movimiento, observacion)
+                                 VALUES ($1, $2)`,
+                                [idMov, `Consumo para confección pedido #${idPedido} (${ins.nombre_articulo || 'Insumo'}: ${cant} ${ins.unidad_medida || 'un'})`]
+                            );
+                        }
                     }
                 }
             }
@@ -527,6 +524,37 @@ const PedidoModel = {
             ORDER BY c.id_catalogo ASC, p.id_prenda ASC;
         `;
         const res = await db.query(query);
+        return res.rows;
+    },
+
+    /**
+     * Obtiene los pedidos asignados a una costurera específica con detalles y medidas.
+     */
+    obtenerPedidosPorCosturera: async (id_costurera) => {
+        const query = `
+            SELECT p.id_pedido, p.fecha_inicio as fecha_pedido, p.fecha_entrega, p.fecha_prueba,
+                   p.costo_total, p.id_costurera,
+                   ep.nombre_estado as estado,
+                   pr.id_prenda, pr.tipo_prenda as prenda, pr.color,
+                   COALESCE(NULLIF(TRIM(CONCAT(dcp.nombre, ' ', dcp.apellido)), ''), dci.razon_social, 'Cliente') as cliente,
+                   COALESCE(dcp.telefono, dci.telefono_contacto, '') as telefono_whatsapp,
+                   nt.notas_diseno,
+                   mc.talla,
+                   ma.busto, ma.cintura, ma.cadera, ma.espalda, ma.hombro, ma.cortas
+            FROM pedidos p
+            JOIN estados_pedido ep ON p.id_estado_pedido = ep.id_estado_pedido
+            LEFT JOIN clientes c ON p.id_cliente = c.id_cliente
+            LEFT JOIN datos_cliente_persona dcp ON c.id_cliente = dcp.id_cliente
+            LEFT JOIN datos_cliente_institucional dci ON c.id_cliente = dci.id_cliente
+            LEFT JOIN detalle_pedido dp ON p.id_pedido = dp.id_pedido
+            LEFT JOIN prendas pr ON dp.id_prenda = pr.id_prenda
+            LEFT JOIN notas_diseno_detalle nt ON dp.id_detalle = nt.id_detalle
+            LEFT JOIN medidas_convencionales mc ON dp.id_detalle = mc.id_detalle
+            LEFT JOIN medidas_anatomicas ma ON dp.id_detalle = ma.id_detalle
+            WHERE p.id_costurera = $1
+            ORDER BY p.fecha_entrega ASC;
+        `;
+        const res = await db.query(query, [id_costurera]);
         return res.rows;
     }
 };

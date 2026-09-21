@@ -1,309 +1,711 @@
 /* ============================================================
-   MOBILE DASHBOARD — 100% Mobile-First (Costurera / Cliente)
+   SIMONETTA MODAS — PANEL COSTURERA / ATELIER MOBILE-FIRST
    ============================================================ */
 
 .mobile-container {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    background: var(--color-fondo);
-    font-family: var(--font-primaria);
+    background: #F8FAFC;
+    font-family: var(--font-primaria, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+    max-width: 580px;
+    margin: 0 auto;
+    position: relative;
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.04);
 }
 
-/* ============================================================
-   Header fijo
-   ============================================================ */
+/* Header fijo elegante */
 .mobile-header {
     position: sticky;
     top: 0;
-    z-index: 20;
-    background: var(--color-blanco);
-    border-bottom: 1px solid var(--color-borde);
-    padding: 0.75rem 1rem;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #E2E8F0;
+    padding: 0.85rem 1.25rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    box-shadow: var(--sombra-suave);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 .mobile-logo {
-    font-family: 'Georgia', serif;
-    font-size: 1rem;
-    color: var(--color-azul-oscuro);
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.05rem;
+    color: var(--color-azul-oscuro, #455E8B);
     letter-spacing: 1px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .mobile-rol-badge {
-    font-size: 0.65rem;
-    font-weight: 600;
+    font-size: 0.72rem;
+    font-weight: 700;
     text-transform: uppercase;
-    color: var(--color-azul-oscuro);
-    background: var(--color-azul-claro);
-    padding: 0.25rem 0.6rem;
+    color: var(--color-azul-oscuro, #455E8B);
+    background: var(--color-azul-claro, #E1F0FE);
+    padding: 0.3rem 0.75rem;
     border-radius: 20px;
+    border: 1px solid #BFDBFE;
     letter-spacing: 0.5px;
 }
 
-/* ============================================================
-   Panel central scrollable
-   ============================================================ */
+/* Panel central scrollable */
 .mobile-main {
     flex: 1;
     overflow-y: auto;
-    padding: 1rem;
+    padding: 1.15rem 1.15rem 5rem;
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 1rem;
 }
 
-.mobile-section-title {
-    font-size: 1rem;
+.costurera-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Tarjeta de Bienvenida */
+.costurera-welcome-card {
+    background: linear-gradient(135deg, #455E8B 0%, #2A3B58 100%);
+    color: #FFFFFF;
+    padding: 1.35rem 1.25rem;
+    border-radius: 16px;
+    box-shadow: 0 6px 16px rgba(42, 59, 88, 0.18);
+}
+
+.welcome-header-fila {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.costurera-welcome-card h2 {
+    font-size: 1.25rem;
     font-weight: 700;
-    color: var(--color-texto-principal);
-    margin-bottom: 0.75rem;
+    margin: 0 0 0.3rem 0;
+    font-family: 'Playfair Display', Georgia, serif;
 }
 
-.mobile-spacer {
-    height: 72px; /* espacio para bottom nav */
+.costurera-welcome-card p {
+    font-size: 0.82rem;
+    color: #E2E8F0;
+    margin: 0;
+    line-height: 1.4;
 }
 
-/* ============================================================
-   Tarjetas de pedidos
-   ============================================================ */
-.pedidos-cards {
+.badge-total-tareas {
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 0.5rem 0.85rem;
+    border-radius: 12px;
+    text-align: center;
+    min-width: 54px;
+}
+
+.badge-total-tareas span {
+    display: block;
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.badge-total-tareas small {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #CBD5E1;
+}
+
+/* Filtros por etapa */
+.costurera-filtros-scroll {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.35rem;
+    scrollbar-width: none;
+}
+
+.costurera-filtros-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.chip-filtro-costurera {
+    background: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    color: #475569;
+    padding: 0.45rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.chip-filtro-costurera.activo {
+    background: var(--color-azul-oscuro, #455E8B);
+    color: #FFFFFF;
+    border-color: var(--color-azul-oscuro, #455E8B);
+    box-shadow: 0 2px 6px rgba(69, 94, 139, 0.3);
+}
+
+/* Lista de tarjetas */
+.costurera-pedidos-lista {
     display: flex;
     flex-direction: column;
-    gap: 0.85rem;
+    gap: 1.15rem;
 }
 
-.pedido-card {
-    background: var(--color-blanco);
-    border-radius: var(--radio-borde);
-    padding: 1rem 1.15rem;
-    box-shadow: var(--sombra-suave);
-    border: 1px solid var(--color-borde);
-    transition: box-shadow var(--transicion);
+.costurera-cargando {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #64748B;
 }
 
-.pedido-card:active {
-    box-shadow: var(--sombra-media);
+.spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid #E2E8F0;
+    border-top-color: var(--color-azul-oscuro, #455E8B);
+    border-radius: 50%;
+    margin: 0 auto 1rem;
+    animation: spin 0.8s linear infinite;
 }
 
-.pedido-card-top {
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.card-vacia-costurera {
+    background: #FFFFFF;
+    border: 1.5px dashed #CBD5E1;
+    border-radius: 14px;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    color: #64748B;
+}
+
+.icono-vacio {
+    font-size: 2.2rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.card-vacia-costurera h4 {
+    font-size: 1rem;
+    color: #1E293B;
+    margin: 0 0 0.35rem 0;
+}
+
+.card-vacia-costurera p {
+    font-size: 0.82rem;
+    margin: 0;
+}
+
+/* Tarjeta de Pedido para Costurera */
+.costurera-card-pedido {
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 1.25rem;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.costurera-card-pedido:hover {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+.card-pedido-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pedido-id-tag {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.id-circulo {
+    background: var(--color-azul-claro, #E1F0FE);
+    color: var(--color-azul-oscuro, #455E8B);
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+}
+
+.pedido-cliente-nombre {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #1E293B;
+}
+
+/* Badges de estado */
+.estado-pill {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.25rem 0.65rem;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.estado-pendiente { background: #FEF3C7; color: #B45309; }
+.estado-corte { background: #FDE68A; color: #92400E; }
+.estado-armado { background: #DBEAFE; color: #1E40AF; }
+.estado-acabados { background: #D1FAE5; color: #065F46; }
+.estado-listo-para-prueba { background: #E0E7FF; color: #3730A3; }
+.estado-terminado { background: #DCFCE7; color: #166534; }
+.estado-entregado { background: #F1F5F9; color: #475569; }
+
+/* Prenda info */
+.card-prenda-info {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.prenda-titulo {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0;
+    font-family: 'Playfair Display', Georgia, serif;
+}
+
+.prenda-color-chip {
+    font-size: 0.78rem;
+    color: #64748B;
+    background: #F1F5F9;
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+}
+
+/* Notas de diseño */
+.notas-diseno-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    border-radius: 10px;
+    padding: 0.65rem 0.8rem;
+    font-size: 0.82rem;
+    color: #92400E;
+    line-height: 1.4;
+}
+
+.notas-icono {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.notas-diseno-box p {
+    margin: 0;
+    flex: 1;
+}
+
+/* Patronaje y medidas */
+.patronaje-resumen-box {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 0.75rem 0.85rem;
+}
+
+.patronaje-titulo-fila {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.4rem;
 }
 
-.pedido-card-id {
-    font-family: 'SF Mono', monospace;
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: var(--color-gris-azulado);
-}
-
-.pedido-estado-badge {
-    font-size: 0.6rem;
-    font-weight: 700;
-    padding: 0.2rem 0.55rem;
-    border-radius: 20px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.estado-corte {
-    background: var(--color-ambar-suave);
-    color: var(--color-ambar-texto);
-}
-
-.estado-confeccion {
-    background: var(--color-azul-claro);
-    color: var(--color-azul-oscuro);
-}
-
-.estado-acabados {
-    background: var(--color-verde-suave);
-    color: #166534;
-}
-
-.pedido-card-cliente {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--color-texto-principal);
-    margin: 0.15rem 0;
-}
-
-.pedido-card-prenda {
+.patronaje-label {
     font-size: 0.78rem;
-    color: var(--color-texto-secundario);
-    font-style: italic;
-    margin: 0 0 0.65rem;
+    font-weight: 700;
+    color: var(--color-azul-oscuro, #455E8B);
 }
 
-/* ── Barra de progreso ── */
-.progreso-bar-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 0.6rem;
+.btn-ver-medidas-chip {
+    background: none;
+    border: 1px solid var(--color-azul-oscuro, #455E8B);
+    color: var(--color-azul-oscuro, #455E8B);
+    border-radius: 6px;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-.progreso-bar {
-    flex: 1;
-    height: 6px;
-    background: var(--color-borde);
-    border-radius: 3px;
+.btn-ver-medidas-chip:hover {
+    background: var(--color-azul-oscuro, #455E8B);
+    color: #FFFFFF;
+}
+
+.medidas-mini-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    color: #475569;
+}
+
+.patronaje-convencional-texto {
+    font-size: 0.78rem;
+    color: #64748B;
+    margin: 0;
+}
+
+/* Barra de progreso */
+.progreso-wrapper {
+    margin-top: 0.2rem;
+}
+
+.progreso-track {
+    height: 8px;
+    background: #E2E8F0;
+    border-radius: 4px;
     overflow: hidden;
 }
 
 .progreso-fill {
     height: 100%;
-    border-radius: 3px;
+    background: linear-gradient(90deg, #455E8B 0%, #38BDF8 100%);
+    border-radius: 4px;
     transition: width 0.5s ease;
 }
 
-.fill-corte { background: var(--color-ambar-texto); }
-.fill-confeccion { background: var(--color-azul-oscuro); }
-.fill-acabados { background: #166534; }
-
-.progreso-texto {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--color-texto-secundario);
-    min-width: 32px;
+.progreso-label {
+    display: block;
     text-align: right;
-}
-
-.pedido-card-fechas {
-    display: flex;
-    justify-content: space-between;
     font-size: 0.7rem;
-    color: var(--color-texto-secundario);
-    border-top: 1px solid var(--color-borde);
-    padding-top: 0.55rem;
+    font-weight: 700;
+    color: #455E8B;
+    margin-top: 0.25rem;
 }
 
-/* ============================================================
-   Materiales (solo costurera)
-   ============================================================ */
-.materiales-lista {
+/* Fechas */
+.fechas-cronograma-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 0.5rem;
+    background: #F8FAFC;
+    padding: 0.65rem 0.75rem;
+    border-radius: 10px;
+    border: 1px solid #EEF2F6;
+}
+
+.fecha-item {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
 }
 
-.material-item {
-    background: var(--color-blanco);
-    border: 1px solid var(--color-borde);
-    border-radius: var(--radio-borde-sm);
-    padding: 0.75rem 1rem;
-    box-shadow: var(--sombra-suave);
+.fecha-item small {
+    font-size: 0.68rem;
+    color: #94A3B8;
+    text-transform: uppercase;
 }
 
-.material-info {
+.fecha-item strong {
+    font-size: 0.82rem;
+    color: #1E293B;
+}
+
+.fecha-entrega-item strong {
+    color: #DC2626;
+}
+
+/* Acciones táctiles de etapa (>= 44px) */
+.acciones-etapa-fila {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 0.4rem;
+}
+
+.btn-etapa {
+    flex: 1;
+    min-height: 46px;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+.btn-etapa:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-pasar-corte {
+    background: #F59E0B;
+    color: #FFFFFF;
+    box-shadow: 0 3px 8px rgba(245, 158, 11, 0.3);
+}
+
+.btn-pasar-corte:hover {
+    background: #D97706;
+}
+
+.btn-pasar-armado {
+    background: #2563EB;
+    color: #FFFFFF;
+    box-shadow: 0 3px 8px rgba(37, 99, 235, 0.3);
+}
+
+.btn-pasar-armado:hover {
+    background: #1D4ED8;
+}
+
+.btn-pasar-acabados {
+    background: #059669;
+    color: #FFFFFF;
+    box-shadow: 0 3px 8px rgba(5, 150, 105, 0.3);
+}
+
+.btn-pasar-acabados:hover {
+    background: #047857;
+}
+
+.btn-pasar-terminado {
+    background: #166534;
+    color: #FFFFFF;
+    box-shadow: 0 3px 8px rgba(22, 101, 52, 0.3);
+}
+
+.btn-pasar-terminado:hover {
+    background: #14532D;
+}
+
+/* MODAL DE MEDIDAS ANATÓMICAS */
+.modal-overlay-costurera {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.modal-contenido-costurera {
+    background: #FFFFFF;
+    border-radius: 18px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 1.5rem;
+    box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.modal-costurera-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
+    border-bottom: 1px solid #F1F5F9;
+    padding-bottom: 0.75rem;
+}
+
+.modal-costurera-header h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    color: var(--color-azul-oscuro, #455E8B);
+    font-family: 'Playfair Display', Georgia, serif;
+}
+
+.modal-sub {
+    font-size: 0.78rem;
+    color: #64748B;
+}
+
+.btn-modal-cerrar {
+    background: #F1F5F9;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 0.9rem;
+    cursor: pointer;
+    color: #475569;
+}
+
+.info-prenda-modal {
+    background: #F8FAFC;
+    padding: 0.65rem 0.85rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #1E293B;
+}
+
+.talla-grande-box {
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    border-radius: 10px;
+    padding: 0.85rem;
+    text-align: center;
+}
+
+.talla-badge-big {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #1E40AF;
+    display: block;
     margin-bottom: 0.2rem;
 }
 
-.material-nombre {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--color-texto-principal);
-}
-
-.material-stock {
+.talla-grande-box p {
+    margin: 0;
     font-size: 0.78rem;
+    color: #3B82F6;
+}
+
+.modal-grid-medidas-costurera {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.65rem;
+}
+
+.medida-costurera-item {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 0.65rem 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.medida-nombre {
+    font-size: 0.8rem;
+    color: #64748B;
+}
+
+.medida-valor {
+    font-size: 0.95rem;
+    color: var(--color-azul-oscuro, #455E8B);
+}
+
+.modal-notas-diseno {
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-size: 0.82rem;
+}
+
+.modal-notas-diseno label {
+    display: block;
     font-weight: 700;
-    color: var(--color-azul-oscuro);
-    background: var(--color-azul-claro);
-    padding: 0.15rem 0.5rem;
+    color: #92400E;
+    margin-bottom: 0.25rem;
+}
+
+.modal-notas-diseno p {
+    margin: 0;
+    color: #78350F;
+}
+
+.btn-cerrar-modal-completo {
+    width: 100%;
+    min-height: 46px;
+    background: var(--color-azul-oscuro, #455E8B);
+    color: #FFFFFF;
+    border: none;
     border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
 }
 
-.material-ubicacion {
-    font-size: 0.68rem;
-    color: var(--color-texto-secundario);
-}
-
-/* ============================================================
-   Bottom Nav Bar
-   ============================================================ */
+/* Bottom Nav (MobileLayout) */
 .bottom-nav {
     position: fixed;
     bottom: 0;
     left: 0;
-    width: 100%;
-    background: var(--color-azul-oscuro);
+    right: 0;
+    max-width: 580px;
+    margin: 0 auto;
+    height: 64px;
+    background: #FFFFFF;
+    border-top: 1px solid #E2E8F0;
     display: flex;
-    justify-content: space-around;
     align-items: center;
-    padding: 0.4rem 0.5rem;
-    padding-bottom: max(0.4rem, env(safe-area-inset-bottom));
-    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.15);
-    z-index: 30;
+    justify-content: space-around;
+    z-index: 1000;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .bottom-nav-item {
+    flex: 1;
+    height: 100%;
+    background: none;
+    border: none;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 0.2rem;
-    background: none;
-    border: none;
-    color: rgba(255, 255, 255, 0.5);
+    color: #94A3B8;
     cursor: pointer;
-    padding: 0.35rem 0.8rem;
-    border-radius: var(--radio-borde-sm);
-    transition: all var(--transicion);
-    min-width: 64px;
+    transition: all 0.2s ease;
+}
+
+.bottom-nav-item .nav-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+    transition: transform 0.2s ease;
+}
+
+.bottom-nav-item .nav-label {
+    font-size: 0.72rem;
+    font-weight: 600;
 }
 
 .bottom-nav-item.active {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.12);
+    color: var(--color-azul-oscuro, #455E8B);
 }
 
-.bottom-nav-item:hover {
-    color: rgba(255, 255, 255, 0.8);
+.bottom-nav-item.active .nav-icon {
+    transform: translateY(-2px) scale(1.15);
 }
 
-.nav-icon {
-    font-size: 1.3rem;
-    line-height: 1;
+/* Animaciones */
+.fade-in {
+    animation: fadeIn 0.25s ease-out;
 }
 
-.nav-icon-plus {
-    font-size: 1.5rem;
-    font-weight: 300;
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
-
-.nav-label {
-    font-size: 0.6rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-}
-
-/* ============================================================
-   Modal Medidas (Costurera)
-   ============================================================ */
-.modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex;
-    align-items: center; justify-content: center; z-index: 100; padding: 1rem;
-}
-.modal-contenido {
-    background: var(--color-blanco); border-radius: var(--radio-borde);
-    padding: 1.5rem; width: 100%; max-width: 420px; max-height: 85vh; overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-}
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-.modal-header h3 { font-size: 1rem; font-weight: 700; color: var(--color-texto-principal); margin: 0; }
-.modal-cerrar { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--color-texto-secundario); padding: 0.25rem; line-height: 1; }
-.modal-medidas-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
-.modal-medida-item { background: var(--color-fondo); padding: 0.7rem 0.85rem; border-radius: var(--radio-borde-sm); display: flex; flex-direction: column; gap: 0.2rem; }
-.modal-medida-label { font-size: 0.65rem; text-transform: uppercase; color: var(--color-texto-secundario); letter-spacing: 0.5px; font-weight: 600; }
-.modal-medida-valor { font-size: 1rem; font-weight: 700; color: var(--color-azul-oscuro); }

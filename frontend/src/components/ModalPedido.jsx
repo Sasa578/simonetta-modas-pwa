@@ -78,7 +78,12 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
             setClientes(resClientes.data || []);
             setCostureras(resUsuarios.data || []);
             setMateriales(resAlmacen.data || []);
-            setMetodosPago(resPagos.data?.metodos || []);
+            const metodos = (resPagos.data?.metodos || []).filter(m => m.id_metodo_pago === 1 || m.id_metodo_pago === 2);
+            setMetodosPago(metodos.length > 0 ? metodos : [
+                { id_metodo_pago: 1, nombre_metodo: 'Efectivo' },
+                { id_metodo_pago: 2, nombre_metodo: 'QR / Transferencia' }
+            ]);
+            if (!idMetodoPago) setIdMetodoPago(1);
         } catch {
             setError('No se pudieron cargar los datos auxiliares.');
         }
@@ -147,13 +152,33 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
 
             const tallaFinal = tipoMedida === 'convencional' ? talla : 'A Medida';
 
+            // Si el usuario seleccionó un insumo en los campos pero no pulsó "+ Agregar Insumo", lo incluimos automáticamente
+            let insumosFinales = [...insumosSeleccionados];
+            if (insumoActualId) {
+                const mat = materiales.find(m => String(m.id_material) === String(insumoActualId));
+                const cant = parseFloat(insumoActualCantidad) || 1;
+                if (mat && cant > 0) {
+                    const existeIdx = insumosFinales.findIndex(i => String(i.id_producto) === String(insumoActualId));
+                    if (existeIdx >= 0) {
+                        insumosFinales[existeIdx].cantidad = parseFloat((insumosFinales[existeIdx].cantidad + cant).toFixed(2));
+                    } else {
+                        insumosFinales.push({
+                            id_producto: mat.id_material,
+                            nombre_articulo: mat.nombre_material,
+                            cantidad: cant,
+                            unidad_medida: mat.unidad_medida || 'un'
+                        });
+                    }
+                }
+            }
+
             // Formar resumen de insumos para notas de diseno
             let resumenInsumos = '';
             if (origenMaterial === 'Cliente') {
                 resumenInsumos = `Material provisto por cliente: ${descMaterialCliente || 'Tela entregada en recepción'}. `;
             }
-            if (insumosSeleccionados.length > 0) {
-                resumenInsumos += 'Insumos del taller: ' + insumosSeleccionados.map(i => `${i.nombre_articulo} (${i.cantidad} ${i.unidad_medida})`).join(', ');
+            if (insumosFinales.length > 0) {
+                resumenInsumos += 'Insumos del taller: ' + insumosFinales.map(i => `${i.nombre_articulo} (${i.cantidad} ${i.unidad_medida})`).join(', ');
             }
 
             const notasTotales = [notasDiseno.trim(), resumenInsumos].filter(Boolean).join(' | ');
@@ -173,7 +198,7 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                 medidas_anatomicas: medidasPayload,
                 descripcion_tela: tipoPrenda.trim(),
                 origen_material: origenMaterial,
-                insumos: insumosSeleccionados
+                insumos: insumosFinales
             });
 
             const idNuevo = res.data?.id_pedido || res.data?.pedido?.id_pedido || '';
