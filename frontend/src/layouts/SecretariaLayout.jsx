@@ -32,7 +32,7 @@ const SecretariaLayout = () => {
                     <NavLink to="/secretaria/pedidos" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Pedidos</NavLink>
                     <NavLink to="/secretaria/clientes" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Clientes</NavLink>
                     <NavLink to="/secretaria/almacen" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Almacén</NavLink>
-                    <NavLink to="/secretaria/kardex" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Kardex</NavLink>
+                    <NavLink to="/secretaria/reportes" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Reportes</NavLink>
                 </nav>
                 <div className="topbar-perfil">
                     <div className="perfil-avatar">{usuario?.correo?.charAt(0).toUpperCase() || 'S'}</div>

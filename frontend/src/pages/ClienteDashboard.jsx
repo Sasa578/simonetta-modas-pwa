@@ -22,6 +22,7 @@ const ClienteDashboard = () => {
     const [catalogo, setCatalogo] = useState([]);
     const [perfil, setPerfil] = useState(null);
     const [cargando, setCargando] = useState(true);
+    const [descargandoNotaId, setDescargandoNotaId] = useState(null);
     const [msg, setMsg] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
 
@@ -73,6 +74,35 @@ const ClienteDashboard = () => {
     const handleLogout = () => {
         logout();
         navigate('/login');
+    };
+
+    // Descarga de Nota de Venta del Pedido en PDF
+    const descargarNotaVenta = async (idPedido) => {
+        try {
+            setDescargandoNotaId(idPedido);
+            const response = await api.get(`/reportes/pedido/${idPedido}/pdf`, {
+                responseType: 'blob'
+            });
+
+            const blob = new Blob([response.data], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Nota_Venta_Pedido_${idPedido}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+
+            setMsg(`Comprobante / Nota de Venta #${idPedido} descargado en PDF.`);
+            setTimeout(() => setMsg(''), 4000);
+        } catch (err) {
+            console.error('Error al descargar nota de venta:', err);
+            setErrorMsg('No se pudo generar la nota de venta. Intente nuevamente.');
+            setTimeout(() => setErrorMsg(''), 4000);
+        } finally {
+            setDescargandoNotaId(null);
+        }
     };
 
     // Separación de pedidos: En producción vs Historial completado
@@ -322,6 +352,30 @@ const ClienteDashboard = () => {
                                                                 <span>🏁 Entrega</span>
                                                                 <strong>{new Date(p.fecha_entrega).toLocaleDateString('es', { day: '2-digit', month: 'short' })}</strong>
                                                             </div>
+                                                        </div>
+
+                                                        {/* Botón Descargar Comprobante PDF */}
+                                                        <div style={{ marginTop: '0.8rem', display: 'flex', justifyContent: 'flex-end' }}>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => descargarNotaVenta(p.id_pedido)}
+                                                                disabled={descargandoNotaId === p.id_pedido}
+                                                                style={{
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '0.35rem',
+                                                                    padding: '0.4rem 0.8rem',
+                                                                    fontSize: '0.78rem',
+                                                                    fontWeight: 600,
+                                                                    borderRadius: '6px',
+                                                                    border: '1px solid #cbd5e1',
+                                                                    background: '#fff',
+                                                                    color: 'var(--color-azul-oscuro)',
+                                                                    cursor: 'pointer'
+                                                                }}
+                                                            >
+                                                                {descargandoNotaId === p.id_pedido ? '⏳ Generando PDF...' : '📄 Nota de Venta (PDF)'}
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 );
@@ -582,6 +636,31 @@ const ClienteDashboard = () => {
                                                         <span>📅 Registro: {new Date(p.fecha_pedido).toLocaleDateString()}</span>
                                                         {p.fecha_prueba && <span>✂️ Prueba: {new Date(p.fecha_prueba).toLocaleDateString()}</span>}
                                                         <span>🏁 Entrega: {new Date(p.fecha_entrega).toLocaleDateString()}</span>
+                                                    </div>
+
+                                                    {/* Botón Descargar Comprobante PDF */}
+                                                    <div style={{ marginTop: '0.9rem', display: 'flex', justifyContent: 'flex-end' }}>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => descargarNotaVenta(p.id_pedido)}
+                                                            disabled={descargandoNotaId === p.id_pedido}
+                                                            style={{
+                                                                display: 'inline-flex',
+                                                                alignItems: 'center',
+                                                                gap: '0.45rem',
+                                                                padding: '0.5rem 1rem',
+                                                                fontSize: '0.82rem',
+                                                                fontWeight: 600,
+                                                                borderRadius: '8px',
+                                                                border: '1px solid #cbd5e1',
+                                                                background: '#fff',
+                                                                color: 'var(--color-azul-oscuro)',
+                                                                cursor: 'pointer',
+                                                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                                                            }}
+                                                        >
+                                                            {descargandoNotaId === p.id_pedido ? '⏳ Descargando...' : '📥 Descargar Nota de Venta (PDF)'}
+                                                        </button>
                                                     </div>
                                                 </div>
                                             );

@@ -59,8 +59,30 @@ const ModalNotaVenta = ({ isOpen, onClose, idPedido }) => {
         }
     };
 
+    const [descargandoPdf, setDescargandoPdf] = useState(false);
+
     const handleImprimir = () => {
         window.print();
+    };
+
+    const handleDescargarPdf = async () => {
+        try {
+            setDescargandoPdf(true);
+            const resp = await api.get(`/reportes/pedido/${idPedido}/pdf`, { responseType: 'blob' });
+            const blob = new Blob([resp.data], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Nota_Venta_Pedido_${idPedido}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            setError('Error al descargar el archivo PDF.');
+        } finally {
+            setDescargandoPdf(false);
+        }
     };
 
     if (!isOpen) return null;
@@ -170,7 +192,18 @@ const ModalNotaVenta = ({ isOpen, onClose, idPedido }) => {
                         </div>
 
                         {/* Botones de Acción */}
-                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                        <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                            <button
+                                onClick={handleDescargarPdf}
+                                disabled={descargandoPdf}
+                                style={{
+                                    padding: '0.6rem 1.2rem', background: 'var(--color-azul-oscuro)', color: '#fff',
+                                    border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer',
+                                    display: 'inline-flex', alignItems: 'center', gap: '0.4rem'
+                                }}
+                            >
+                                {descargandoPdf ? '⏳ Generando PDF...' : '📄 Descargar PDF Oficial'}
+                            </button>
                             <button
                                 onClick={handleImprimir}
                                 style={{
@@ -183,7 +216,7 @@ const ModalNotaVenta = ({ isOpen, onClose, idPedido }) => {
                             <button
                                 onClick={onClose}
                                 style={{
-                                    padding: '0.6rem 1.2rem', background: 'var(--color-azul-oscuro)', color: '#fff',
+                                    padding: '0.6rem 1.2rem', background: '#e2e8f0', color: '#334155',
                                     border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer'
                                 }}
                             >
