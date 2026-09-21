@@ -79,6 +79,22 @@ const CitaModel = {
             [idEstado, id_cita]
         );
         return resultado.rows[0];
+    },
+
+    /**
+     * Obtiene las fechas y horarios de citas activas para consulta de disponibilidad.
+     */
+    obtenerCitasOcupadas: async () => {
+        const query = `
+            SELECT c.id_cita, c.fecha_cita, ec.nombre_estado as estado, c.motivo_cita
+            FROM citas c
+            JOIN estados_cita ec ON c.id_estado_cita = ec.id_estado_cita
+            WHERE ec.nombre_estado NOT IN ('Cancelada', 'Rechazada')
+              AND c.fecha_cita >= CURRENT_DATE - INTERVAL '1 month'
+            ORDER BY c.fecha_cita ASC;
+        `;
+        const resultado = await db.query(query);
+        return resultado.rows;
     }
 };
 

@@ -25,8 +25,8 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
     const [colorPrenda, setColorPrenda] = useState('');
     const [notasDiseno, setNotasDiseno] = useState('');
 
-    // --- Medidas (Opcionales / Colapsables) ---
-    const [mostrarMedidas, setMostrarMedidas] = useState(false);
+    // --- Medidas por Pedido (Excluyente: Convencional vs Personalizada) ---
+    const [tipoMedida, setTipoMedida] = useState('convencional'); // 'convencional' | 'personalizada'
     const [talla, setTalla] = useState('M');
     const [busto, setBusto] = useState('');
     const [cintura, setCintura] = useState('');
@@ -34,6 +34,23 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
     const [espalda, setEspalda] = useState('');
     const [hombro, setHombro] = useState('');
     const [cortas, setCortas] = useState('');
+
+    const handleCambiarTipoMedida = (nuevoTipo) => {
+        setTipoMedida(nuevoTipo);
+        if (nuevoTipo === 'convencional') {
+            // Limpiar medidas corporales
+            setBusto('');
+            setCintura('');
+            setCadera('');
+            setEspalda('');
+            setHombro('');
+            setCortas('');
+            if (!talla || talla === 'A Medida') setTalla('M');
+        } else {
+            // Modo a la medida anatómica
+            setTalla('A Medida');
+        }
+    };
 
     // --- Materiales e Insumos Múltiples ---
     const [origenMaterial, setOrigenMaterial] = useState('Taller');
@@ -119,7 +136,7 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
         setCargando(true);
 
         try {
-            const medidasPayload = (busto || cintura || cadera || espalda || hombro || cortas) ? {
+            const medidasPayload = (tipoMedida === 'personalizada' && (busto || cintura || cadera || espalda || hombro || cortas)) ? {
                 busto: parseFloat(busto) || null,
                 cintura: parseFloat(cintura) || null,
                 cadera: parseFloat(cadera) || null,
@@ -127,6 +144,8 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                 hombro: parseFloat(hombro) || null,
                 cortas: parseFloat(cortas) || null,
             } : null;
+
+            const tallaFinal = tipoMedida === 'convencional' ? talla : 'A Medida';
 
             // Formar resumen de insumos para notas de diseno
             let resumenInsumos = '';
@@ -150,7 +169,7 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                 tipo_prenda: tipoPrenda.trim(),
                 color: colorPrenda.trim() || 'A elección',
                 notas_diseno: notasTotales,
-                talla: talla,
+                talla: tallaFinal,
                 medidas_anatomicas: medidasPayload,
                 descripcion_tela: tipoPrenda.trim(),
                 origen_material: origenMaterial,
@@ -384,50 +403,107 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                         </div>
                     </fieldset>
 
-                    {/* 4. Medidas & Talla */}
-                    <fieldset style={{ border: '1px solid var(--color-borde)', padding: '1.2rem', borderRadius: '8px' }}>
-                        <legend style={{ padding: '0 0.5rem', fontWeight: 600, color: 'var(--color-azul-oscuro)', cursor: 'pointer' }} onClick={() => setMostrarMedidas(!mostrarMedidas)}>
-                            Medidas y Talla {mostrarMedidas ? '▲ (Ocultar)' : '▼ (Hacer clic para ingresar medidas)'}
+                    {/* 4. Especificación de Medidas del Pedido (Convencionales vs Personalizadas) */}
+                    <fieldset style={{ border: '1.5px solid var(--color-azul-oscuro)', padding: '1.2rem', borderRadius: '8px', background: '#ffffff' }}>
+                        <legend style={{ padding: '0 0.5rem', fontWeight: 700, color: 'var(--color-azul-oscuro)' }}>
+                            Medidas de Confección para este Pedido
                         </legend>
-                        
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: mostrarMedidas ? '0.8rem' : '0' }}>
-                            <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Talla Estandar:</label>
-                            <select value={talla} onChange={(e) => setTalla(e.target.value)} style={{ padding: '0.4rem 0.8rem', borderRadius: '6px', border: '1px solid var(--color-borde)' }}>
-                                <option value="XS">XS</option>
-                                <option value="S">S</option>
-                                <option value="M">M</option>
-                                <option value="L">L</option>
-                                <option value="XL">XL</option>
-                                <option value="XXL">XXL</option>
-                                <option value="A Medida">A Medida (Personalizado)</option>
-                            </select>
+                        <p style={{ fontSize: '0.82rem', color: '#64748B', margin: '0 0 1rem' }}>
+                            Seleccione el tipo de patronaje para esta prenda (convencional o a la medida anatómica exacta):
+                        </p>
+
+                        {/* Selector Exclusivo: Tallas Convencionales vs Medidas Personalizadas */}
+                        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.2rem', flexWrap: 'wrap' }}>
+                            <label style={{
+                                flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.85rem 1rem',
+                                borderRadius: '8px', border: tipoMedida === 'convencional' ? '2px solid var(--color-azul-oscuro)' : '1px solid #CBD5E1',
+                                background: tipoMedida === 'convencional' ? '#F0F9FF' : '#F8FAFC', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem',
+                                transition: 'all 0.2s'
+                            }}>
+                                <input 
+                                    type="radio" 
+                                    name="tipoMedida" 
+                                    value="convencional" 
+                                    checked={tipoMedida === 'convencional'} 
+                                    onChange={() => handleCambiarTipoMedida('convencional')} 
+                                />
+                                <span>📏 Tallas Convencionales (XS a XXL)</span>
+                            </label>
+
+                            <label style={{
+                                flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.85rem 1rem',
+                                borderRadius: '8px', border: tipoMedida === 'personalizada' ? '2px solid var(--color-azul-oscuro)' : '1px solid #CBD5E1',
+                                background: tipoMedida === 'personalizada' ? '#F0F9FF' : '#F8FAFC', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem',
+                                transition: 'all 0.2s'
+                            }}>
+                                <input 
+                                    type="radio" 
+                                    name="tipoMedida" 
+                                    value="personalizada" 
+                                    checked={tipoMedida === 'personalizada'} 
+                                    onChange={() => handleCambiarTipoMedida('personalizada')} 
+                                />
+                                <span>✂️ Medidas Personalizadas (A Medida)</span>
+                            </label>
                         </div>
 
-                        {mostrarMedidas && (
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: '0.6rem', marginTop: '0.6rem' }}>
-                                <div>
-                                    <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Busto (cm)</label>
-                                    <input type="number" step="0.5" value={busto} onChange={(e) => setBusto(e.target.value)} style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--color-borde)', boxSizing: 'border-box' }} />
+                        {/* Vista Tallas Convencionales */}
+                        {tipoMedida === 'convencional' && (
+                            <div style={{ background: '#F8FAFC', padding: '1rem', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                                <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.6rem', color: '#1E293B' }}>
+                                    Seleccionar Talla Estándar de Confección:
+                                </label>
+                                <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                                    {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map(t => (
+                                        <button
+                                            key={t}
+                                            type="button"
+                                            onClick={() => setTalla(t)}
+                                            style={{
+                                                padding: '0.6rem 1.2rem', borderRadius: '8px', fontWeight: 700, fontSize: '0.9rem',
+                                                border: talla === t ? '2px solid var(--color-azul-oscuro)' : '1px solid #CBD5E1',
+                                                background: talla === t ? 'var(--color-azul-oscuro)' : '#FFFFFF',
+                                                color: talla === t ? '#FFFFFF' : '#334155', cursor: 'pointer', transition: 'all 0.2s'
+                                            }}
+                                        >
+                                            {t}
+                                        </button>
+                                    ))}
                                 </div>
-                                <div>
-                                    <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Cintura (cm)</label>
-                                    <input type="number" step="0.5" value={cintura} onChange={(e) => setCintura(e.target.value)} style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--color-borde)', boxSizing: 'border-box' }} />
-                                </div>
-                                <div>
-                                    <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Cadera (cm)</label>
-                                    <input type="number" step="0.5" value={cadera} onChange={(e) => setCadera(e.target.value)} style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--color-borde)', boxSizing: 'border-box' }} />
-                                </div>
-                                <div>
-                                    <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Espalda (cm)</label>
-                                    <input type="number" step="0.5" value={espalda} onChange={(e) => setEspalda(e.target.value)} style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--color-borde)', boxSizing: 'border-box' }} />
-                                </div>
-                                <div>
-                                    <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Hombro (cm)</label>
-                                    <input type="number" step="0.5" value={hombro} onChange={(e) => setHombro(e.target.value)} style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--color-borde)', boxSizing: 'border-box' }} />
-                                </div>
-                                <div>
-                                    <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Largo (cm)</label>
-                                    <input type="number" step="0.5" value={cortas} onChange={(e) => setCortas(e.target.value)} style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--color-borde)', boxSizing: 'border-box' }} />
+                            </div>
+                        )}
+
+                        {/* Vista Medidas Personalizadas */}
+                        {tipoMedida === 'personalizada' && (
+                            <div style={{ background: '#F8FAFC', padding: '1rem', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                                <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.6rem', color: '#1E293B' }}>
+                                    Medidas Corporales para esta Prenda (cm):
+                                </label>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(95px, 1fr))', gap: '0.8rem' }}>
+                                    <div>
+                                        <label style={{ fontSize: '0.78rem', fontWeight: 600, color: '#475569' }}>Busto</label>
+                                        <input type="number" step="0.5" placeholder="cm" value={busto} onChange={(e) => setBusto(e.target.value)} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', boxSizing: 'border-box' }} />
+                                    </div>
+                                    <div>
+                                        <label style={{ fontSize: '0.78rem', fontWeight: 600, color: '#475569' }}>Cintura</label>
+                                        <input type="number" step="0.5" placeholder="cm" value={cintura} onChange={(e) => setCintura(e.target.value)} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', boxSizing: 'border-box' }} />
+                                    </div>
+                                    <div>
+                                        <label style={{ fontSize: '0.78rem', fontWeight: 600, color: '#475569' }}>Cadera</label>
+                                        <input type="number" step="0.5" placeholder="cm" value={cadera} onChange={(e) => setCadera(e.target.value)} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', boxSizing: 'border-box' }} />
+                                    </div>
+                                    <div>
+                                        <label style={{ fontSize: '0.78rem', fontWeight: 600, color: '#475569' }}>Espalda</label>
+                                        <input type="number" step="0.5" placeholder="cm" value={espalda} onChange={(e) => setEspalda(e.target.value)} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', boxSizing: 'border-box' }} />
+                                    </div>
+                                    <div>
+                                        <label style={{ fontSize: '0.78rem', fontWeight: 600, color: '#475569' }}>Hombro</label>
+                                        <input type="number" step="0.5" placeholder="cm" value={hombro} onChange={(e) => setHombro(e.target.value)} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', boxSizing: 'border-box' }} />
+                                    </div>
+                                    <div>
+                                        <label style={{ fontSize: '0.78rem', fontWeight: 600, color: '#475569' }}>Largo / Talle</label>
+                                        <input type="number" step="0.5" placeholder="cm" value={cortas} onChange={(e) => setCortas(e.target.value)} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', boxSizing: 'border-box' }} />
+                                    </div>
                                 </div>
                             </div>
                         )}

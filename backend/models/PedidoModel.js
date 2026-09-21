@@ -23,11 +23,12 @@ const PedidoModel = {
 
             // 2. Insertar cabecera en pedidos
             const resultadoPedido = await client.query(
-                `INSERT INTO pedidos (id_cliente, id_estado_pedido, fecha_inicio, fecha_prueba, fecha_entrega, costo_total)
-                 VALUES ($1, $2, CURRENT_TIMESTAMP, $3, $4, $5)
+                `INSERT INTO pedidos (id_cliente, id_costurera, id_estado_pedido, fecha_inicio, fecha_prueba, fecha_entrega, costo_total)
+                 VALUES ($1, $2, $3, CURRENT_TIMESTAMP, $4, $5, $6)
                  RETURNING *`,
                 [
                     datosPedido.id_cliente,
+                    datosPedido.id_costurera ? Number(datosPedido.id_costurera) : null,
                     idEstadoPedido,
                     datosPedido.fecha_prueba || null,
                     datosPedido.fecha_entrega,
@@ -37,45 +38,55 @@ const PedidoModel = {
             const pedido = resultadoPedido.rows[0];
             const idPedido = pedido.id_pedido;
 
-            // 3. Resolver o crear la prenda confeccionable
-            let idPrenda = datosDetalle.id_prenda;
-            if (!idPrenda) {
-                const tipoPrenda = datosDetalle.tipo_prenda || datosDetalle.descripcion_tela || 'Prenda a Medida';
-                const color = datosDetalle.color || 'A elección';
-                const idCatalogo = datosDetalle.id_catalogo || null;
+            // Consolidar datos de detalle y medidas (soporta llamada con 2 argumentos o con objeto unificado)
+            const d = {
+                id_prenda: datosDetalle.id_prenda || datosPedido.id_prenda,
+                tipo_prenda: datosDetalle.tipo_prenda || datosPedido.tipo_prenda || datosDetalle.descripcion_tela || datosPedido.descripcion_tela || 'Prenda a Medida',
+                color: datosDetalle.color || datosPedido.color || 'A elección',
+                id_catalogo: datosDetalle.id_catalogo || datosPedido.id_catalogo || null,
+                descripcion_tela: datosDetalle.descripcion_tela || datosPedido.descripcion_tela,
+                cantidad: parseInt(datosDetalle.cantidad || datosPedido.cantidad) || 1,
+                subtotal: parseFloat(datosDetalle.subtotal || datosPedido.subtotal) || costoTotal,
+                notas_diseno: datosDetalle.notas_diseno || datosPedido.notas_diseno,
+                origen_material: datosDetalle.origen_material || datosPedido.origen_material,
+                medidas_anatomicas: datosDetalle.medidas_anatomicas || datosPedido.medidas_anatomicas || datosDetalle.medidas || datosPedido.medidas || null,
+                talla: datosDetalle.talla || datosPedido.talla || null,
+                equivalencia_europea: datosDetalle.equivalencia_europea || datosPedido.equivalencia_europea || null,
+                insumos: datosDetalle.insumos || datosPedido.insumos || []
+            };
 
+            // 3. Resolver o crear la prenda confeccionable
+            let idPrenda = d.id_prenda;
+            if (!idPrenda) {
                 const prenRes = await client.query(
                     `INSERT INTO prendas (id_catalogo, tipo_prenda, color)
                      VALUES ($1, $2, $3)
                      RETURNING id_prenda`,
-                    [idCatalogo, tipoPrenda, color]
+                    [d.id_catalogo, d.tipo_prenda, d.color]
                 );
                 idPrenda = prenRes.rows[0].id_prenda;
 
-                if (datosDetalle.descripcion_tela) {
+                if (d.descripcion_tela) {
                     await client.query(
                         `INSERT INTO descripciones_prenda (id_prenda, descripcion_detallada)
                          VALUES ($1, $2)`,
-                        [idPrenda, datosDetalle.descripcion_tela]
+                        [idPrenda, d.descripcion_tela]
                     );
                 }
             }
 
             // 4. Insertar en detalle_pedido
-            const cantidad = parseInt(datosDetalle.cantidad) || 1;
-            const subtotal = parseFloat(datosDetalle.subtotal) || costoTotal;
-
             const detRes = await client.query(
                 `INSERT INTO detalle_pedido (id_pedido, id_prenda, cantidad, subtotal)
                  VALUES ($1, $2, $3, $4)
                  RETURNING *`,
-                [idPedido, idPrenda, cantidad, subtotal]
+                [idPedido, idPrenda, d.cantidad, d.subtotal]
             );
             const detalle = detRes.rows[0];
             const idDetalle = detalle.id_detalle;
 
             // 5. Insertar notas de diseño si existen
-            const notas = datosDetalle.notas_diseno || datosDetalle.origen_material ? `Origen tela: ${datosDetalle.origen_material || 'Taller'}. ${datosDetalle.notas_diseno || ''}` : null;
+            const notas = d.notas_diseno || d.origen_material ? `Origen tela: ${d.origen_material || 'Taller'}. ${d.notas_diseno || ''}` : null;
             if (notas) {
                 await client.query(
                     `INSERT INTO notas_diseno_detalle (id_detalle, notas_diseno)
@@ -85,7 +96,7 @@ const PedidoModel = {
             }
 
             // 6. Insertar medidas anatómicas si vienen en el detalle
-            const m = datosDetalle.medidas_anatomicas || datosDetalle.medidas;
+            const m = d.medidas_anatomicas;
             if (m) {
                 await client.query(
                     `INSERT INTO medidas_anatomicas (id_detalle, cortas, cintura, frente, alto_cadera, cadera, entre_busto, busto, espalda, hombro)
@@ -95,11 +106,11 @@ const PedidoModel = {
             }
 
             // 7. Insertar talla si viene
-            if (datosDetalle.talla) {
+            if (d.talla) {
                 await client.query(
                     `INSERT INTO medidas_convencionales (id_detalle, talla, equivalencia_europea)
                      VALUES ($1, $2, $3)`,
-                    [idDetalle, datosDetalle.talla, datosDetalle.equivalencia_europea || null]
+                    [idDetalle, d.talla, d.equivalencia_europea || null]
                 );
             }
 
@@ -126,12 +137,12 @@ const PedidoModel = {
 
             
             // 5.1 Registrar insumos múltiples del almacén en Kardex y descontar stock
-            if (Array.isArray(datosDetalle.insumos) && datosDetalle.insumos.length > 0) {
-                for (const ins of datosDetalle.insumos) {
+            if (Array.isArray(d.insumos) && d.insumos.length > 0) {
+                for (const ins of d.insumos) {
                     const idProd = Number(ins.id_producto);
                     const cant = parseFloat(ins.cantidad) || 0;
                     if (idProd && cant > 0) {
-                        const esTaller = (datosDetalle.origen_material || 'Taller') === 'Taller';
+                        const esTaller = (d.origen_material || 'Taller') === 'Taller';
                         if (esTaller) {
                             await client.query(
                                 'UPDATE productos_almacen SET cantidad_stock = GREATEST(0, cantidad_stock - $1) WHERE id_producto = $2',
@@ -275,7 +286,7 @@ const PedidoModel = {
     },
 
     /**
-     * Obtiene los pedidos asignados a una lista de IDs de cliente.
+     * Obtiene los pedidos asignados a una lista de IDs de cliente con detalle de medidas, costurera y fechas.
      */
     obtenerPedidosPorClienteIds: async (idsClienteArray) => {
         if (!idsClienteArray || idsClienteArray.length === 0) return [];
@@ -284,22 +295,37 @@ const PedidoModel = {
                    p.costo_total,
                    COALESCE(NULLIF(TRIM(CONCAT(dcp.nombre, ' ', dcp.apellido)), ''), dci.razon_social) as cliente,
                    pr.tipo_prenda as prenda, pr.color,
+                   COALESCE(NULLIF(TRIM(CONCAT(cost_du.nombre, ' ', cost_du.apellido)), ''), 'Taller Simonetta') as costurera,
+                   -- Medidas asociadas
+                   mc.talla,
+                   ma.busto, ma.cintura, ma.cadera, ma.espalda, ma.hombro, ma.cortas, ma.frente, ma.alto_cadera, ma.entre_busto,
+                   -- Finanzas
                    COALESCE(pagos_res.total_pagado, 0) as adelanto,
-                   (p.costo_total - COALESCE(pagos_res.total_pagado, 0)) as saldo
+                   COALESCE(pagos_res.total_pagado, 0) as total_pagado,
+                   (p.costo_total - COALESCE(pagos_res.total_pagado, 0)) as saldo,
+                   -- Fechas asociadas
+                   (SELECT fecha_cita FROM citas WHERE id_pedido = p.id_pedido ORDER BY id_cita DESC LIMIT 1) as fecha_cita,
+                   (SELECT motivo_cita FROM citas WHERE id_pedido = p.id_pedido ORDER BY id_cita DESC LIMIT 1) as motivo_cita,
+                   nd.notas_diseno
             FROM pedidos p
             JOIN estados_pedido ep ON p.id_estado_pedido = ep.id_estado_pedido
             JOIN clientes cl ON p.id_cliente = cl.id_cliente
             LEFT JOIN datos_cliente_persona dcp ON cl.id_cliente = dcp.id_cliente
             LEFT JOIN datos_cliente_institucional dci ON cl.id_cliente = dci.id_cliente
+            LEFT JOIN usuarios cost_u ON p.id_costurera = cost_u.id_usuario
+            LEFT JOIN datos_usuario cost_du ON cost_u.id_usuario = cost_du.id_usuario
             LEFT JOIN LATERAL (
-                SELECT id_prenda FROM detalle_pedido WHERE id_pedido = p.id_pedido LIMIT 1
+                SELECT id_detalle, id_prenda FROM detalle_pedido WHERE id_pedido = p.id_pedido ORDER BY id_detalle ASC LIMIT 1
             ) dp ON true
             LEFT JOIN prendas pr ON dp.id_prenda = pr.id_prenda
+            LEFT JOIN notas_diseno_detalle nd ON dp.id_detalle = nd.id_detalle
+            LEFT JOIN medidas_anatomicas ma ON dp.id_detalle = ma.id_detalle
+            LEFT JOIN medidas_convencionales mc ON dp.id_detalle = mc.id_detalle
             LEFT JOIN (
                 SELECT id_pedido, SUM(monto_pago) as total_pagado FROM pagos GROUP BY id_pedido
             ) pagos_res ON p.id_pedido = pagos_res.id_pedido
             WHERE p.id_cliente = ANY($1::int[])
-            ORDER BY p.fecha_entrega ASC;
+            ORDER BY p.id_pedido DESC;
         `;
         const resultado = await db.query(query, [idsClienteArray]);
         return resultado.rows;
@@ -315,6 +341,7 @@ const PedidoModel = {
                    COALESCE(NULLIF(TRIM(CONCAT(dcp.nombre, ' ', dcp.apellido)), ''), dci.razon_social) as cliente,
                    COALESCE(dcp.telefono, dci.telefono_contacto) as telefono_whatsapp,
                    cl.correo_electronico as cliente_correo,
+                   COALESCE(NULLIF(TRIM(CONCAT(cost_du.nombre, ' ', cost_du.apellido)), ''), 'Taller Simonetta') as costurera,
                    -- Prenda y detalles
                    pr.tipo_prenda, pr.color, pr.tipo_prenda as prenda,
                    dp.id_detalle, dp.cantidad, dp.subtotal,
@@ -330,6 +357,8 @@ const PedidoModel = {
             JOIN clientes cl ON p.id_cliente = cl.id_cliente
             LEFT JOIN datos_cliente_persona dcp ON cl.id_cliente = dcp.id_cliente
             LEFT JOIN datos_cliente_institucional dci ON cl.id_cliente = dci.id_cliente
+            LEFT JOIN usuarios cost_u ON p.id_costurera = cost_u.id_usuario
+            LEFT JOIN datos_usuario cost_du ON cost_u.id_usuario = cost_du.id_usuario
             LEFT JOIN LATERAL (
                 SELECT id_detalle, id_prenda, cantidad, subtotal
                 FROM detalle_pedido WHERE id_pedido = p.id_pedido LIMIT 1
@@ -402,16 +431,16 @@ const PedidoModel = {
      * Actualiza la información básica de un pedido.
      */
     actualizarPedidoBasico: async (id_pedido, datos) => {
-        const { fecha_entrega, fecha_prueba, costo_total, adelanto } = datos;
+        const { id_costurera, fecha_entrega, fecha_prueba, costo_total, adelanto } = datos;
         const client = await db.pool.connect();
         try {
             await client.query('BEGIN');
 
             await client.query(
                 `UPDATE pedidos
-                 SET fecha_entrega = $1, fecha_prueba = $2, costo_total = $3
-                 WHERE id_pedido = $4`,
-                [fecha_entrega, fecha_prueba || null, parseFloat(costo_total), id_pedido]
+                 SET fecha_entrega = $1, fecha_prueba = $2, costo_total = $3, id_costurera = COALESCE($4, id_costurera)
+                 WHERE id_pedido = $5`,
+                [fecha_entrega, fecha_prueba || null, parseFloat(costo_total), id_costurera ? Number(id_costurera) : null, id_pedido]
             );
 
             // Si se suministra nuevo abono/adelanto adicional
@@ -481,6 +510,24 @@ const PedidoModel = {
         } finally {
             client.release();
         }
+    },
+    /**
+     * Obtiene el catálogo de colecciones y prendas de alta costura.
+     */
+    obtenerCatalogoPrendas: async () => {
+        const query = `
+            SELECT c.id_catalogo, c.nombre_catalogo as coleccion, c.url_imagen_catalogo as imagen_url,
+                   dc.descripcion as descripcion_coleccion,
+                   p.id_prenda, p.tipo_prenda as nombre_prenda, p.color,
+                   dp.descripcion_detallada as descripcion
+            FROM catalogo c
+            LEFT JOIN descripciones_catalogo dc ON c.id_catalogo = dc.id_catalogo
+            JOIN prendas p ON c.id_catalogo = p.id_catalogo
+            LEFT JOIN descripciones_prenda dp ON p.id_prenda = dp.id_prenda
+            ORDER BY c.id_catalogo ASC, p.id_prenda ASC;
+        `;
+        const res = await db.query(query);
+        return res.rows;
     }
 };
 

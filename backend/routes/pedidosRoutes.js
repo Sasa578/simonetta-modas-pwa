@@ -1,13 +1,27 @@
 const express = require('express');
 const router = express.Router();
 const verificarToken = require('../middleware/authMiddleware');
-const { crearPedido, obtenerCatalogos, obtenerPedidos, actualizarEstado, obtenerMetricas, obtenerPedidosCosturera, obtenerPedido, actualizarPedido, saldarYEntregar } = require('../controllers/pedidosController');
+const { 
+    crearPedido, 
+    obtenerCatalogos, 
+    obtenerPedidos, 
+    actualizarEstado, 
+    obtenerMetricas, 
+    obtenerPedidosCosturera, 
+    obtenerPedido, 
+    actualizarPedido, 
+    saldarYEntregar,
+    obtenerCatalogoPrendas
+} = require('../controllers/pedidosController');
 
 // Todas las rutas de pedidos requieren autenticación
 router.use(verificarToken);
 
 // GET /api/pedidos/catalogos — Obtener estados de pedido y métodos de pago
 router.get('/catalogos', obtenerCatalogos);
+
+// GET /api/pedidos/catalogo-prendas — Catálogo de prendas de alta costura
+router.get('/catalogo-prendas', obtenerCatalogoPrendas);
 
 // GET /api/pedidos — Obtener pedidos activos
 router.get('/', obtenerPedidos);

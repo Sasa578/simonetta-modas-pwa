@@ -309,6 +309,17 @@ const saldarYEntregar = async (req, res) => {
     }
 };
 
+// GET /api/pedidos/catalogo-prendas
+const obtenerCatalogoPrendas = async (req, res) => {
+    try {
+        const catalogo = await PedidoModel.obtenerCatalogoPrendas();
+        return res.json(catalogo);
+    } catch (error) {
+        console.error('Error al obtener catálogo de prendas:', error);
+        return res.status(500).json({ error: 'Error del servidor al obtener catálogo.' });
+    }
+};
+
 module.exports = {
     crearPedido,
     obtenerCatalogos,
@@ -318,5 +329,6 @@ module.exports = {
     obtenerPedidosCosturera,
     obtenerPedido,
     actualizarPedido,
-    saldarYEntregar
+    saldarYEntregar,
+    obtenerCatalogoPrendas
 };

@@ -104,4 +104,15 @@ const actualizarEstado = async (req, res) => {
     }
 };
 
-module.exports = { crearCita, obtenerCitasPendientes, obtenerMisCitas, actualizarEstado };
+// GET /api/citas/disponibilidad — Fechas de citas activas para que los clientes consulten disponibilidad
+const obtenerDisponibilidadCitas = async (req, res) => {
+    try {
+        const citas = await CitaModel.obtenerCitasOcupadas();
+        return res.json(citas);
+    } catch (error) {
+        console.error('Error al obtener disponibilidad de citas:', error);
+        return res.status(500).json({ error: 'Error del servidor al obtener disponibilidad.' });
+    }
+};
+
+module.exports = { crearCita, obtenerCitasPendientes, obtenerMisCitas, actualizarEstado, obtenerDisponibilidadCitas };
