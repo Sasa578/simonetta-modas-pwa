@@ -54,7 +54,23 @@ const crearCliente = async (req, res) => {
             contrato
         } = req.body;
 
-        const isInstitucional = Number(id_tipo_cliente) === 2 || tipo_cliente === 'Institucional';
+        const isInstitucional = Number(id_tipo_cliente) === 2 || 
+                                (tipo_cliente && (tipo_cliente.toLowerCase() === 'institucional' || tipo_cliente.toLowerCase() === 'institucion'));
+
+        const contacto = nombre_contacto || req.body.persona_contacto || '';
+        const telContacto = telefono_contacto || telefono || telefono_whatsapp || '';
+
+        let finalContrato = contrato;
+        const numContrato = req.body.numero_contrato || req.body.nro_contrato;
+        if (!finalContrato && numContrato) {
+            finalContrato = {
+                numero_contrato: numContrato,
+                fecha_firma: req.body.fecha_firma || req.body.fecha_firma_contrato || new Date().toISOString().split('T')[0],
+                fecha_vencimiento: req.body.fecha_vencimiento || req.body.fecha_vencimiento_contrato || null
+            };
+        } else if (finalContrato && !finalContrato.fecha_firma) {
+            finalContrato.fecha_firma = new Date().toISOString().split('T')[0];
+        }
 
         if (isInstitucional) {
             if (!razon_social && !nombre_completo) {
@@ -85,10 +101,10 @@ const crearCliente = async (req, res) => {
             fecha_nacimiento,
             razon_social,
             nit,
-            nombre_contacto,
-            telefono_contacto,
+            nombre_contacto: contacto,
+            telefono_contacto: telContacto,
             atributos,
-            contrato
+            contrato: finalContrato
         });
 
         return res.status(201).json({

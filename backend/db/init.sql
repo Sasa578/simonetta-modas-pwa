@@ -43,7 +43,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
     id_rol INTEGER NOT NULL REFERENCES roles(id_rol),
     id_estado_usuario INTEGER NOT NULL REFERENCES estados_usuario(id_estado_usuario),
     correo_electronico VARCHAR(150) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL
+    password_hash VARCHAR(255) NOT NULL,
+    debe_cambiar_password BOOLEAN DEFAULT TRUE
 );
 
 CREATE TABLE IF NOT EXISTS datos_usuario (

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import ModalCambiarPassword from '../components/ModalCambiarPassword';
 import './Login.css';
 
 const generarCaptchaCodigo = () => {
@@ -19,7 +20,9 @@ const Login = () => {
     const [captchaInput, setCaptchaInput] = useState('');
     const [error, setError] = useState('');
     const [cargando, setCargando] = useState(false);
-    const { login } = useAuth();
+    const [mostrarModalPassword, setMostrarModalPassword] = useState(false);
+    const [usuarioPendiente, setUsuarioPendiente] = useState(null);
+    const { login, logout } = useAuth();
     const navigate = useNavigate();
 
     const regenerarCaptcha = () => {
@@ -38,6 +41,21 @@ const Login = () => {
         else navigate('/mobile'); // Costurera
     };
 
+    const handlePasswordSuccess = () => {
+        setMostrarModalPassword(false);
+        if (usuarioPendiente) {
+            redirigirPorRol(usuarioPendiente.rol);
+        }
+    };
+
+    const handlePasswordLogout = () => {
+        logout();
+        setMostrarModalPassword(false);
+        setUsuarioPendiente(null);
+        setError('Debe cambiar su contrasena temporal antes de acceder al sistema.');
+        regenerarCaptcha();
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -53,7 +71,12 @@ const Login = () => {
 
         try {
             const data = await login(correo.trim(), password);
-            redirigirPorRol(data.usuario.rol);
+            if (data.usuario?.debe_cambiar_password) {
+                setUsuarioPendiente(data.usuario);
+                setMostrarModalPassword(true);
+            } else {
+                redirigirPorRol(data.usuario.rol);
+            }
         } catch (err) {
             setError(err.response?.data?.error || 'Error al iniciar sesion.');
             regenerarCaptcha();
@@ -64,6 +87,14 @@ const Login = () => {
 
     return (
         <div className="login-container">
+            {mostrarModalPassword && (
+                <ModalCambiarPassword
+                    isOpen={mostrarModalPassword}
+                    usuario={usuarioPendiente}
+                    onSuccess={handlePasswordSuccess}
+                    onLogout={handlePasswordLogout}
+                />
+            )}
             <div className="login-card">
                 <div className="login-header">
                     <h1 style={{ letterSpacing: '1px', fontWeight: 700 }}>SIMONETTA MODAS</h1>

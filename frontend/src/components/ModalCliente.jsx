@@ -5,7 +5,8 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
     const [tipoCliente, setTipoCliente] = useState(1); // 1: Persona, 2: Institucional
     const [form, setForm] = useState({
         // Persona
-        nombre_completo: '',
+        nombre: '',
+        apellido: '',
         carnet_identidad: '',
         telefono_whatsapp: '',
         fecha_nacimiento: '',
@@ -17,6 +18,8 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
         // Comunes y extras
         correo: '',
         numero_contrato: '',
+        fecha_firma: '',
+        fecha_vencimiento: '',
         atributo_preferencia: ''
     });
     const [cargando, setCargando] = useState(false);
@@ -26,7 +29,8 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
         if (isOpen) {
             setTipoCliente(1);
             setForm({
-                nombre_completo: '',
+                nombre: '',
+                apellido: '',
                 carnet_identidad: '',
                 telefono_whatsapp: '',
                 fecha_nacimiento: '',
@@ -36,6 +40,8 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
                 telefono_contacto: '',
                 correo: '',
                 numero_contrato: '',
+                fecha_firma: '',
+                fecha_vencimiento: '',
                 atributo_preferencia: ''
             });
             setError('');
@@ -56,7 +62,9 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
             };
 
             if (tipoCliente === 1) {
-                payload.nombre_completo = form.nombre_completo;
+                payload.nombre = form.nombre.trim();
+                payload.apellido = form.apellido.trim();
+                payload.nombre_completo = `${form.nombre.trim()} ${form.apellido.trim()}`.trim();
                 payload.carnet_identidad = form.carnet_identidad;
                 payload.telefono_whatsapp = form.telefono_whatsapp;
                 payload.fecha_nacimiento = form.fecha_nacimiento || null;
@@ -71,7 +79,8 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
                 if (form.numero_contrato) {
                     payload.contrato = {
                         numero_contrato: form.numero_contrato,
-                        fecha_firma: new Date().toISOString().split('T')[0]
+                        fecha_firma: form.fecha_firma || new Date().toISOString().split('T')[0],
+                        fecha_vencimiento: form.fecha_vencimiento || null
                     };
                 }
             }
@@ -172,9 +181,15 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
                     {/* CAMPOS SEGÚN TIPO */}
                     {tipoCliente === 1 ? (
                         <>
-                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <label style={labelStyle}>Nombre Completo *</label>
-                                <input type="text" placeholder="Ej. Ana García Rojas" value={form.nombre_completo} onChange={(e) => setForm({ ...form, nombre_completo: e.target.value })} style={inputStyle} required />
+                            <div style={{ display: 'flex', gap: '0.8rem' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                    <label style={labelStyle}>Nombre *</label>
+                                    <input type="text" placeholder="Ej. Ana" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} style={inputStyle} required />
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                    <label style={labelStyle}>Apellido *</label>
+                                    <input type="text" placeholder="Ej. García Rojas" value={form.apellido} onChange={(e) => setForm({ ...form, apellido: e.target.value })} style={inputStyle} required />
+                                </div>
                             </div>
 
                             <div style={{ display: 'flex', gap: '0.8rem' }}>
@@ -235,6 +250,17 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
                                 <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                                     <label style={labelStyle}>Correo Institucional</label>
                                     <input type="email" placeholder="contacto@empresa.com" value={form.correo} onChange={(e) => setForm({ ...form, correo: e.target.value })} style={inputStyle} />
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '0.8rem' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                    <label style={labelStyle}>Fecha Firma Contrato</label>
+                                    <input type="date" value={form.fecha_firma} onChange={(e) => setForm({ ...form, fecha_firma: e.target.value })} style={inputStyle} />
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                    <label style={labelStyle}>Fecha Vencimiento Contrato</label>
+                                    <input type="date" value={form.fecha_vencimiento} onChange={(e) => setForm({ ...form, fecha_vencimiento: e.target.value })} style={inputStyle} />
                                 </div>
                             </div>
                         </>

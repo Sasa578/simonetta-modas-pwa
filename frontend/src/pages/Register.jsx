@@ -7,7 +7,8 @@ const Register = () => {
     const [formData, setFormData] = useState({
         correo: '',
         password: '',
-        nombre_completo: '',
+        nombre: '',
+        apellido: '',
         telefono_whatsapp: '',
         carnet_identidad: ''
     });
@@ -51,15 +52,27 @@ const Register = () => {
                 <form onSubmit={handleSubmit} className="login-form">
                     {error && <div className="login-error">{error}</div>}
 
-                    <div className="form-group">
-                        <label>Nombre Completo</label>
-                        <input
-                            type="text"
-                            value={formData.nombre_completo}
-                            onChange={(e) => setFormData({ ...formData, nombre_completo: e.target.value })}
-                            placeholder="María Pérez"
-                            required
-                        />
+                    <div style={{ display: 'flex', gap: '0.8rem' }}>
+                        <div className="form-group" style={{ flex: 1 }}>
+                            <label>Nombre *</label>
+                            <input
+                                type="text"
+                                value={formData.nombre}
+                                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                                placeholder="María"
+                                required
+                            />
+                        </div>
+                        <div className="form-group" style={{ flex: 1 }}>
+                            <label>Apellido *</label>
+                            <input
+                                type="text"
+                                value={formData.apellido}
+                                onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
+                                placeholder="Pérez Rojas"
+                                required
+                            />
+                        </div>
                     </div>
 
                     <div className="form-group">

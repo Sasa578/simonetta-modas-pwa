@@ -1,13 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const verificarToken = require('../middleware/authMiddleware');
-const { login, registrarFcmToken, listarRoles, listarTiposCliente, registrarCliente } = require('../controllers/authController');
+const { login, registrarFcmToken, listarRoles, listarTiposCliente, registrarCliente, cambiarPassword } = require('../controllers/authController');
 
 // POST /api/auth/login
 router.post('/login', login);
 
 // POST /api/auth/register — Registrar cliente
 router.post('/register', registrarCliente);
+
+// PUT /api/auth/cambiar-password — Cambio de contraseña (primer login o perfil)
+router.put('/cambiar-password', verificarToken, cambiarPassword);
 
 // GET /api/auth/roles — Listar roles
 router.get('/roles', listarRoles);

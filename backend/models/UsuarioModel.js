@@ -11,6 +11,7 @@ const UsuarioModel = {
             `SELECT u.id_usuario, u.correo_electronico, u.correo_electronico as correo,
                     u.password_hash, u.id_rol, r.nombre_rol, 
                     u.id_estado_usuario, eu.nombre_estado as estado,
+                    u.debe_cambiar_password,
                     du.id_datos_usuario, du.nombre, du.apellido,
                     TRIM(CONCAT(du.nombre, ' ', du.apellido)) as nombre_completo,
                     du.carnet_identidad, du.telefono, du.fecha_nacimiento, du.fecha_registro
@@ -31,6 +32,7 @@ const UsuarioModel = {
         const resultado = await db.query(
             `SELECT u.id_usuario, u.correo_electronico, u.correo_electronico as correo,
                     u.id_rol, r.nombre_rol, u.id_estado_usuario, eu.nombre_estado as estado,
+                    u.debe_cambiar_password,
                     du.id_datos_usuario, du.nombre, du.apellido,
                     TRIM(CONCAT(du.nombre, ' ', du.apellido)) as nombre_completo,
                     du.carnet_identidad, du.telefono, du.fecha_nacimiento, du.fecha_registro
@@ -51,6 +53,7 @@ const UsuarioModel = {
         const resultado = await db.query(
             `SELECT u.id_usuario, u.correo_electronico, u.correo_electronico as correo,
                     u.id_rol, r.nombre_rol, u.id_estado_usuario, eu.nombre_estado as estado,
+                    u.debe_cambiar_password,
                     du.id_datos_usuario, du.nombre, du.apellido,
                     TRIM(CONCAT(du.nombre, ' ', du.apellido)) as nombre_completo,
                     du.carnet_identidad, du.telefono, du.fecha_nacimiento, du.fecha_registro
@@ -66,9 +69,10 @@ const UsuarioModel = {
     /**
      * Crea un nuevo usuario interno en transacción (usuarios + datos_usuario).
      */
-    crear: async ({ correo, correo_electronico, password, id_rol, nombre, apellido, nombre_completo, carnet_identidad, telefono, fecha_nacimiento, id_estado_usuario = 1 }) => {
+    crear: async ({ correo, correo_electronico, password = 'password123', id_rol, nombre, apellido, nombre_completo, carnet_identidad, telefono, fecha_nacimiento, id_estado_usuario = 1, debe_cambiar_password = true }) => {
         const email = correo_electronico || correo;
-        const hash = await bcrypt.hash(password, 10);
+        const passFinal = password && password.trim() ? password.trim() : 'password123';
+        const hash = await bcrypt.hash(passFinal, 10);
 
         let finalNombre = nombre;
         let finalApellido = apellido;
@@ -84,10 +88,10 @@ const UsuarioModel = {
             await client.query('BEGIN');
 
             const uRes = await client.query(
-                `INSERT INTO usuarios (id_rol, id_estado_usuario, correo_electronico, password_hash)
-                 VALUES ($1, $2, $3, $4)
-                 RETURNING id_usuario, correo_electronico`,
-                [id_rol, id_estado_usuario, email, hash]
+                `INSERT INTO usuarios (id_rol, id_estado_usuario, correo_electronico, password_hash, debe_cambiar_password)
+                 VALUES ($1, $2, $3, $4, $5)
+                 RETURNING id_usuario, correo_electronico, debe_cambiar_password`,
+                [id_rol, id_estado_usuario, email, hash, debe_cambiar_password]
             );
             const idUsuario = uRes.rows[0].id_usuario;
 
@@ -203,6 +207,21 @@ const UsuarioModel = {
             [id]
         );
         return resultado.rows.length > 0;
+    },
+
+    /**
+     * Actualiza la contraseña del usuario y desactiva la bandera de primer inicio.
+     */
+    cambiarPassword: async (id_usuario, nuevaPassword) => {
+        const hash = await bcrypt.hash(nuevaPassword, 10);
+        const resultado = await db.query(
+            `UPDATE usuarios 
+             SET password_hash = $1, debe_cambiar_password = FALSE 
+             WHERE id_usuario = $2 
+             RETURNING id_usuario, correo_electronico, debe_cambiar_password`,
+            [hash, id_usuario]
+        );
+        return resultado.rows[0] || null;
     }
 };
 

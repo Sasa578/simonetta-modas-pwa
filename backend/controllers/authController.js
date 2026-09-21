@@ -48,7 +48,8 @@ const login = async (req, res) => {
             rol: usuario.nombre_rol,
             nombre_completo: usuario.nombre_completo,
             telefono: usuario.telefono || usuario.telefono_whatsapp || null,
-            tipo_cuenta: esCliente ? 'cliente' : 'usuario'
+            tipo_cuenta: esCliente ? 'cliente' : 'usuario',
+            debe_cambiar_password: esCliente ? false : Boolean(usuario.debe_cambiar_password)
         };
 
         const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '8h' });
@@ -63,7 +64,8 @@ const login = async (req, res) => {
                 rol: tokenPayload.rol,
                 nombre_completo: tokenPayload.nombre_completo,
                 telefono: tokenPayload.telefono,
-                tipo_cuenta: tokenPayload.tipo_cuenta
+                tipo_cuenta: tokenPayload.tipo_cuenta,
+                debe_cambiar_password: tokenPayload.debe_cambiar_password
             }
         });
     } catch (error) {
@@ -82,7 +84,6 @@ const registrarFcmToken = async (req, res) => {
     }
 
     try {
-        // En el nuevo esquema podemos guardar fcm token si se requiere o retornar OK
         return res.json({ mensaje: 'Token FCM registrado correctamente.' });
     } catch (error) {
         console.error('Error al registrar token FCM:', error);
@@ -112,10 +113,19 @@ const listarTiposCliente = async (req, res) => {
 
 // POST /api/auth/register — Registro autónomo de clientes desde la PWA
 const registrarCliente = async (req, res) => {
-    const { correo, password, nombre_completo, telefono_whatsapp, carnet_identidad } = req.body;
+    const { correo, password, nombre, apellido, nombre_completo, telefono_whatsapp, telefono, carnet_identidad } = req.body;
+    const finalTelefono = (telefono_whatsapp || telefono || '').toString().trim();
 
-    if (!correo || !password || !nombre_completo || !telefono_whatsapp) {
-        return res.status(400).json({ error: 'Todos los campos obligatorios deben completarse.' });
+    let finalNombre = nombre ? nombre.trim() : '';
+    let finalApellido = apellido ? apellido.trim() : '';
+    if (!finalNombre && nombre_completo) {
+        const parts = nombre_completo.trim().split(' ');
+        finalNombre = parts[0] || '';
+        finalApellido = parts.slice(1).join(' ') || '';
+    }
+
+    if (!correo || !password || !finalNombre || !finalTelefono) {
+        return res.status(400).json({ error: 'Nombre, teléfono/WhatsApp, correo y contraseña son obligatorios.' });
     }
 
     try {
@@ -133,8 +143,10 @@ const registrarCliente = async (req, res) => {
             id_tipo_cliente: 1, // Persona
             correo_electronico: cleanCorreo,
             password,
-            nombre_completo,
-            telefono_whatsapp,
+            nombre: finalNombre,
+            apellido: finalApellido,
+            nombre_completo: `${finalNombre} ${finalApellido}`.trim(),
+            telefono_whatsapp: finalTelefono,
             carnet_identidad
         });
 
@@ -148,4 +160,50 @@ const registrarCliente = async (req, res) => {
     }
 };
 
-module.exports = { login, registrarFcmToken, listarRoles, listarTiposCliente, registrarCliente };
+// PUT /api/auth/cambiar-password — Cambiar contraseña (primer login obligatorio o perfil)
+const cambiarPassword = async (req, res) => {
+    const { nueva_password, password_actual } = req.body;
+    const id_usuario = req.usuario?.id_usuario;
+
+    if (!id_usuario) {
+        return res.status(403).json({ error: 'Solo los usuarios del sistema pueden cambiar su contraseña por esta vía.' });
+    }
+
+    if (!nueva_password || nueva_password.trim().length < 6) {
+        return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres.' });
+    }
+
+    if (nueva_password.trim() === '123456') {
+        return res.status(400).json({ error: 'Por seguridad, la nueva contraseña no puede ser la contraseña temporal por defecto.' });
+    }
+
+    try {
+        const user = await UsuarioModel.buscarPorId(id_usuario);
+        if (!user) {
+            return res.status(404).json({ error: 'Usuario no encontrado.' });
+        }
+
+        // Si no es primer inicio de sesión y envió password_actual, validarla
+        if (!user.debe_cambiar_password && password_actual) {
+            const valida = await bcrypt.compare(password_actual, user.password_hash);
+            if (!valida) {
+                return res.status(400).json({ error: 'La contraseña actual no es correcta.' });
+            }
+        }
+
+        const actualizado = await UsuarioModel.cambiarPassword(id_usuario, nueva_password.trim());
+        return res.json({
+            mensaje: 'Contraseña actualizada exitosamente.',
+            usuario: {
+                id_usuario: actualizado.id_usuario,
+                correo: actualizado.correo_electronico,
+                debe_cambiar_password: false
+            }
+        });
+    } catch (error) {
+        console.error('Error al cambiar contraseña:', error);
+        return res.status(500).json({ error: 'Error interno del servidor al cambiar contraseña.' });
+    }
+};
+
+module.exports = { login, registrarFcmToken, listarRoles, listarTiposCliente, registrarCliente, cambiarPassword };

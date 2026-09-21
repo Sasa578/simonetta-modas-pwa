@@ -17,20 +17,33 @@ const crearUsuario = async (req, res) => {
         const { correo, correo_electronico, password, id_rol, nombre, apellido, nombre_completo, carnet_identidad, telefono, fecha_nacimiento } = req.body;
         const email = correo_electronico || correo;
         
-        if (!email || !password || !id_rol) {
-            return res.status(400).json({ error: 'Correo, contraseña y rol son obligatorios.' });
+        if (!email || !id_rol) {
+            return res.status(400).json({ error: 'Correo electrónico y rol son obligatorios.' });
         }
+
+        // Exclusión estricta de rol Cliente para usuarios del personal
+        if (Number(id_rol) === 4) {
+            return res.status(400).json({ error: 'No se puede asignar el rol de Cliente a un usuario del personal. Los clientes se gestionan en el módulo de clientes.' });
+        }
+
+        if (!nombre && !nombre_completo) {
+            return res.status(400).json({ error: 'El nombre del usuario es obligatorio.' });
+        }
+
+        // Contraseña por defecto si no se ingresa manualmente
+        const passFinal = (password && password.trim()) ? password.trim() : '123456';
 
         const usuario = await UsuarioModel.crear({
             correo: email,
-            password,
-            id_rol,
+            password: passFinal,
+            id_rol: Number(id_rol),
             nombre,
             apellido,
             nombre_completo,
             carnet_identidad,
             telefono,
-            fecha_nacimiento
+            fecha_nacimiento,
+            debe_cambiar_password: true
         });
         return res.status(201).json({ mensaje: 'Usuario creado exitosamente.', usuario });
     } catch (error) {
@@ -48,6 +61,10 @@ const crearUsuario = async (req, res) => {
 // PUT /api/usuarios/:id — Actualizar usuario
 const actualizarUsuario = async (req, res) => {
     try {
+        if (req.body.id_rol && Number(req.body.id_rol) === 4) {
+            return res.status(400).json({ error: 'No se puede asignar el rol de Cliente a un usuario del personal.' });
+        }
+
         const usuario = await UsuarioModel.actualizar(req.params.id, req.body);
         if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado.' });
         return res.json({ mensaje: 'Usuario actualizado exitosamente.', usuario });
