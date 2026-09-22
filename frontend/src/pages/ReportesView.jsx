@@ -8,6 +8,8 @@ const ReportesView = () => {
     const [cargando, setCargando] = useState(true);
     const [descargandoPdf, setDescargandoPdf] = useState(false);
     const [descargandoNotaId, setDescargandoNotaId] = useState(null);
+    const [enviandoEmailReporte, setEnviandoEmailReporte] = useState(false);
+    const [enviandoNotaId, setEnviandoNotaId] = useState(null);
     const [tabActiva, setTabActiva] = useState('finanzas'); // 'finanzas', 'pedidos', 'kardex'
 
     // Filtros de periodo
@@ -123,6 +125,49 @@ const ReportesView = () => {
         }
     };
 
+    // Envío del Reporte General del Taller por Correo al Admin
+    const handleEnviarReporteEmail = async () => {
+        try {
+            setEnviandoEmailReporte(true);
+            let params = {};
+            if (filtroPeriodo === 'mes_actual') {
+                params = { mes: hoy.getMonth() + 1, anio: hoy.getFullYear() };
+            } else if (filtroPeriodo === 'mes_anterior') {
+                const mesAnt = hoy.getMonth() === 0 ? 12 : hoy.getMonth();
+                const anioAnt = hoy.getMonth() === 0 ? hoy.getFullYear() - 1 : hoy.getFullYear();
+                params = { mes: mesAnt, anio: anioAnt };
+            } else if (filtroPeriodo === 'personalizado') {
+                params = { fechaInicio, fechaFin };
+            }
+
+            const { data } = await api.post('/reportes/taller/enviar-correo', params);
+            setMsg(`✨ ${data.mensaje}`);
+            setTimeout(() => setMsg(''), 5000);
+        } catch (err) {
+            console.error('Error al enviar reporte por correo:', err);
+            setErrorMsg(err.response?.data?.error || 'Error al enviar reporte del taller por correo.');
+            setTimeout(() => setErrorMsg(''), 5000);
+        } finally {
+            setEnviandoEmailReporte(false);
+        }
+    };
+
+    // Envío de la Nota de Venta por Correo al Cliente
+    const handleEnviarNotaEmail = async (idPedido) => {
+        try {
+            setEnviandoNotaId(idPedido);
+            const { data } = await api.post(`/reportes/pedido/${idPedido}/enviar-correo`);
+            setMsg(`✨ ${data.mensaje}`);
+            setTimeout(() => setMsg(''), 5000);
+        } catch (err) {
+            console.error('Error al enviar nota por correo:', err);
+            setErrorMsg(err.response?.data?.error || `Error al enviar nota de venta del pedido #${idPedido} por correo.`);
+            setTimeout(() => setErrorMsg(''), 5000);
+        } finally {
+            setEnviandoNotaId(null);
+        }
+    };
+
     const kpis = reporte?.kpis || {};
     const pedidos = reporte?.pedidos || [];
     const deudas = reporte?.deudas || [];
@@ -214,7 +259,28 @@ const ReportesView = () => {
                             fontWeight: 600
                         }}
                     >
-                        {descargandoPdf ? 'Generando PDF...' : '📄 Descargar Reporte PDF del Taller'}
+                        {descargandoPdf ? 'Generando PDF...' : '📄 Descargar Reporte PDF'}
+                    </button>
+
+                    {/* Botón Enviar Reporte por Correo */}
+                    <button
+                        onClick={handleEnviarReporteEmail}
+                        disabled={enviandoEmailReporte || cargando}
+                        className="btn-secundario"
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            padding: '0.6rem 1rem',
+                            borderRadius: '8px',
+                            fontWeight: 600,
+                            background: '#fff',
+                            border: '1px solid var(--color-borde)',
+                            cursor: 'pointer'
+                        }}
+                        title="Enviar informe general al correo del administrador"
+                    >
+                        {enviandoEmailReporte ? '⏳ Enviando...' : '✉️ Enviar al Admin'}
                     </button>
                 </div>
             </div>
@@ -483,21 +549,40 @@ const ReportesView = () => {
                                                                 {saldoNum > 0 ? `Bs. ${saldoNum.toFixed(2)}` : '✓ Pagado'}
                                                             </td>
                                                             <td style={{ padding: '0.7rem', textAlign: 'center' }}>
-                                                                <button
-                                                                    onClick={() => handleDescargarNotaVenta(p.id_pedido)}
-                                                                    disabled={descargandoNotaId === p.id_pedido}
-                                                                    className="btn-secundario"
-                                                                    style={{
-                                                                        padding: '0.35rem 0.75rem',
-                                                                        fontSize: '0.78rem',
-                                                                        borderRadius: '6px',
-                                                                        background: '#fff',
-                                                                        border: '1px solid var(--color-borde)'
-                                                                    }}
-                                                                    title="Descargar Nota de Venta PDF"
-                                                                >
-                                                                    {descargandoNotaId === p.id_pedido ? 'Descargando...' : '📄 Nota Venta (PDF)'}
-                                                                </button>
+                                                                <div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'center' }}>
+                                                                    <button
+                                                                        onClick={() => handleDescargarNotaVenta(p.id_pedido)}
+                                                                        disabled={descargandoNotaId === p.id_pedido}
+                                                                        className="btn-secundario"
+                                                                        style={{
+                                                                            padding: '0.35rem 0.65rem',
+                                                                            fontSize: '0.78rem',
+                                                                            borderRadius: '6px',
+                                                                            background: '#fff',
+                                                                            border: '1px solid var(--color-borde)'
+                                                                        }}
+                                                                        title="Descargar Nota de Venta PDF"
+                                                                    >
+                                                                        {descargandoNotaId === p.id_pedido ? '...' : '📄 PDF'}
+                                                                    </button>
+
+                                                                    <button
+                                                                        onClick={() => handleEnviarNotaEmail(p.id_pedido)}
+                                                                        disabled={enviandoNotaId === p.id_pedido}
+                                                                        className="btn-secundario"
+                                                                        style={{
+                                                                            padding: '0.35rem 0.65rem',
+                                                                            fontSize: '0.78rem',
+                                                                            borderRadius: '6px',
+                                                                            background: '#eff6ff',
+                                                                            border: '1px solid #bfdbfe',
+                                                                            color: '#1d4ed8'
+                                                                        }}
+                                                                        title={`Enviar nota de venta al correo del cliente (${p.cliente})`}
+                                                                    >
+                                                                        {enviandoNotaId === p.id_pedido ? '...' : '✉️ Correo'}
+                                                                    </button>
+                                                                </div>
                                                             </td>
                                                         </tr>
                                                     );
