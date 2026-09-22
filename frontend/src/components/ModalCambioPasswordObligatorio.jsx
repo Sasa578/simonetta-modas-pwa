@@ -32,7 +32,7 @@ const ModalCambioPasswordObligatorio = ({ isOpen, onSuccess }) => {
         setCargando(true);
 
         try {
-            await api.put('/auth/cambiar-password-inicial', {
+            await api.put('/auth/cambiar-password', {
                 passwordActual: passwordActual.trim(),
                 nuevaPassword: nuevaPassword.trim(),
             });

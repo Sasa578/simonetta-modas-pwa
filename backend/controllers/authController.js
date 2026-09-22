@@ -162,18 +162,19 @@ const registrarCliente = async (req, res) => {
 
 // PUT /api/auth/cambiar-password — Cambiar contraseña (primer login obligatorio o perfil)
 const cambiarPassword = async (req, res) => {
-    const { nueva_password, password_actual } = req.body;
+    const nueva = req.body.nueva_password || req.body.nuevaPassword;
+    const actual = req.body.password_actual || req.body.passwordActual;
     const id_usuario = req.usuario?.id_usuario;
 
     if (!id_usuario) {
         return res.status(403).json({ error: 'Solo los usuarios del sistema pueden cambiar su contraseña por esta vía.' });
     }
 
-    if (!nueva_password || nueva_password.trim().length < 6) {
+    if (!nueva || String(nueva).trim().length < 6) {
         return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres.' });
     }
 
-    if (nueva_password.trim() === '123456') {
+    if (String(nueva).trim() === '123456' || String(nueva).trim() === '12345678') {
         return res.status(400).json({ error: 'Por seguridad, la nueva contraseña no puede ser la contraseña temporal por defecto.' });
     }
 
@@ -183,15 +184,15 @@ const cambiarPassword = async (req, res) => {
             return res.status(404).json({ error: 'Usuario no encontrado.' });
         }
 
-        // Si no es primer inicio de sesión y envió password_actual, validarla
-        if (!user.debe_cambiar_password && password_actual) {
-            const valida = await bcrypt.compare(password_actual, user.password_hash);
+        // Si se envió la contraseña actual, validarla
+        if (actual && user.password_hash) {
+            const valida = await bcrypt.compare(String(actual).trim(), user.password_hash);
             if (!valida) {
-                return res.status(400).json({ error: 'La contraseña actual no es correcta.' });
+                return res.status(400).json({ error: 'La contraseña actual ingresada es incorrecta.' });
             }
         }
 
-        const actualizado = await UsuarioModel.cambiarPassword(id_usuario, nueva_password.trim());
+        const actualizado = await UsuarioModel.cambiarPassword(id_usuario, String(nueva).trim());
         return res.json({
             mensaje: 'Contraseña actualizada exitosamente.',
             usuario: {

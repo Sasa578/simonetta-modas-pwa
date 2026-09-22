@@ -1,7 +1,7 @@
 ﻿import { createContext, useContext, useState, useEffect } from 'react';
 import api from '../api/axios';
 import { requestFirebaseToken } from '../api/firebaseClient';
-import ModalCambioPasswordObligatorio from '../components/ModalCambioPasswordObligatorio';
+
 
 const AuthContext = createContext(null);
 
@@ -74,10 +74,7 @@ export const AuthProvider = ({ children }) => {
             {children}
 
             {/* Modal de cambio obligatorio de contraseña cuando debe_cambiar_password es true */}
-            <ModalCambioPasswordObligatorio
-                isOpen={Boolean(usuario && usuario.debe_cambiar_password)}
-                onSuccess={marcarPasswordCambiada}
-            />
+            
         </AuthContext.Provider>
     );
 };
