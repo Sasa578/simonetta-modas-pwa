@@ -53,7 +53,7 @@ const KardexView = () => {
         <section className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
-                    <h2>📊 Kardex Transaccional y Auditoría</h2>
+                    <h2> Kardex Transaccional y Auditoría</h2>
                     <span className="card-subtitle">Control inmutable de entradas, salidas y origen de materia prima</span>
                 </div>
                 <button
@@ -80,7 +80,7 @@ const KardexView = () => {
                     <div style={{ fontSize: '1.3rem', fontWeight: 'bold', color: '#d97706' }}>{totalSalidas}</div>
                 </div>
                 <div style={{ background: '#fff', padding: '0.9rem', borderRadius: '8px', border: '1px solid var(--color-borde)', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.8rem', color: '#4338ca' }}>🏢 Proveedores Registrados</div>
+                    <div style={{ fontSize: '0.8rem', color: '#4338ca' }}> Proveedores Registrados</div>
                     <div style={{ fontSize: '1.3rem', fontWeight: 'bold', color: '#6366f1' }}>{proveedoresUnicos}</div>
                 </div>
             </div>
@@ -187,9 +187,9 @@ const KardexView = () => {
                                             </td>
                                             <td>
                                                 {m.proveedor ? (
-                                                    <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>🏢 {m.proveedor}</span>
+                                                    <span style={{ fontSize: '0.85rem', fontWeight: 500 }}> {m.proveedor}</span>
                                                 ) : m.id_pedido ? (
-                                                    <span style={{ fontSize: '0.85rem', color: 'var(--color-azul-oscuro)', fontWeight: 500 }}>📦 Pedido #{m.id_pedido}</span>
+                                                    <span style={{ fontSize: '0.85rem', color: 'var(--color-azul-oscuro)', fontWeight: 500 }}> Pedido #{m.id_pedido}</span>
                                                 ) : (
                                                     <span style={{ color: 'var(--color-texto-secundario)', fontSize: '0.8rem' }}>-</span>
                                                 )}

@@ -36,11 +36,11 @@ const ModalEntrega = ({ isOpen, onClose, onSuccess, pedido }) => {
                 width: '100%', maxWidth: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
             }}>
                 <header style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem'}}>
-                    <h2 style={{color: 'var(--color-azul-oscuro)', margin: 0}}>🛍️ Entregar Pedido #{pedido.id_pedido}</h2>
+                    <h2 style={{color: 'var(--color-azul-oscuro)', margin: 0}}> Entregar Pedido #{pedido.id_pedido}</h2>
                     <button onClick={onClose} style={{
                         background: 'transparent', border: 'none', fontSize: '1.5rem',
                         cursor: 'pointer', color: 'var(--color-texto-secundario)'
-                    }}>×</button>
+                    }}>X</button>
                 </header>
 
                 {error && <div style={{padding:'0.8rem', marginBottom:'1rem', borderRadius:'8px', background:'var(--color-rojo-suave)', color:'var(--color-rojo-texto)'}}>{error}</div>}
@@ -77,7 +77,7 @@ const ModalEntrega = ({ isOpen, onClose, onSuccess, pedido }) => {
                         flex: 2, padding: '0.8rem', background: 'var(--color-verde)', color: '#fff',
                         border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: cargando ? 'not-allowed' : 'pointer'
                     }}>
-                        {cargando ? 'Procesando...' : 'Cobrar y Entregar ✅'}
+                        {cargando ? 'Procesando...' : 'Cobrar y Entregar [OK]'}
                     </button>
                 </div>
             </div>

@@ -55,13 +55,13 @@ const AdminDashboard = () => {
 
             {/* Pedidos Entregados */}
             <section className="card card-entregados">
-                <div className="card-header"><h2>✅ Pedidos Entregados</h2><span className="card-badge entregado">{pedidosEntregadosMock.length} completados</span></div>
+                <div className="card-header"><h2>[OK] Pedidos Entregados</h2><span className="card-badge entregado">{pedidosEntregadosMock.length} completados</span></div>
                 <div className="card-body">{pedidosEntregadosMock.map((p) => (<div key={p.id} className="fila-pedido entregado"><span className="fila-id">{p.id}</span><span className="fila-cliente">{p.cliente}</span><span className="fila-prenda">{p.prenda}</span><span className="fila-fecha">{p.fecha}</span></div>))}</div>
             </section>
 
             {/* Almacén (solo bajo stock) */}
             <section className="card card-almacen">
-                <div className="card-header"><h2>📦 Almacén</h2><span className="card-subtitle">Alertas de stock bajo</span></div>
+                <div className="card-header"><h2> Almacén</h2><span className="card-subtitle">Alertas de stock bajo</span></div>
                 <div className="card-body">
                     {almacenStock.filter(i => i.cantidad_actual <= i.stock_minimo).map((item, i) => (
                         <div key={i} className="fila-stock alerta-bajo">

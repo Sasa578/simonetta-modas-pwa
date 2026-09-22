@@ -113,8 +113,8 @@ const MedidasForm = () => {
             const { data } = await api.post('/medidas', payload);
 
             const badge = data.medidas_caducadas
-                ? ' ⚠️ Medidas caducadas (más de 6 meses)'
-                : ' ✅ Medidas vigentes';
+                ? ' [!] Medidas caducadas (más de 6 meses)'
+                : ' [OK] Medidas vigentes';
 
             setExito(`Medidas registradas con éxito.${badge}`);
 
@@ -245,7 +245,7 @@ const MedidasForm = () => {
                         </div>
 
                         <button type="submit" className="btn-primario" disabled={cargando}>
-                            {cargando ? 'Registrando...' : '💾 Guardar medidas'}
+                            {cargando ? 'Registrando...' : ' Guardar medidas'}
                         </button>
                     </form>
                 )}

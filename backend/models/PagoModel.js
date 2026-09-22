@@ -70,7 +70,7 @@ const PagoModel = {
      */
     obtenerCatalogosPago: async () => {
         const [metodos, estados] = await Promise.all([
-            db.query('SELECT id_metodo_pago, nombre_metodo FROM metodos_pago ORDER BY id_metodo_pago'),
+            db.query('SELECT id_metodo_pago, nombre_metodo FROM metodos_pago WHERE id_metodo_pago IN (1, 2) ORDER BY id_metodo_pago'),
             db.query('SELECT id_estado_pago, nombre_estado FROM estados_pago ORDER BY id_estado_pago')
         ]);
         return {

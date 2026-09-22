@@ -12,8 +12,18 @@ const MobileLayout = () => {
         <div className="mobile-container">
             {/* Header fijo */}
             <header className="mobile-header">
-                <span className="mobile-logo">🧵 Simonetta</span>
-                <span className="mobile-rol-badge">{usuario?.rol || 'Usuario'}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <div style={{
+                        width: '32px', height: '32px', borderRadius: '8px',
+                        background: 'var(--color-azul-oscuro, #455E8B)', color: '#fff',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontWeight: 700, fontSize: '0.95rem', fontFamily: 'serif'
+                    }}>
+                        S
+                    </div>
+                    <span className="mobile-logo">SIMONETTA ATELIER</span>
+                </div>
+                <span className="mobile-rol-badge">{usuario?.rol || 'Costurera'}</span>
             </header>
 
             {/* Contenido scrollable */}

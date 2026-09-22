@@ -184,7 +184,7 @@ const ModalAlmacen = ({ isOpen, onClose, onSuccess, materialEdit = null }) => {
             }}>
                 <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ fontSize: '1.4rem' }}>📦</span>
+                        <span style={{ fontSize: '1.4rem' }}></span>
                         <h2 style={{ color: '#0F172A', margin: 0, fontSize: '1.3rem', fontWeight: 700 }}>
                             {materialEdit ? 'Editar Insumo de Almacén' : 'Nuevo Insumo de Almacén'}
                         </h2>
@@ -192,12 +192,12 @@ const ModalAlmacen = ({ isOpen, onClose, onSuccess, materialEdit = null }) => {
                     <button onClick={onClose} style={{
                         background: '#F1F5F9', border: 'none', width: '32px', height: '32px', borderRadius: '50%',
                         cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                    }}>✕</button>
+                    }}>X</button>
                 </header>
 
                 {error && (
                     <div style={{ padding: '0.75rem 1rem', marginBottom: '1.2rem', borderRadius: '8px', background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#991B1B', fontSize: '0.85rem' }}>
-                        ⚠️ {error}
+                        [!] {error}
                     </div>
                 )}
 
@@ -320,7 +320,7 @@ const ModalAlmacen = ({ isOpen, onClose, onSuccess, materialEdit = null }) => {
                     {/* SECCIÓN DE ESPECIFICACIONES CUALITATIVAS SEGÚN CATEGORÍA */}
                     {nombreCat.includes('tela') && (
                         <div style={{ background: '#F8FAFC', padding: '0.8rem', borderRadius: '10px', border: '1px dashed #CBD5E1', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}>🧵 Especificaciones de Tela:</span>
+                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}> Especificaciones de Tela:</span>
                             <div style={{ display: 'flex', gap: '0.8rem' }}>
                                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                                     <label style={labelStyle}>Textura</label>
@@ -336,7 +336,7 @@ const ModalAlmacen = ({ isOpen, onClose, onSuccess, materialEdit = null }) => {
 
                     {(nombreCat.includes('botón') || nombreCat.includes('boton')) && (
                         <div style={{ background: '#F8FAFC', padding: '0.8rem', borderRadius: '10px', border: '1px dashed #CBD5E1', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}>🔘 Especificaciones de Botones:</span>
+                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}> Especificaciones de Botones:</span>
                             <div style={{ display: 'flex', gap: '0.8rem' }}>
                                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                                     <label style={labelStyle}>Tipo de Botón</label>
@@ -352,7 +352,7 @@ const ModalAlmacen = ({ isOpen, onClose, onSuccess, materialEdit = null }) => {
 
                     {nombreCat.includes('hilo') && (
                         <div style={{ background: '#F8FAFC', padding: '0.8rem', borderRadius: '10px', border: '1px dashed #CBD5E1', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}>🧵 Especificaciones de Hilos:</span>
+                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}> Especificaciones de Hilos:</span>
                             <div style={{ display: 'flex', gap: '0.8rem' }}>
                                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                                     <label style={labelStyle}>Tipo de Hilo</label>
@@ -368,7 +368,7 @@ const ModalAlmacen = ({ isOpen, onClose, onSuccess, materialEdit = null }) => {
 
                     {nombreCat.includes('cierre') && (
                         <div style={{ background: '#F8FAFC', padding: '0.8rem', borderRadius: '10px', border: '1px dashed #CBD5E1', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}>🤐 Especificaciones de Cierre:</span>
+                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}> Especificaciones de Cierre:</span>
                             <div style={{ display: 'flex', gap: '0.8rem' }}>
                                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                                     <label style={labelStyle}>Tipo de Cierre</label>

@@ -25,6 +25,7 @@ const crearPedido = async (req, res) => {
             origen_material,
             id_material,
             cantidad_metros,
+            insumos,
         } = req.body;
 
         // --- Validaciones ---
@@ -82,7 +83,8 @@ const crearPedido = async (req, res) => {
                 medidas_anatomicas: medidas_anatomicas || medidas || null,
                 talla: talla || null,
                 cantidad: 1,
-                subtotal: costo
+                subtotal: costo,
+                insumos: Array.isArray(insumos) ? insumos : []
             }
         );
 
@@ -106,7 +108,7 @@ const obtenerCatalogos = async (req, res) => {
     try {
         const [estados, metodos] = await Promise.all([
             db.query('SELECT id_estado_pedido, nombre_estado FROM estados_pedido ORDER BY id_estado_pedido'),
-            db.query('SELECT id_metodo_pago, nombre_metodo FROM metodos_pago ORDER BY id_metodo_pago')
+            db.query('SELECT id_metodo_pago, nombre_metodo FROM metodos_pago WHERE id_metodo_pago IN (1, 2) ORDER BY id_metodo_pago')
         ]);
         res.json({
             estados: estados.rows,
@@ -307,6 +309,17 @@ const saldarYEntregar = async (req, res) => {
     }
 };
 
+// GET /api/pedidos/catalogo-prendas
+const obtenerCatalogoPrendas = async (req, res) => {
+    try {
+        const catalogo = await PedidoModel.obtenerCatalogoPrendas();
+        return res.json(catalogo);
+    } catch (error) {
+        console.error('Error al obtener catálogo de prendas:', error);
+        return res.status(500).json({ error: 'Error del servidor al obtener catálogo.' });
+    }
+};
+
 module.exports = {
     crearPedido,
     obtenerCatalogos,
@@ -316,5 +329,6 @@ module.exports = {
     obtenerPedidosCosturera,
     obtenerPedido,
     actualizarPedido,
-    saldarYEntregar
+    saldarYEntregar,
+    obtenerCatalogoPrendas
 };

@@ -53,18 +53,18 @@ const ModalCita = ({ isOpen, onClose, onSuccess }) => {
                 width: '100%', maxWidth: '450px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
             }}>
                 <header style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem'}}>
-                    <h2 style={{color: 'var(--color-azul-oscuro)', margin: 0, fontSize: '1.3rem'}}>👗 Solicitar Cita de Pedido</h2>
+                    <h2 style={{color: 'var(--color-azul-oscuro)', margin: 0, fontSize: '1.3rem'}}> Solicitar Cita de Pedido</h2>
                     <button onClick={onClose} style={{
                         background: 'transparent', border: 'none', fontSize: '1.5rem',
                         cursor: 'pointer', color: 'var(--color-texto-secundario)'
-                    }}>×</button>
+                    }}>X</button>
                 </header>
 
                 {error && <div style={{padding:'0.8rem', marginBottom:'1rem', borderRadius:'8px', background:'var(--color-rojo-suave)', color:'var(--color-rojo-texto)', fontSize: '0.9rem'}}>{error}</div>}
 
                 <form onSubmit={handleSubmit} style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
                     <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', padding: '0.9rem', borderRadius: '8px', fontSize: '0.85rem', color: '#0369a1' }}>
-                        ℹ️ <strong>Flujo de Pedidos:</strong> Al solicitar esta cita, te reunirás con la Secretaría en la fecha elegida para registrar/revisar tus medidas, definir la prenda y coordinar el precio final de tu pedido.
+                        [i] <strong>Flujo de Pedidos:</strong> Al solicitar esta cita, te reunirás con la Secretaría en la fecha elegida para registrar/revisar tus medidas, definir la prenda y coordinar el precio final de tu pedido.
                     </div>
 
                     <div style={{display: 'flex', flexDirection: 'column', gap: '0.4rem'}}>
@@ -100,7 +100,7 @@ const ModalCita = ({ isOpen, onClose, onSuccess }) => {
                             flex: 2, background: 'var(--color-azul-oscuro)', color: '#fff', padding: '0.8rem',
                             border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: cargando ? 'not-allowed' : 'pointer'
                         }}>
-                            {cargando ? 'Enviando...' : '🗓️ Solicitar Cita'}
+                            {cargando ? 'Enviando...' : ' Solicitar Cita'}
                         </button>
                     </div>
                 </form>

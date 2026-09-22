@@ -1,7 +1,6 @@
 const ClienteModel = require('../models/ClienteModel');
 const UsuarioModel = require('../models/UsuarioModel');
 const db = require('../config/db');
-const { sanearTexto, validarCorreo, validarTelefono } = require('../middleware/validaciones');
 
 // GET /api/clientes — Listar todos los clientes
 const listarClientes = async (req, res) => {
@@ -37,6 +36,7 @@ const crearCliente = async (req, res) => {
             correo_electronico,
             correo,
             password,
+            // Persona
             nombre,
             apellido,
             nombre_completo,
@@ -44,16 +44,33 @@ const crearCliente = async (req, res) => {
             telefono_whatsapp,
             carnet_identidad,
             fecha_nacimiento,
+            // Institucional
             razon_social,
             nit,
             nombre_contacto,
             telefono_contacto,
+            // Atributos y Contrato
             atributos,
             contrato
         } = req.body;
 
-        const isInstitucional = Number(id_tipo_cliente) === 2 || tipo_cliente === 'Institucional';
-        const rawPhone = telefono_whatsapp || telefono || telefono_contacto;
+        const isInstitucional = Number(id_tipo_cliente) === 2 || 
+                                (tipo_cliente && (tipo_cliente.toLowerCase() === 'institucional' || tipo_cliente.toLowerCase() === 'institucion'));
+
+        const contacto = nombre_contacto || req.body.persona_contacto || '';
+        const telContacto = telefono_contacto || telefono || telefono_whatsapp || '';
+
+        let finalContrato = contrato;
+        const numContrato = req.body.numero_contrato || req.body.nro_contrato;
+        if (!finalContrato && numContrato) {
+            finalContrato = {
+                numero_contrato: numContrato,
+                fecha_firma: req.body.fecha_firma || req.body.fecha_firma_contrato || new Date().toISOString().split('T')[0],
+                fecha_vencimiento: req.body.fecha_vencimiento || req.body.fecha_vencimiento_contrato || null
+            };
+        } else if (finalContrato && !finalContrato.fecha_firma) {
+            finalContrato.fecha_firma = new Date().toISOString().split('T')[0];
+        }
 
         if (isInstitucional) {
             if (!razon_social && !nombre_completo) {
@@ -66,36 +83,28 @@ const crearCliente = async (req, res) => {
             if (!nombre_completo && !nombre) {
                 return res.status(400).json({ error: 'El nombre del cliente es obligatorio.' });
             }
-            if (!rawPhone) {
-                return res.status(400).json({ error: 'El número de WhatsApp o teléfono es obligatorio.' });
+            if (!telefono_whatsapp && !telefono) {
+                return res.status(400).json({ error: 'El número de teléfono o WhatsApp es obligatorio.' });
             }
-            if (rawPhone && !validarTelefono(rawPhone)) {
-                return res.status(400).json({ error: 'El número de teléfono sólo debe contener dígitos numéricos (7 a 15 números).' });
-            }
-        }
-
-        const email = correo || correo_electronico;
-        if (email && !validarCorreo(sanearTexto(email))) {
-            return res.status(400).json({ error: 'Formato de correo electrónico inválido.' });
         }
 
         const cliente = await ClienteModel.crear({
             id_tipo_cliente: isInstitucional ? 2 : 1,
-            correo: email ? sanearTexto(email) : undefined,
+            correo: correo || correo_electronico,
             password: password || '123456',
-            nombre: nombre ? sanearTexto(nombre) : undefined,
-            apellido: apellido ? sanearTexto(apellido) : undefined,
-            nombre_completo: nombre_completo ? sanearTexto(nombre_completo) : undefined,
-            telefono: rawPhone ? sanearTexto(rawPhone) : undefined,
-            telefono_whatsapp: rawPhone ? sanearTexto(rawPhone) : undefined,
-            carnet_identidad: carnet_identidad ? sanearTexto(carnet_identidad) : undefined,
+            nombre,
+            apellido,
+            nombre_completo,
+            telefono: telefono || telefono_whatsapp,
+            telefono_whatsapp: telefono_whatsapp || telefono,
+            carnet_identidad,
             fecha_nacimiento,
-            razon_social: razon_social ? sanearTexto(razon_social) : undefined,
-            nit: nit ? sanearTexto(nit) : undefined,
-            nombre_contacto: nombre_contacto ? sanearTexto(nombre_contacto) : undefined,
-            telefono_contacto: telefono_contacto ? sanearTexto(telefono_contacto) : undefined,
+            razon_social,
+            nit,
+            nombre_contacto: contacto,
+            telefono_contacto: telContacto,
             atributos,
-            contrato
+            contrato: finalContrato
         });
 
         return res.status(201).json({
@@ -103,7 +112,7 @@ const crearCliente = async (req, res) => {
             cliente
         });
     } catch (error) {
-        if (error.constraint === 'clientes_correo_electronico_key' || error.constraint === 'usuarios_correo_key') {
+        if (error.constraint === 'clientes_correo_electronico_key') {
             return res.status(409).json({ error: 'El correo electrónico ya se encuentra registrado.' });
         }
         console.error('Error al crear cliente:', error);
@@ -115,11 +124,7 @@ const crearCliente = async (req, res) => {
 const actualizarCliente = async (req, res) => {
     try {
         const { id } = req.params;
-        const body = { ...req.body };
-        if (body.telefono_whatsapp && !validarTelefono(body.telefono_whatsapp)) {
-            return res.status(400).json({ error: 'El número de WhatsApp sólo debe contener dígitos numéricos (7 a 15 números).' });
-        }
-        const cliente = await ClienteModel.actualizar(id, body);
+        const cliente = await ClienteModel.actualizar(id, req.body);
 
         if (!cliente) {
             return res.status(404).json({ error: 'Cliente no encontrado.' });
@@ -130,9 +135,6 @@ const actualizarCliente = async (req, res) => {
             cliente
         });
     } catch (error) {
-        if (error.constraint === 'clientes_correo_electronico_key' || error.constraint === 'usuarios_correo_key') {
-            return res.status(409).json({ error: 'El correo electrónico ya está registrado.' });
-        }
         console.error('Error al actualizar cliente:', error);
         return res.status(500).json({ error: 'Error interno del servidor.' });
     }
@@ -152,7 +154,6 @@ const eliminarCliente = async (req, res) => {
     }
 };
 
-
 // GET /api/clientes/mi-perfil — Perfil del usuario o cliente autenticado
 const obtenerMiPerfil = async (req, res) => {
     try {
@@ -160,6 +161,7 @@ const obtenerMiPerfil = async (req, res) => {
         const correo = req.usuario.correo;
 
         if (esCliente) {
+            // Buscar por id_cliente o correo
             let cliente = null;
             if (req.usuario.id_cliente) {
                 cliente = await ClienteModel.buscarPorId(req.usuario.id_cliente);
@@ -168,6 +170,7 @@ const obtenerMiPerfil = async (req, res) => {
                 cliente = await ClienteModel.buscarPorCorreo(correo);
             }
 
+            // Buscar últimas medidas registradas en algún pedido del cliente
             let medidas = null;
             if (cliente) {
                 const medidasRes = await db.query(
@@ -189,6 +192,7 @@ const obtenerMiPerfil = async (req, res) => {
                 medidas
             });
         } else {
+            // Personal interno
             const usuario = await UsuarioModel.buscarPorId(req.usuario.id_usuario);
             return res.json({
                 cliente: usuario,

@@ -65,7 +65,7 @@ const ModalEditarPedido = ({ isOpen, onClose, onSuccess, idPedido }) => {
                 adelanto: adelantoFloat,
             });
 
-            setExito('✅ Pedido actualizado correctamente.');
+            setExito('[OK] Pedido actualizado correctamente.');
 
             setTimeout(() => {
                 if (onSuccess) onSuccess();
@@ -94,7 +94,7 @@ const ModalEditarPedido = ({ isOpen, onClose, onSuccess, idPedido }) => {
                     <button onClick={onClose} style={{
                         background: 'transparent', border: 'none', fontSize: '1.5rem',
                         cursor: 'pointer', color: 'var(--color-texto-secundario)'
-                    }}>×</button>
+                    }}>X</button>
                 </header>
 
                 {error && <div style={{padding:'0.8rem', marginBottom:'1rem', borderRadius:'8px', background:'var(--color-rojo-suave)', color:'var(--color-rojo-texto)'}}>{error}</div>}
@@ -143,7 +143,7 @@ const ModalEditarPedido = ({ isOpen, onClose, onSuccess, idPedido }) => {
                             background: 'var(--color-azul-oscuro)', color: '#fff', padding: '1rem',
                             border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: cargando ? 'not-allowed' : 'pointer', marginTop: '1rem'
                         }}>
-                            {cargando ? 'Guardando...' : '💾 Guardar Cambios'}
+                            {cargando ? 'Guardando...' : ' Guardar Cambios'}
                         </button>
                     </form>
                 )}

@@ -71,7 +71,7 @@ const MobilePerfil = () => {
             {esCliente && (
                 <div className="card" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
                     <h3 style={{ margin: '0 0 1rem', fontSize: '1.05rem', color: 'var(--color-azul-oscuro)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        📏 Mis Medidas Anatómicas
+                         Mis Medidas Anatómicas
                     </h3>
 
                     {cargando ? (
@@ -116,7 +116,7 @@ const MobilePerfil = () => {
                             </div>
                             {medidas.fecha_toma && (
                                 <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-texto-secundario)', textAlign: 'right', fontStyle: 'italic' }}>
-                                    📅 Última actualización: {new Date(medidas.fecha_toma).toLocaleDateString()}
+                                     Última actualización: {new Date(medidas.fecha_toma).toLocaleDateString()}
                                 </p>
                             )}
                         </div>

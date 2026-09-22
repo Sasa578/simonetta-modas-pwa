@@ -181,8 +181,7 @@ const sembrarDatos = async () => {
         await client.query(`
             INSERT INTO metodos_pago (id_metodo_pago, nombre_metodo) VALUES
                 (1, 'Efectivo'),
-                (2, 'QR / Transferencia Bancaria'),
-                (3, 'Tarjeta de Débito/Crédito')
+                (2, 'QR / Transferencia')
             ON CONFLICT (nombre_metodo) DO NOTHING;
         `);
 

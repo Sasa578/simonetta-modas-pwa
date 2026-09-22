@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const verificarToken = require('../middleware/authMiddleware');
-const { crearCita, obtenerCitasPendientes, obtenerMisCitas, actualizarEstado } = require('../controllers/citasController');
+const { crearCita, obtenerCitasPendientes, obtenerMisCitas, actualizarEstado, obtenerDisponibilidadCitas } = require('../controllers/citasController');
 
 router.use(verificarToken);
+
+// GET /api/citas/disponibilidad — Consultar citas activas para verificar días disponibles
+router.get('/disponibilidad', obtenerDisponibilidadCitas);
 
 // GET /api/citas/pendientes — Para Secretaría/Admin
 router.get('/pendientes', obtenerCitasPendientes);

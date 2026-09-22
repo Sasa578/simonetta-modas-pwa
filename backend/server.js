@@ -11,6 +11,7 @@ const usuariosRoutes = require('./routes/usuariosRoutes');
 const citasRoutes = require('./routes/citasRoutes');
 const pagosRoutes = require('./routes/pagosRoutes');
 const kardexRoutes = require('./routes/kardexRoutes');
+const reportesRoutes = require('./routes/reportesRoutes');
 const notasVentaRoutes = require('./routes/notasVentaRoutes');
 const testsRoutes = require('./routes/testsRoutes');
 
@@ -29,6 +30,7 @@ app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/pagos', pagosRoutes);
 app.use('/api/almacen', almacenRoutes);
 app.use('/api/kardex', kardexRoutes);
+app.use('/api/reportes', reportesRoutes);
 app.use('/api/notas-venta', notasVentaRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/citas', citasRoutes);

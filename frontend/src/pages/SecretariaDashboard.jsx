@@ -124,7 +124,7 @@ const SecretariaDashboard = () => {
             {/* Fila 1: Calendario a Ancho Completo */}
             <section className="card card-calendario" style={{ width: '100%' }}>
                 <div className="card-header">
-                    <h2>📅 {mesActual.charAt(0).toUpperCase() + mesActual.slice(1)}</h2>
+                    <h2> {mesActual.charAt(0).toUpperCase() + mesActual.slice(1)}</h2>
                     <span className="card-subtitle">Haz clic en un día para agendar un nuevo pedido</span>
                 </div>
                 <div className="calendario-grid-wrapper">
@@ -198,15 +198,17 @@ const SecretariaDashboard = () => {
                 {/* Vistazo de Almacén */}
                 <section className="card card-almacen-sec">
                     <div className="card-header">
-                        <h2>📦 Vistazo de Almacén</h2>
+                        <h2> Vistazo de Almacén</h2>
                     </div>
                     <div className="card-body" style={{ maxHeight: '320px', overflowY: 'auto' }}>
                         {almacen.length === 0 ? <p>Cargando almacén...</p> : almacen.map((item, i) => {
-                            const bajo = item.cantidad_actual <= item.stock_minimo;
+                            const stockActual = parseFloat(item.cantidad_actual ?? item.cantidad_stock) || 0;
+                            const stockMin = parseFloat(item.stock_minimo) || 0;
+                            const bajo = stockMin > 0 && stockActual <= stockMin;
                             return (
                                 <div key={i} className={`fila-stock ${bajo ? 'alerta-bajo' : ''}`}>
                                     <span className="stock-producto">{item.nombre_material}</span>
-                                    <span className="stock-cantidad">{item.cantidad_actual} {item.unidad_medida}</span>
+                                    <span className="stock-cantidad">{stockActual} {item.unidad_medida}</span>
                                     {bajo && <span className="stock-alerta">⚠ Bajo</span>}
                                 </div>
                             );

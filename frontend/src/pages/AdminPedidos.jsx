@@ -68,7 +68,7 @@ const AdminPedidos = () => {
         <section className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
-                    <h2>📦 Control y Gestión de Pedidos</h2>
+                    <h2> Control y Gestión de Pedidos</h2>
                     <span className="card-subtitle">Seguimiento de confección, prendas a medida y control de saldos</span>
                 </div>
                 <button
@@ -86,9 +86,9 @@ const AdminPedidos = () => {
                     {[
                         { id: 'todos', label: 'Todos' },
                         { id: 'pendientes', label: '⏳ Pendientes' },
-                        { id: 'taller', label: '🧵 En Confección' },
-                        { id: 'terminados', label: '✨ Listos' },
-                        { id: 'entregados', label: '✅ Entregados' }
+                        { id: 'taller', label: ' En Confección' },
+                        { id: 'terminados', label: ' Listos' },
+                        { id: 'entregados', label: '[OK] Entregados' }
                     ].map(tab => (
                         <button
                             key={tab.id}
@@ -147,7 +147,7 @@ const AdminPedidos = () => {
                                         <td>
                                             <div style={{ fontWeight: 600 }}>{p.cliente}</div>
                                             {p.telefono_whatsapp && (
-                                                <small style={{ color: 'var(--color-texto-secundario)' }}>📱 {p.telefono_whatsapp}</small>
+                                                <small style={{ color: 'var(--color-texto-secundario)' }}> {p.telefono_whatsapp}</small>
                                             )}
                                         </td>
                                         <td>
@@ -202,7 +202,7 @@ const AdminPedidos = () => {
                                                         padding: '0.35rem 0.6rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600
                                                     }}
                                                 >
-                                                    💳 Pagos
+                                                     Pagos
                                                 </button>
 
                                                 {/* Botón Nota de Venta */}
@@ -215,7 +215,7 @@ const AdminPedidos = () => {
                                                         padding: '0.35rem 0.6rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600
                                                     }}
                                                 >
-                                                    🧾 Nota
+                                                     Nota
                                                 </button>
 
                                                 {/* Botón Entregar */}

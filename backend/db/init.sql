@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     id_estado_usuario INTEGER NOT NULL REFERENCES estados_usuario(id_estado_usuario),
     correo_electronico VARCHAR(150) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    debe_cambiar_password BOOLEAN DEFAULT false
+    debe_cambiar_password BOOLEAN DEFAULT TRUE
 );
 
 CREATE TABLE IF NOT EXISTS datos_usuario (
@@ -129,6 +129,7 @@ CREATE TABLE IF NOT EXISTS estados_cita (
 CREATE TABLE IF NOT EXISTS pedidos (
     id_pedido SERIAL PRIMARY KEY,
     id_cliente INTEGER NOT NULL REFERENCES clientes(id_cliente) ON DELETE RESTRICT,
+    id_costurera INTEGER REFERENCES usuarios(id_usuario) ON DELETE SET NULL,
     id_estado_pedido INTEGER NOT NULL REFERENCES estados_pedido(id_estado_pedido),
     fecha_inicio TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_prueba TIMESTAMP,

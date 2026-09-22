@@ -42,7 +42,7 @@ const Dashboard = () => {
             <header className="dashboard-header">
                 <div className="header-left">
                     <h1 className="header-title">
-                        <span className="header-icon">🧵</span> Simonetta
+                        <span className="header-icon"></span> Simonetta
                     </h1>
                 </div>
                 <div className="header-right">

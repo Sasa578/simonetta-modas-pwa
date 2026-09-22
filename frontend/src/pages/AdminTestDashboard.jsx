@@ -175,7 +175,7 @@ const AdminTestDashboard = () => {
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                                             {suite.assertionResults.map((test, i) => (
                                                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem' }}>
-                                                    {test.status === 'passed' ? '✅' : '❌'}
+                                                    {test.status === 'passed' ? '[OK]' : '[X]'}
                                                     <span style={{ color: test.status === 'passed' ? 'var(--color-texto-secundario)' : '#991b1b' }}>
                                                         {test.ancestorTitles.join(' › ')} › {test.title}
                                                     </span>
@@ -199,14 +199,14 @@ const AdminTestDashboard = () => {
 
                         <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                             <span style={{ fontSize: '0.8rem', color: 'var(--color-texto-secundario)', width: '100%', fontWeight: 600 }}>Rutas Rápidas de Prueba:</span>
-                            <button type="button" onClick={() => { setApiMethod('GET'); setApiUrl('/api/pedidos'); }} style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--color-borde)', background: '#f8fafc', cursor: 'pointer' }}>📦 /api/pedidos</button>
-                            <button type="button" onClick={() => { setApiMethod('GET'); setApiUrl('/api/pedidos/catalogos'); }} style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--color-borde)', background: '#f8fafc', cursor: 'pointer' }}>🏷️ /api/pedidos/catalogos</button>
-                            <button type="button" onClick={() => { setApiMethod('GET'); setApiUrl('/api/pagos/catalogos'); }} style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--color-borde)', background: '#f8fafc', cursor: 'pointer' }}>💳 /api/pagos/catalogos</button>
-                            <button type="button" onClick={() => { setApiMethod('GET'); setApiUrl('/api/citas/pendientes'); }} style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--color-borde)', background: '#f8fafc', cursor: 'pointer' }}>📅 /api/citas/pendientes</button>
-                            <button type="button" onClick={() => { setApiMethod('GET'); setApiUrl('/api/almacen/catalogos'); }} style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--color-borde)', background: '#f8fafc', cursor: 'pointer' }}>🧵 /api/almacen/catalogos</button>
-                            <button type="button" onClick={() => { setApiMethod('GET'); setApiUrl('/api/kardex'); }} style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--color-borde)', background: '#f8fafc', cursor: 'pointer' }}>📊 /api/kardex</button>
+                            <button type="button" onClick={() => { setApiMethod('GET'); setApiUrl('/api/pedidos'); }} style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--color-borde)', background: '#f8fafc', cursor: 'pointer' }}> /api/pedidos</button>
+                            <button type="button" onClick={() => { setApiMethod('GET'); setApiUrl('/api/pedidos/catalogos'); }} style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--color-borde)', background: '#f8fafc', cursor: 'pointer' }}> /api/pedidos/catalogos</button>
+                            <button type="button" onClick={() => { setApiMethod('GET'); setApiUrl('/api/pagos/catalogos'); }} style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--color-borde)', background: '#f8fafc', cursor: 'pointer' }}> /api/pagos/catalogos</button>
+                            <button type="button" onClick={() => { setApiMethod('GET'); setApiUrl('/api/citas/pendientes'); }} style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--color-borde)', background: '#f8fafc', cursor: 'pointer' }}> /api/citas/pendientes</button>
+                            <button type="button" onClick={() => { setApiMethod('GET'); setApiUrl('/api/almacen/catalogos'); }} style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--color-borde)', background: '#f8fafc', cursor: 'pointer' }}> /api/almacen/catalogos</button>
+                            <button type="button" onClick={() => { setApiMethod('GET'); setApiUrl('/api/kardex'); }} style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--color-borde)', background: '#f8fafc', cursor: 'pointer' }}> /api/kardex</button>
                             <button type="button" onClick={() => { setApiMethod('GET'); setApiUrl('/api/kardex/catalogos'); }} style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--color-borde)', background: '#f8fafc', cursor: 'pointer' }}>📑 /api/kardex/catalogos</button>
-                            <button type="button" onClick={() => { setApiMethod('GET'); setApiUrl('/api/notas-venta'); }} style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--color-borde)', background: '#f8fafc', cursor: 'pointer' }}>🧾 /api/notas-venta</button>
+                            <button type="button" onClick={() => { setApiMethod('GET'); setApiUrl('/api/notas-venta'); }} style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--color-borde)', background: '#f8fafc', cursor: 'pointer' }}> /api/notas-venta</button>
                         </div>
 
                         <div>

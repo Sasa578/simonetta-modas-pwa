@@ -1,7 +1,6 @@
 const UsuarioModel = require('../models/UsuarioModel');
-const { sanearTexto, validarCorreo, validarTelefono } = require('../middleware/validaciones');
 
-// GET /api/usuarios — Listar todos los usuarios
+// GET /api/usuarios — Listar todos (solo Admin)
 const listarUsuarios = async (req, res) => {
     try {
         const usuarios = await UsuarioModel.listarTodos();
@@ -15,45 +14,40 @@ const listarUsuarios = async (req, res) => {
 // POST /api/usuarios — Crear usuario
 const crearUsuario = async (req, res) => {
     try {
-        let { correo, correo_electronico, password, id_rol, nombre, apellido, nombre_completo, carnet_identidad, telefono, fecha_nacimiento, debe_cambiar_password } = req.body;
+        const { correo, correo_electronico, password, id_rol, nombre, apellido, nombre_completo, carnet_identidad, telefono, fecha_nacimiento } = req.body;
         const email = correo_electronico || correo;
-
+        
         if (!email || !id_rol) {
-            return res.status(400).json({ error: 'El correo electrónico y el rol son obligatorios.' });
+            return res.status(400).json({ error: 'Correo electrónico y rol son obligatorios.' });
         }
 
-        const cleanEmail = sanearTexto(email);
-        if (!validarCorreo(cleanEmail)) {
-            return res.status(400).json({ error: 'Formato de correo electrónico inválido.' });
+        // Exclusión estricta de rol Cliente para usuarios del personal
+        if (Number(id_rol) === 4) {
+            return res.status(400).json({ error: 'No se puede asignar el rol de Cliente a un usuario del personal. Los clientes se gestionan en el módulo de clientes.' });
         }
 
-        if (telefono && !validarTelefono(telefono)) {
-            return res.status(400).json({ error: 'El número de teléfono sólo debe contener dígitos numéricos (7 a 15 números).' });
+        if (!nombre && !nombre_completo) {
+            return res.status(400).json({ error: 'El nombre del usuario es obligatorio.' });
         }
 
-        // Si no se asigna contraseña explícita, usar la clave genérica 12345678 y exigir cambio en primer inicio
-        const passwordFinal = (password && password.trim().length > 0) ? password.trim() : '12345678';
-        const requiereCambioKey = (debe_cambiar_password !== undefined) ? Boolean(debe_cambiar_password) : (password ? false : true);
+        // Contraseña por defecto si no se ingresa manualmente
+        const passFinal = (password && password.trim()) ? password.trim() : '123456';
 
         const usuario = await UsuarioModel.crear({
-            correo: cleanEmail,
-            password: passwordFinal,
-            id_rol,
-            nombre: nombre ? sanearTexto(nombre) : undefined,
-            apellido: apellido ? sanearTexto(apellido) : undefined,
-            nombre_completo: nombre_completo ? sanearTexto(nombre_completo) : undefined,
-            carnet_identidad: carnet_identidad ? sanearTexto(carnet_identidad) : undefined,
-            telefono: telefono ? sanearTexto(telefono) : undefined,
+            correo: email,
+            password: passFinal,
+            id_rol: Number(id_rol),
+            nombre,
+            apellido,
+            nombre_completo,
+            carnet_identidad,
+            telefono,
             fecha_nacimiento,
-            debe_cambiar_password: requiereCambioKey
+            debe_cambiar_password: true
         });
-
-        return res.status(201).json({
-            mensaje: 'Usuario creado exitosamente. Se ha asignado clave genérica inicial.',
-            usuario
-        });
+        return res.status(201).json({ mensaje: 'Usuario creado exitosamente.', usuario });
     } catch (error) {
-        if (error.constraint === 'usuarios_correo_electronico_key' || error.constraint === 'usuarios_correo_key') {
+        if (error.constraint === 'usuarios_correo_electronico_key') {
             return res.status(409).json({ error: 'El correo ya está registrado.' });
         }
         if (error.constraint === 'datos_usuario_carnet_identidad_key') {
@@ -67,30 +61,11 @@ const crearUsuario = async (req, res) => {
 // PUT /api/usuarios/:id — Actualizar usuario
 const actualizarUsuario = async (req, res) => {
     try {
-        let { correo, correo_electronico, password, id_rol, nombre, apellido, nombre_completo, carnet_identidad, telefono, fecha_nacimiento, debe_cambiar_password } = req.body;
-        const email = correo_electronico || correo;
-
-        if (email && !validarCorreo(sanearTexto(email))) {
-            return res.status(400).json({ error: 'Formato de correo electrónico inválido.' });
+        if (req.body.id_rol && Number(req.body.id_rol) === 4) {
+            return res.status(400).json({ error: 'No se puede asignar el rol de Cliente a un usuario del personal.' });
         }
 
-        if (telefono && !validarTelefono(telefono)) {
-            return res.status(400).json({ error: 'El número de teléfono sólo debe contener dígitos numéricos (7 a 15 números).' });
-        }
-
-        const usuario = await UsuarioModel.actualizar(req.params.id, {
-            correo: email ? sanearTexto(email) : undefined,
-            password: password ? password.trim() : undefined,
-            id_rol,
-            nombre: nombre ? sanearTexto(nombre) : undefined,
-            apellido: apellido ? sanearTexto(apellido) : undefined,
-            nombre_completo: nombre_completo ? sanearTexto(nombre_completo) : undefined,
-            carnet_identidad: carnet_identidad ? sanearTexto(carnet_identidad) : undefined,
-            telefono: telefono ? sanearTexto(telefono) : undefined,
-            fecha_nacimiento,
-            debe_cambiar_password
-        });
-
+        const usuario = await UsuarioModel.actualizar(req.params.id, req.body);
         if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado.' });
         return res.json({ mensaje: 'Usuario actualizado exitosamente.', usuario });
     } catch (error) {
@@ -102,15 +77,14 @@ const actualizarUsuario = async (req, res) => {
 // DELETE /api/usuarios/:id — Eliminar usuario
 const eliminarUsuario = async (req, res) => {
     try {
-        const eliminado = await UsuarioModel.eliminar(req.params.id);
-        if (!eliminado) return res.status(404).json({ error: 'Usuario no encontrado.' });
-        return res.json({ mensaje: 'Usuario eliminado exitosamente.' });
+        const ok = await UsuarioModel.eliminar(req.params.id);
+        if (!ok) return res.status(404).json({ error: 'Usuario no encontrado.' });
+        return res.json({ mensaje: 'Usuario eliminado.' });
     } catch (error) {
         console.error('Error al eliminar usuario:', error);
         return res.status(500).json({ error: 'Error interno del servidor.' });
     }
 };
-
 
 // GET /api/usuarios/costureras — Listar solo costureras
 const listarCostureras = async (req, res) => {

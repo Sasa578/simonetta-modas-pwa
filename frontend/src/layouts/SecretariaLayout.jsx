@@ -12,18 +12,18 @@ const SecretariaLayout = () => {
         <div className="admin-layout">
             <aside className="sidebar-left">
                 <div className="sidebar-brand">
-                    <span className="brand-icon">🧵</span>
+                    
                     <h1 className="brand-name">SIMONETTA</h1>
                     <p className="brand-subtitle">Panel Secretaría</p>
                 </div>
                 <div className="sidebar-section">
                     <h3 className="sidebar-heading">Accesos rápidos</h3>
                     <div className="accesos-lista">
-                        <NavLink to="/secretaria" end className={({ isActive }) => `acceso-item ${isActive ? 'active' : ''}`}>📅 Calendario</NavLink>
-                        <NavLink to="/secretaria/pedidos" className={({ isActive }) => `acceso-item ${isActive ? 'active' : ''}`}>📦 Pedidos</NavLink>
+                        <NavLink to="/secretaria" end className={({ isActive }) => `acceso-item ${isActive ? 'active' : ''}`}>Calendario</NavLink>
+                        <NavLink to="/secretaria/pedidos" className={({ isActive }) => `acceso-item ${isActive ? 'active' : ''}`}>Pedidos</NavLink>
                     </div>
                 </div>
-                <button className="sidebar-logout" onClick={handleLogout}>⏻ Cerrar sesión</button>
+                <button className="sidebar-logout" onClick={handleLogout}>Cerrar sesion</button>
             </aside>
 
             <header className="topbar">
@@ -32,7 +32,7 @@ const SecretariaLayout = () => {
                     <NavLink to="/secretaria/pedidos" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Pedidos</NavLink>
                     <NavLink to="/secretaria/clientes" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Clientes</NavLink>
                     <NavLink to="/secretaria/almacen" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Almacén</NavLink>
-                    <NavLink to="/secretaria/kardex" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Kardex</NavLink>
+                    <NavLink to="/secretaria/reportes" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Reportes</NavLink>
                 </nav>
                 <div className="topbar-perfil">
                     <div className="perfil-avatar">{usuario?.correo?.charAt(0).toUpperCase() || 'S'}</div>

@@ -3,12 +3,13 @@ const bcrypt = require('bcrypt');
 
 const UsuarioModel = {
     /**
-     * Busca un usuario interno por correo electrónico.
+     * Busca un usuario interno por su correo electrónico.
+     * Une usuarios, roles, estados_usuario y datos_usuario.
      */
     buscarPorCorreo: async (correo) => {
         const resultado = await db.query(
             `SELECT u.id_usuario, u.correo_electronico, u.correo_electronico as correo,
-                    u.password_hash, u.id_rol, r.nombre_rol,
+                    u.password_hash, u.id_rol, r.nombre_rol, 
                     u.id_estado_usuario, eu.nombre_estado as estado,
                     u.debe_cambiar_password,
                     du.id_datos_usuario, du.nombre, du.apellido,
@@ -68,9 +69,10 @@ const UsuarioModel = {
     /**
      * Crea un nuevo usuario interno en transacción (usuarios + datos_usuario).
      */
-    crear: async ({ correo, correo_electronico, password, id_rol, nombre, apellido, nombre_completo, carnet_identidad, telefono, fecha_nacimiento, id_estado_usuario = 1, debe_cambiar_password = false }) => {
+    crear: async ({ correo, correo_electronico, password = 'password123', id_rol, nombre, apellido, nombre_completo, carnet_identidad, telefono, fecha_nacimiento, id_estado_usuario = 1, debe_cambiar_password = true }) => {
         const email = correo_electronico || correo;
-        const hash = await bcrypt.hash(password, 10);
+        const passFinal = password && password.trim() ? password.trim() : 'password123';
+        const hash = await bcrypt.hash(passFinal, 10);
 
         let finalNombre = nombre;
         let finalApellido = apellido;
@@ -89,14 +91,18 @@ const UsuarioModel = {
                 `INSERT INTO usuarios (id_rol, id_estado_usuario, correo_electronico, password_hash, debe_cambiar_password)
                  VALUES ($1, $2, $3, $4, $5)
                  RETURNING id_usuario, correo_electronico, debe_cambiar_password`,
-                [id_rol, id_estado_usuario, email, hash, Boolean(debe_cambiar_password)]
+                [id_rol, id_estado_usuario, email, hash, debe_cambiar_password]
             );
             const idUsuario = uRes.rows[0].id_usuario;
+
+            const ciClean = (carnet_identidad && String(carnet_identidad).trim()) ? String(carnet_identidad).trim() : null;
+            const telClean = (telefono && String(telefono).trim()) ? String(telefono).trim() : null;
+            const fnClean = fecha_nacimiento ? fecha_nacimiento : null;
 
             await client.query(
                 `INSERT INTO datos_usuario (id_usuario, nombre, apellido, carnet_identidad, fecha_nacimiento, telefono)
                  VALUES ($1, $2, $3, $4, $5, $6)`,
-                [idUsuario, finalNombre || '', finalApellido || '', carnet_identidad || null, fecha_nacimiento || null, telefono || null]
+                [idUsuario, finalNombre || '', finalApellido || '', ciClean, fnClean, telClean]
             );
 
             await client.query('COMMIT');
@@ -112,7 +118,7 @@ const UsuarioModel = {
     /**
      * Actualiza datos de un usuario (usuarios + datos_usuario) en transacción.
      */
-    actualizar: async (id, { correo, correo_electronico, password, id_rol, id_estado_usuario, nombre, apellido, nombre_completo, carnet_identidad, telefono, fecha_nacimiento, debe_cambiar_password }) => {
+    actualizar: async (id, { correo, correo_electronico, password, id_rol, id_estado_usuario, nombre, apellido, nombre_completo, carnet_identidad, telefono, fecha_nacimiento }) => {
         const email = correo_electronico || correo;
         const client = await db.pool.connect();
         try {
@@ -126,7 +132,6 @@ const UsuarioModel = {
             if (email) { uSets.push(`correo_electronico = $${uIdx++}`); uVals.push(email); }
             if (id_rol) { uSets.push(`id_rol = $${uIdx++}`); uVals.push(id_rol); }
             if (id_estado_usuario) { uSets.push(`id_estado_usuario = $${uIdx++}`); uVals.push(id_estado_usuario); }
-            if (debe_cambiar_password !== undefined) { uSets.push(`debe_cambiar_password = $${uIdx++}`); uVals.push(Boolean(debe_cambiar_password)); }
             if (password) {
                 const hash = await bcrypt.hash(password, 10);
                 uSets.push(`password_hash = $${uIdx++}`);
@@ -156,12 +161,17 @@ const UsuarioModel = {
 
             if (finalNombre !== undefined) { dSets.push(`nombre = $${dIdx++}`); dVals.push(finalNombre); }
             if (finalApellido !== undefined) { dSets.push(`apellido = $${dIdx++}`); dVals.push(finalApellido); }
-            if (carnet_identidad !== undefined) { dSets.push(`carnet_identidad = $${dIdx++}`); dVals.push(carnet_identidad); }
+            if (carnet_identidad !== undefined) {
+                const ciClean = (carnet_identidad && String(carnet_identidad).trim()) ? String(carnet_identidad).trim() : null;
+                dSets.push(`carnet_identidad = $${dIdx++}`);
+                dVals.push(ciClean);
+            }
             if (telefono !== undefined) { dSets.push(`telefono = $${dIdx++}`); dVals.push(telefono); }
             if (fecha_nacimiento !== undefined) { dSets.push(`fecha_nacimiento = $${dIdx++}`); dVals.push(fecha_nacimiento); }
 
             if (dSets.length > 0) {
                 dVals.push(id);
+                // Si existe datos_usuario, actualizamos; sino insertamos
                 const check = await client.query('SELECT id_datos_usuario FROM datos_usuario WHERE id_usuario = $1', [id]);
                 if (check.rows.length > 0) {
                     await client.query(
@@ -169,10 +179,11 @@ const UsuarioModel = {
                         dVals
                     );
                 } else {
+                    const ciInsert = (carnet_identidad && String(carnet_identidad).trim()) ? String(carnet_identidad).trim() : null;
                     await client.query(
                         `INSERT INTO datos_usuario (id_usuario, nombre, apellido, carnet_identidad, telefono, fecha_nacimiento)
                          VALUES ($1, $2, $3, $4, $5, $6)`,
-                        [id, finalNombre || '', finalApellido || '', carnet_identidad || null, telefono || null, fecha_nacimiento || null]
+                        [id, finalNombre || '', finalApellido || '', ciInsert, telefono || null, fecha_nacimiento || null]
                     );
                 }
             }
@@ -187,16 +198,6 @@ const UsuarioModel = {
         }
     },
 
-    /** Actualiza contraseña inicial y desactiva debe_cambiar_password */
-    actualizarPasswordInicial: async (id_usuario, nuevaPassword) => {
-        const hash = await bcrypt.hash(nuevaPassword, 10);
-        const resultado = await db.query(
-            `UPDATE usuarios SET password_hash = $1, debe_cambiar_password = false WHERE id_usuario = $2 RETURNING id_usuario, correo_electronico, debe_cambiar_password`,
-            [hash, id_usuario]
-        );
-        return resultado.rows[0] || null;
-    },
-
     /**
      * Elimina un usuario por ID. La cascada elimina datos_usuario.
      */
@@ -206,6 +207,21 @@ const UsuarioModel = {
             [id]
         );
         return resultado.rows.length > 0;
+    },
+
+    /**
+     * Actualiza la contraseña del usuario y desactiva la bandera de primer inicio.
+     */
+    cambiarPassword: async (id_usuario, nuevaPassword) => {
+        const hash = await bcrypt.hash(nuevaPassword, 10);
+        const resultado = await db.query(
+            `UPDATE usuarios 
+             SET password_hash = $1, debe_cambiar_password = FALSE 
+             WHERE id_usuario = $2 
+             RETURNING id_usuario, correo_electronico, debe_cambiar_password`,
+            [hash, id_usuario]
+        );
+        return resultado.rows[0] || null;
     }
 };
 

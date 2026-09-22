@@ -28,7 +28,7 @@ const AdminLayout = () => {
             {/* Sidebar Izquierdo */}
             <aside className="sidebar-left">
                 <div className="sidebar-brand">
-                    <span className="brand-icon">🧵</span>
+                    
                     <h1 className="brand-name">SIMONETTA</h1>
                     <p className="brand-subtitle">Panel Admin</p>
                 </div>
@@ -46,7 +46,7 @@ const AdminLayout = () => {
                         ))}
                     </div>
                 </div>
-                <button className="sidebar-logout" onClick={handleLogout}>⏻ Cerrar sesión</button>
+                <button className="sidebar-logout" onClick={handleLogout}>Cerrar sesion</button>
             </aside>
 
             {/* Topbar */}
@@ -55,7 +55,7 @@ const AdminLayout = () => {
                     <NavLink to="/admin" end className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Inicio</NavLink>
                     <NavLink to="/admin/pedidos" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Pedidos</NavLink>
                     <NavLink to="/admin/almacen" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Almacén</NavLink>
-                    <NavLink to="/admin/kardex" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Kardex</NavLink>
+                    <NavLink to="/admin/reportes" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Reportes</NavLink>
                     <NavLink to="/admin/clientes" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Clientes</NavLink>
                     <NavLink to="/admin/usuarios" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Usuarios</NavLink>
                     <NavLink to="/admin/pruebas" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>🧪 Pruebas API</NavLink>
@@ -77,7 +77,7 @@ const AdminLayout = () => {
             {/* Sidebar Derecho: Próximas Entregas */}
             <aside className="sidebar-right">
                 <div className="sidebar-right-header">
-                    <h2>📅 Próximas Entregas</h2>
+                    <h2>Proximas Entregas</h2>
                 </div>
                 <div className="mini-cards-lista">
                     {proximasEntregas.map((p) => (
