@@ -86,7 +86,7 @@ async function cargarPedidosDemo() {
                 clienteIdx: 3 % clientes.length,
                 costo_total: 2400.00,
                 adelanto: 1500.00,
-                id_metodo_pago: 3, // Tarjeta
+                id_metodo_pago: 2, // QR / Transferencia
                 estado: 'Terminado',
                 diasEntrega: 2,
                 diasPrueba: -2,
