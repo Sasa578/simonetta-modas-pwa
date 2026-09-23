@@ -1,3 +1,4 @@
+const { validarTelefono, validarTextoAlfabetico, validarCI, validarEmail } = require('../middlewares/dataValidator');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const UsuarioModel = require('../models/UsuarioModel');
@@ -124,7 +125,28 @@ const registrarCliente = async (req, res) => {
         finalApellido = parts.slice(1).join(' ') || '';
     }
 
-    if (!correo || !password || !finalNombre || !finalTelefono) {
+    
+        // VALIDACION DEFENSIVA REGISTRO CLIENTE
+        const valNom = validarTextoAlfabetico(finalNombre, 'nombre', true);
+        if (!valNom.valido) return res.status(400).json({ error: valNom.error });
+
+        if (finalApellido) {
+            const valApe = validarTextoAlfabetico(finalApellido, 'apellido', false);
+            if (!valApe.valido) return res.status(400).json({ error: valApe.error });
+        }
+
+        const valTel = validarTelefono(finalTelefono, 'teléfono / WhatsApp', true);
+        if (!valTel.valido) return res.status(400).json({ error: valTel.error });
+
+        const valMail = validarEmail(correo, 'correo electrónico', true);
+        if (!valMail.valido) return res.status(400).json({ error: valMail.error });
+
+        if (carnet_identidad) {
+            const valCI = validarCI(carnet_identidad, 'carnet de identidad', false);
+            if (!valCI.valido) return res.status(400).json({ error: valCI.error });
+        }
+
+        if (!correo || !password || !finalNombre || !finalTelefono) {
         return res.status(400).json({ error: 'Nombre, teléfono/WhatsApp, correo y contraseña son obligatorios.' });
     }
 

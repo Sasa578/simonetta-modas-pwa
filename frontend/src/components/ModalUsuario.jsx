@@ -1,3 +1,4 @@
+import { filterLetters, filterPhone, filterCI, isValidEmail, isValidPhone } from '../utils/validators';
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 
@@ -69,6 +70,16 @@ const ModalUsuario = ({ isOpen, onClose, onSuccess, usuarioEdit = null, roles = 
             return;
         }
 
+        
+        // VALIDACION EN MODAL USUARIO
+        if (form.telefono && !isValidPhone(form.telefono)) {
+            setError('El número telefónico debe tener al menos 7 dígitos válidos.');
+            return;
+        }
+        if (form.correo && !isValidEmail(form.correo)) {
+            setError('El formato del correo electrónico es inválido.');
+            return;
+        }
         if (!form.id_rol) {
             setError('Debes seleccionar un rol para el usuario.');
             return;
@@ -162,11 +173,11 @@ const ModalUsuario = ({ isOpen, onClose, onSuccess, usuarioEdit = null, roles = 
                     <div style={{display: 'flex', gap: '0.8rem'}}>
                         <div style={{display: 'flex', flexDirection: 'column', flex: 1}}>
                             <label style={labelStyle}>Nombre *</label>
-                            <input type="text" placeholder="Ej. Patricia" value={form.nombre} onChange={(e) => setForm({...form, nombre: e.target.value})} style={inputStyle} required />
+                            <input type="text" placeholder="Ej. Patricia" value={form.nombre} onChange={(e) => setForm({...form, nombre: filterLetters(e.target.value)})} style={inputStyle} required />
                         </div>
                         <div style={{display: 'flex', flexDirection: 'column', flex: 1}}>
                             <label style={labelStyle}>Apellido *</label>
-                            <input type="text" placeholder="Ej. Gómez Rojas" value={form.apellido} onChange={(e) => setForm({...form, apellido: e.target.value})} style={inputStyle} required />
+                            <input type="text" placeholder="Ej. Gómez Rojas" value={form.apellido} onChange={(e) => setForm({...form, apellido: filterLetters(e.target.value)})} style={inputStyle} required />
                         </div>
                     </div>
 
@@ -174,11 +185,11 @@ const ModalUsuario = ({ isOpen, onClose, onSuccess, usuarioEdit = null, roles = 
                     <div style={{display: 'flex', gap: '0.8rem'}}>
                         <div style={{display: 'flex', flexDirection: 'column', flex: 1}}>
                             <label style={labelStyle}>CI / Cédula</label>
-                            <input type="text" placeholder="Ej. 6543210 LP" value={form.carnet_identidad} onChange={(e) => setForm({...form, carnet_identidad: e.target.value})} style={inputStyle} />
+                            <input type="text" placeholder="Ej. 6543210 LP" value={form.carnet_identidad} onChange={(e) => setForm({...form, carnet_identidad: filterCI(e.target.value)})} style={inputStyle} />
                         </div>
                         <div style={{display: 'flex', flexDirection: 'column', flex: 1}}>
                             <label style={labelStyle}>Teléfono *</label>
-                            <input type="tel" placeholder="Ej. 70022334" value={form.telefono} onChange={(e) => setForm({...form, telefono: e.target.value})} style={inputStyle} required />
+                            <input type="tel" placeholder="Ej. 70022334" value={form.telefono} onChange={(e) => setForm({...form, telefono: filterPhone(e.target.value)})} style={inputStyle} required />
                         </div>
                     </div>
 

@@ -1,3 +1,4 @@
+const { validarMonto } = require('../middlewares/dataValidator');
 const PedidoModel = require('../models/PedidoModel');
 const db = require('../config/db');
 
@@ -31,6 +32,16 @@ const crearPedido = async (req, res) => {
         // --- Validaciones ---
         if (!id_cliente) {
             return res.status(400).json({ error: 'El cliente es obligatorio.' });
+        }
+
+        
+        // VALIDACION DEFENSIVA PEDIDO
+        const vCosto = validarMonto(costo_total, 'costo total', true);
+        if (!vCosto.valido) return res.status(400).json({ error: vCosto.error });
+
+        if (adelanto !== undefined && adelanto !== null && adelanto !== '') {
+            const vAdelanto = validarMonto(adelanto, 'adelanto', false);
+            if (!vAdelanto.valido) return res.status(400).json({ error: vAdelanto.error });
         }
 
         if (!fecha_entrega) {

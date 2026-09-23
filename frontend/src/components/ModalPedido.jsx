@@ -1,3 +1,4 @@
+import { filterPositiveDecimal, filterLetters } from '../utils/validators';
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import '../pages/PedidoForm.css';
@@ -287,7 +288,7 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                                     type="text"
                                     placeholder="Ej: Vestido de Gala, Traje Sastre, Blusa de Seda"
                                     value={tipoPrenda}
-                                    onChange={(e) => setTipoPrenda(e.target.value)}
+                                    onChange={(e) => setTipoPrenda(filterLetters(e.target.value))}
                                     required
                                     style={{ padding: '0.65rem', borderRadius: '6px', border: '1px solid var(--color-borde)' }}
                                 />
@@ -298,7 +299,7 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                                     type="text"
                                     placeholder="Ej: Rojo Borgoña, Negro, Marfil"
                                     value={colorPrenda}
-                                    onChange={(e) => setColorPrenda(e.target.value)}
+                                    onChange={(e) => setColorPrenda(filterLetters(e.target.value))}
                                     style={{ padding: '0.65rem', borderRadius: '6px', border: '1px solid var(--color-borde)' }}
                                 />
                             </div>
@@ -374,7 +375,7 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                                         step="0.1" 
                                         min="0.1" 
                                         value={insumoActualCantidad}
-                                        onChange={(e) => setInsumoActualCantidad(e.target.value)}
+                                        onChange={(e) => setInsumoActualCantidad(filterPositiveDecimal(e.target.value))}
                                         style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid var(--color-borde)', fontSize: '0.85rem', boxSizing: 'border-box' }}
                                     />
                                 </div>
@@ -507,27 +508,27 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(95px, 1fr))', gap: '0.8rem' }}>
                                     <div>
                                         <label style={{ fontSize: '0.78rem', fontWeight: 600, color: '#475569' }}>Busto</label>
-                                        <input type="number" step="0.5" placeholder="cm" value={busto} onChange={(e) => setBusto(e.target.value)} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', boxSizing: 'border-box' }} />
+                                        <input type="number" step="0.5" placeholder="cm" value={busto} onChange={(e) => setBusto(filterPositiveDecimal(e.target.value))} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', boxSizing: 'border-box' }} />
                                     </div>
                                     <div>
                                         <label style={{ fontSize: '0.78rem', fontWeight: 600, color: '#475569' }}>Cintura</label>
-                                        <input type="number" step="0.5" placeholder="cm" value={cintura} onChange={(e) => setCintura(e.target.value)} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', boxSizing: 'border-box' }} />
+                                        <input type="number" step="0.5" placeholder="cm" value={cintura} onChange={(e) => setCintura(filterPositiveDecimal(e.target.value))} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', boxSizing: 'border-box' }} />
                                     </div>
                                     <div>
                                         <label style={{ fontSize: '0.78rem', fontWeight: 600, color: '#475569' }}>Cadera</label>
-                                        <input type="number" step="0.5" placeholder="cm" value={cadera} onChange={(e) => setCadera(e.target.value)} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', boxSizing: 'border-box' }} />
+                                        <input type="number" step="0.5" placeholder="cm" value={cadera} onChange={(e) => setCadera(filterPositiveDecimal(e.target.value))} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', boxSizing: 'border-box' }} />
                                     </div>
                                     <div>
                                         <label style={{ fontSize: '0.78rem', fontWeight: 600, color: '#475569' }}>Espalda</label>
-                                        <input type="number" step="0.5" placeholder="cm" value={espalda} onChange={(e) => setEspalda(e.target.value)} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', boxSizing: 'border-box' }} />
+                                        <input type="number" step="0.5" placeholder="cm" value={espalda} onChange={(e) => setEspalda(filterPositiveDecimal(e.target.value))} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', boxSizing: 'border-box' }} />
                                     </div>
                                     <div>
                                         <label style={{ fontSize: '0.78rem', fontWeight: 600, color: '#475569' }}>Hombro</label>
-                                        <input type="number" step="0.5" placeholder="cm" value={hombro} onChange={(e) => setHombro(e.target.value)} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', boxSizing: 'border-box' }} />
+                                        <input type="number" step="0.5" placeholder="cm" value={hombro} onChange={(e) => setHombro(filterPositiveDecimal(e.target.value))} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', boxSizing: 'border-box' }} />
                                     </div>
                                     <div>
                                         <label style={{ fontSize: '0.78rem', fontWeight: 600, color: '#475569' }}>Largo / Talle</label>
-                                        <input type="number" step="0.5" placeholder="cm" value={cortas} onChange={(e) => setCortas(e.target.value)} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', boxSizing: 'border-box' }} />
+                                        <input type="number" step="0.5" placeholder="cm" value={cortas} onChange={(e) => setCortas(filterPositiveDecimal(e.target.value))} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', boxSizing: 'border-box' }} />
                                     </div>
                                 </div>
                             </div>
@@ -551,11 +552,11 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.2fr', gap: '0.8rem', marginTop: '0.8rem' }}>
                             <div>
                                 <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Costo Total (Bs.) *</label>
-                                <input type="number" step="0.01" min="0" value={costoTotal} onChange={(e) => setCostoTotal(e.target.value)} required style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid var(--color-borde)', boxSizing: 'border-box' }} />
+                                <input type="number" step="0.01" min="0" value={costoTotal} onChange={(e) => setCostoTotal(filterPositiveDecimal(e.target.value))} required style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid var(--color-borde)', boxSizing: 'border-box' }} />
                             </div>
                             <div>
                                 <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Adelanto (Bs.)</label>
-                                <input type="number" step="0.01" min="0" value={adelanto} onChange={(e) => setAdelanto(e.target.value)} style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid var(--color-borde)', boxSizing: 'border-box' }} />
+                                <input type="number" step="0.01" min="0" value={adelanto} onChange={(e) => setAdelanto(filterPositiveDecimal(e.target.value))} style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid var(--color-borde)', boxSizing: 'border-box' }} />
                             </div>
                             <div>
                                 <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Metodo de Adelanto</label>

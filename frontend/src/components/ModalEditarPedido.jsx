@@ -1,3 +1,4 @@
+import { filterPositiveDecimal } from '../utils/validators';
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 
@@ -127,11 +128,11 @@ const ModalEditarPedido = ({ isOpen, onClose, onSuccess, idPedido }) => {
                         <div style={{display: 'flex', gap: '1rem'}}>
                             <div style={{flex: 1, display: 'flex', flexDirection: 'column', gap: '0.4rem'}}>
                                 <label style={{fontSize: '0.85rem', fontWeight: 600}}>Costo Total (Bs.) *</label>
-                                <input type="number" step="0.01" min="0" value={costoTotal} onChange={(e) => setCostoTotal(e.target.value)} required style={{padding: '0.7rem', borderRadius: '6px', border: '1px solid var(--color-borde)'}}/>
+                                <input type="number" step="0.01" min="0" value={costoTotal} onChange={(e) => setCostoTotal(filterPositiveDecimal(e.target.value))} required style={{padding: '0.7rem', borderRadius: '6px', border: '1px solid var(--color-borde)'}}/>
                             </div>
                             <div style={{flex: 1, display: 'flex', flexDirection: 'column', gap: '0.4rem'}}>
                                 <label style={{fontSize: '0.85rem', fontWeight: 600}}>Adelanto (Bs.)</label>
-                                <input type="number" step="0.01" min="0" value={adelanto} onChange={(e) => setAdelanto(e.target.value)} style={{padding: '0.7rem', borderRadius: '6px', border: '1px solid var(--color-borde)'}}/>
+                                <input type="number" step="0.01" min="0" value={adelanto} onChange={(e) => setAdelanto(filterPositiveDecimal(e.target.value))} style={{padding: '0.7rem', borderRadius: '6px', border: '1px solid var(--color-borde)'}}/>
                             </div>
                         </div>
                         

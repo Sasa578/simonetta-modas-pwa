@@ -1,3 +1,4 @@
+import { filterLetters, filterPhone, filterCI, isValidEmail, isValidPhone } from '../utils/validators';
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 
@@ -51,6 +52,27 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
     if (!isOpen) return null;
 
     const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+
+        // VALIDACION EN MODAL CLIENTE
+        if (tipoCliente === 1) {
+            if (form.telefono_whatsapp && !isValidPhone(form.telefono_whatsapp)) {
+                setError('El teléfono / WhatsApp debe tener al menos 7 dígitos válidos.');
+                return;
+            }
+        } else {
+            if (form.telefono_contacto && !isValidPhone(form.telefono_contacto)) {
+                setError('El teléfono de contacto debe tener al menos 7 dígitos válidos.');
+                return;
+            }
+        }
+
+        if (form.correo && !isValidEmail(form.correo)) {
+            setError('El correo electrónico ingresado no tiene un formato válido.');
+            return;
+        }
+
         e.preventDefault();
         setError('');
         setCargando(true);
@@ -184,22 +206,22 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
                             <div style={{ display: 'flex', gap: '0.8rem' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                                     <label style={labelStyle}>Nombre *</label>
-                                    <input type="text" placeholder="Ej. Ana" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} style={inputStyle} required />
+                                    <input type="text" placeholder="Ej. Ana" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: filterLetters(e.target.value) })} style={inputStyle} required />
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                                     <label style={labelStyle}>Apellido *</label>
-                                    <input type="text" placeholder="Ej. García Rojas" value={form.apellido} onChange={(e) => setForm({ ...form, apellido: e.target.value })} style={inputStyle} required />
+                                    <input type="text" placeholder="Ej. García Rojas" value={form.apellido} onChange={(e) => setForm({ ...form, apellido: filterLetters(e.target.value) })} style={inputStyle} required />
                                 </div>
                             </div>
 
                             <div style={{ display: 'flex', gap: '0.8rem' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                                     <label style={labelStyle}>CI / Cédula</label>
-                                    <input type="text" placeholder="Ej. 6543210 LP" value={form.carnet_identidad} onChange={(e) => setForm({ ...form, carnet_identidad: e.target.value })} style={inputStyle} />
+                                    <input type="text" placeholder="Ej. 6543210 LP" value={form.carnet_identidad} onChange={(e) => setForm({ ...form, carnet_identidad: filterCI(e.target.value) })} style={inputStyle} />
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                                     <label style={labelStyle}>WhatsApp / Celular *</label>
-                                    <input type="tel" placeholder="Ej. 77712345" value={form.telefono_whatsapp} onChange={(e) => setForm({ ...form, telefono_whatsapp: e.target.value.replace(/[^0-9+ -]/g, "") })} style={inputStyle} required />
+                                    <input type="tel" placeholder="Ej. 77712345" value={form.telefono_whatsapp} onChange={(e) => setForm({ ...form, telefono_whatsapp: filterPhone(e.target.value) })} style={inputStyle} required />
                                 </div>
                             </div>
 
@@ -229,7 +251,7 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
                             <div style={{ display: 'flex', gap: '0.8rem' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                                     <label style={labelStyle}>NIT *</label>
-                                    <input type="text" placeholder="Ej. 1023948571" value={form.nit} onChange={(e) => setForm({ ...form, nit: e.target.value })} style={inputStyle} required />
+                                    <input type="text" placeholder="Ej. 1023948571" value={form.nit} onChange={(e) => setForm({ ...form, nit: filterCI(e.target.value) })} style={inputStyle} required />
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                                     <label style={labelStyle}>N° Contrato (Opcional)</label>
@@ -239,13 +261,13 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
 
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 <label style={labelStyle}>Persona de Contacto *</label>
-                                <input type="text" placeholder="Ej. Lic. Fernando Morales" value={form.nombre_contacto} onChange={(e) => setForm({ ...form, nombre_contacto: e.target.value })} style={inputStyle} required />
+                                <input type="text" placeholder="Ej. Lic. Fernando Morales" value={form.nombre_contacto} onChange={(e) => setForm({ ...form, nombre_contacto: filterLetters(e.target.value) })} style={inputStyle} required />
                             </div>
 
                             <div style={{ display: 'flex', gap: '0.8rem' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                                     <label style={labelStyle}>Teléfono de Contacto *</label>
-                                    <input type="tel" placeholder="Ej. 2 2789000 o 76543210" value={form.telefono_contacto} onChange={(e) => setForm({ ...form, telefono_contacto: e.target.value })} style={inputStyle} required />
+                                    <input type="tel" placeholder="Ej. 2 2789000 o 76543210" value={form.telefono_contacto} onChange={(e) => setForm({ ...form, telefono_contacto: filterPhone(e.target.value) })} style={inputStyle} required />
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                                     <label style={labelStyle}>Correo Institucional</label>

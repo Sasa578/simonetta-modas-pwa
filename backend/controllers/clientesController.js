@@ -1,3 +1,4 @@
+const { validarTelefono, validarTextoAlfabetico, validarCI, validarEmail } = require('../middlewares/dataValidator');
 const ClienteModel = require('../models/ClienteModel');
 const UsuarioModel = require('../models/UsuarioModel');
 const db = require('../config/db');
@@ -54,8 +55,51 @@ const crearCliente = async (req, res) => {
             contrato
         } = req.body;
 
+        
         const isInstitucional = Number(id_tipo_cliente) === 2 || 
                                 (tipo_cliente && (tipo_cliente.toLowerCase() === 'institucional' || tipo_cliente.toLowerCase() === 'institucion'));
+
+        // VALIDACION DEFENSIVA CLIENTE
+        if (!isInstitucional) {
+            const valNom = validarTextoAlfabetico(nombre || (nombre_completo ? nombre_completo.split(' ')[0] : ''), 'nombre', true);
+            if (!valNom.valido) return res.status(400).json({ error: valNom.error });
+
+            if (apellido) {
+                const valApe = validarTextoAlfabetico(apellido, 'apellido', false);
+                if (!valApe.valido) return res.status(400).json({ error: valApe.error });
+            }
+
+            const telPersona = telefono_whatsapp || telefono;
+            if (telPersona) {
+                const valTel = validarTelefono(telPersona, 'teléfono / WhatsApp', false);
+                if (!valTel.valido) return res.status(400).json({ error: valTel.error });
+            }
+
+            if (carnet_identidad) {
+                const valCI = validarCI(carnet_identidad, 'carnet de identidad', false);
+                if (!valCI.valido) return res.status(400).json({ error: valCI.error });
+            }
+        } else {
+            if (nombre_contacto) {
+                const valNomC = validarTextoAlfabetico(nombre_contacto, 'persona de contacto', false);
+                if (!valNomC.valido) return res.status(400).json({ error: valNomC.error });
+            }
+            const telInst = telefono_contacto || telefono;
+            if (telInst) {
+                const valTelInst = validarTelefono(telInst, 'teléfono de contacto', false);
+                if (!valTelInst.valido) return res.status(400).json({ error: valTelInst.error });
+            }
+            if (nit) {
+                const valNit = validarCI(nit, 'NIT', false);
+                if (!valNit.valido) return res.status(400).json({ error: valNit.error });
+            }
+        }
+
+        const mailCliente = correo_electronico || correo;
+        if (mailCliente) {
+            const valMail = validarEmail(mailCliente, 'correo electrónico', false);
+            if (!valMail.valido) return res.status(400).json({ error: valMail.error });
+        }
 
         const contacto = nombre_contacto || req.body.persona_contacto || '';
         const telContacto = telefono_contacto || telefono || telefono_whatsapp || '';
@@ -124,6 +168,34 @@ const crearCliente = async (req, res) => {
 const actualizarCliente = async (req, res) => {
     try {
         const { id } = req.params;
+        // VALIDACION DEFENSIVA ACTUALIZAR CLIENTE
+        if (req.body.nombre) {
+            const v = validarTextoAlfabetico(req.body.nombre, 'nombre', false);
+            if (!v.valido) return res.status(400).json({ error: v.error });
+        }
+        if (req.body.apellido) {
+            const v = validarTextoAlfabetico(req.body.apellido, 'apellido', false);
+            if (!v.valido) return res.status(400).json({ error: v.error });
+        }
+        const telAct = req.body.telefono || req.body.telefono_whatsapp || req.body.telefono_contacto;
+        if (telAct) {
+            const v = validarTelefono(telAct, 'teléfono', false);
+            if (!v.valido) return res.status(400).json({ error: v.error });
+        }
+        if (req.body.carnet_identidad) {
+            const v = validarCI(req.body.carnet_identidad, 'carnet de identidad', false);
+            if (!v.valido) return res.status(400).json({ error: v.error });
+        }
+        if (req.body.nit) {
+            const v = validarCI(req.body.nit, 'NIT', false);
+            if (!v.valido) return res.status(400).json({ error: v.error });
+        }
+        const mailAct = req.body.correo || req.body.correo_electronico;
+        if (mailAct) {
+            const v = validarEmail(mailAct, 'correo electrónico', false);
+            if (!v.valido) return res.status(400).json({ error: v.error });
+        }
+
         const cliente = await ClienteModel.actualizar(id, req.body);
 
         if (!cliente) {

@@ -1,3 +1,4 @@
+import { filterPositiveDecimal } from '../utils/validators';
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 
@@ -247,7 +248,7 @@ const ModalAlmacen = ({ isOpen, onClose, onSuccess, materialEdit = null }) => {
                                 min="0"
                                 placeholder="0.00"
                                 value={form.cantidad_stock}
-                                onChange={(e) => setForm({ ...form, cantidad_stock: e.target.value })}
+                                onChange={(e) => setForm({ ...form, cantidad_stock: filterPositiveDecimal(e.target.value) })}
                                 style={inputStyle}
                                 required
                             />
@@ -260,7 +261,7 @@ const ModalAlmacen = ({ isOpen, onClose, onSuccess, materialEdit = null }) => {
                                 min="0"
                                 placeholder="0.00"
                                 value={form.stock_minimo}
-                                onChange={(e) => setForm({ ...form, stock_minimo: e.target.value })}
+                                onChange={(e) => setForm({ ...form, stock_minimo: filterPositiveDecimal(e.target.value) })}
                                 style={inputStyle}
                                 required
                             />
