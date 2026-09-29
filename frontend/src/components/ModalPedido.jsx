@@ -1,5 +1,5 @@
 import ColorPickerHoneycomb, { COLORES_ALTA_COSTURA } from './ColorPickerHoneycomb';
-import { filterPositiveDecimal, filterLetters } from '../utils/validators';
+import { filterPositiveDecimal, filterLetters, parseDecimalString, blockMathKeys } from '../utils/validators';
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import '../pages/PedidoForm.css';
@@ -113,34 +113,48 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
     if (!isOpen) return null;
 
     const hoy = new Date().toISOString().split('T')[0];
-    const costo = parseFloat(costoTotal) || 0;
-    const adelantoFloat = parseFloat(adelanto) || 0;
+    const costo = parseDecimalString(costoTotal);
+    const adelantoFloat = parseDecimalString(adelanto);
     const saldo = Math.max(0, costo - adelantoFloat);
+
+    // Búsqueda de stock del insumo seleccionado actualmente
+    const insumoSeleccionadoObj = materiales.find(m => String(m.id_material) === String(insumoActualId));
+    const stockMaxInsumo = insumoSeleccionadoObj ? (parseFloat(insumoSeleccionadoObj.cantidad_actual !== undefined ? insumoSeleccionadoObj.cantidad_actual : insumoSeleccionadoObj.cantidad_stock) || 0) : 0;
 
     const agregarInsumo = () => {
         if (!insumoActualId) return;
         const mat = materiales.find(m => String(m.id_material) === String(insumoActualId));
         if (!mat) return;
-        const cant = parseFloat(insumoActualCantidad) || 1;
-        if (cant <= 0) return;
-
-        // Evitar duplicados acumulando cantidad
-        const existeIdx = insumosSeleccionados.findIndex(i => String(i.id_producto) === String(insumoActualId));
-        if (existeIdx >= 0) {
-            const copia = [...insumosSeleccionados];
-            copia[existeIdx].cantidad = parseFloat((copia[existeIdx].cantidad + cant).toFixed(2));
-            setInsumosSeleccionados(copia);
-        } else {
-            setInsumosSeleccionados([
-                ...insumosSeleccionados,
-                {
-                    id_producto: mat.id_material,
-                    nombre_articulo: mat.nombre_material,
-                    cantidad: cant,
-                    unidad_medida: mat.unidad_medida || 'un'
-                }
-            ]);
+        const cant = parseDecimalString(insumoActualCantidad) || 1;
+        if (cant <= 0) {
+            setError('La cantidad del insumo debe ser mayor a 0.');
+            return;
         }
+
+        // 1. Control de duplicados: No permitir agregar el mismo insumo dos veces
+        const yaExiste = insumosSeleccionados.some(i => String(i.id_producto) === String(insumoActualId));
+        if (yaExiste) {
+            setError(`El insumo "${mat.nombre_material}" ya se encuentra agregado al pedido. Si necesita una cantidad diferente, elimínelo de la lista inferior y vuelva a agregarlo con la cantidad correcta.`);
+            return;
+        }
+
+        // 2. Control de stock en tiempo real
+        const stockDisponible = parseFloat(mat.cantidad_actual !== undefined ? mat.cantidad_actual : mat.cantidad_stock) || 0;
+        if (origenMaterial === 'Taller' && cant > stockDisponible) {
+            setError(`Stock insuficiente para "${mat.nombre_material}". Stock disponible en almacén: ${stockDisponible} ${mat.unidad_medida || 'un'}, solicitado: ${cant}`);
+            return;
+        }
+
+        setError('');
+        setInsumosSeleccionados([
+            ...insumosSeleccionados,
+            {
+                id_producto: mat.id_material,
+                nombre_articulo: mat.nombre_material,
+                cantidad: cant,
+                unidad_medida: mat.unidad_medida || 'un'
+            }
+        ]);
         setInsumoActualId('');
         setInsumoActualCantidad('1');
     };
@@ -154,9 +168,64 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
         setError('');
         setExito('');
 
-        if (!tipoPrenda.trim()) {
-            setError('Especifica el tipo de prenda a confeccionar.');
+        // 1. Validar Cliente
+        if (!idCliente) {
+            setError('Debe seleccionar obligatoriamente un cliente.');
             return;
+        }
+
+        // 2. Validar Costurera obligatoria (no se permite nulo ni taller)
+        if (!idCosturera) {
+            setError('Debe seleccionar obligatoriamente una costurera para la confección del pedido.');
+            return;
+        }
+
+        // 3. Validar Fecha de Entrega y límite para Fecha de Prueba
+        if (!fechaEntrega) {
+            setError('La fecha de entrega es obligatoria.');
+            return;
+        }
+        if (fechaPrueba && fechaEntrega && new Date(fechaPrueba) > new Date(fechaEntrega)) {
+            setError('La fecha de prueba no puede ser posterior a la fecha de entrega.');
+            return;
+        }
+
+        // 4. Validar Costo estricto (> 0) y Adelanto
+        if (!costo || costo <= 0) {
+            setError('El costo total del pedido debe ser un monto numérico mayor a 0 Bs.');
+            return;
+        }
+        if (adelantoFloat > costo) {
+            setError('El adelanto inicial no puede ser superior al costo total del pedido.');
+            return;
+        }
+
+        // 5. Validar Prenda
+        if (!tipoPrenda || !tipoPrenda.trim()) {
+            setError('Debe seleccionar el tipo de prenda a confeccionar.');
+            return;
+        }
+
+        // 6. Validar insumos y stock en tiempo real
+        if (insumosSeleccionados.length > 0) {
+            // Unicidad
+            const idsIns = insumosSeleccionados.map(i => String(i.id_producto));
+            if (new Set(idsIns).size !== idsIns.length) {
+                setError('No se permiten insumos duplicados en el mismo pedido.');
+                return;
+            }
+
+            // Stock disponible
+            if (origenMaterial === 'Taller') {
+                for (const ins of insumosSeleccionados) {
+                    const m = materiales.find(mat => String(mat.id_material) === String(ins.id_producto));
+                    const stockDisp = parseFloat(m ? (m.cantidad_actual !== undefined ? m.cantidad_actual : m.cantidad_stock) : 0) || 0;
+                    if (ins.cantidad > stockDisp) {
+                        setError(`Stock insuficiente para "${ins.nombre_articulo}". Disponible: ${stockDisp} ${ins.unidad_medida}, solicitado: ${ins.cantidad}`);
+                        return;
+                    }
+                }
+            }
         }
 
         setCargando(true);
@@ -290,11 +359,30 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                                     {clientes.map(c => <option key={c.id_cliente} value={c.id_cliente}>{c.nombre_completo}</option>)}
                                 </select>
                             </div>
-                            <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                                <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Operaria Asignada</label>
-                                <select value={idCosturera} onChange={(e) => setIdCosturera(e.target.value)} style={{ padding: '0.65rem', borderRadius: '6px', border: '1px solid var(--color-borde)' }}>
-                                    <option value="">-- Por asignar / Taller --</option>
-                                    {costureras.map(c => <option key={c.id_usuario} value={c.id_usuario}>{c.correo}</option>)}
+                            <div style={{ flex: '1 1 220px', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                                <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-azul-oscuro)' }}>Costurera Asignada *</label>
+                                <select
+                                    value={idCosturera}
+                                    onChange={(e) => {
+                                        setIdCosturera(e.target.value);
+                                        setError('');
+                                    }}
+                                    required
+                                    style={{
+                                        padding: '0.65rem',
+                                        borderRadius: '6px',
+                                        border: '1.5px solid var(--color-borde)',
+                                        background: '#fff',
+                                        fontWeight: 600,
+                                        color: idCosturera ? '#1e293b' : '#64748b'
+                                    }}
+                                >
+                                    <option value="">-- Seleccionar Costurera Asignada * --</option>
+                                    {costureras.map(c => (
+                                        <option key={c.id_usuario} value={c.id_usuario}>
+                                            👩‍🎨 {c.nombre_completo || c.nombre || c.correo}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
@@ -403,27 +491,41 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                             </label>
                             <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
                                 <div style={{ flex: '3 1 240px' }}>
-                                    <label style={{ fontSize: '0.78rem', color: 'var(--color-texto-secundario)' }}>Producto / Articulo</label>
+                                    <label style={{ fontSize: '0.78rem', color: 'var(--color-texto-secundario)' }}>Producto / Insumo</label>
                                     <select 
                                         value={insumoActualId} 
-                                        onChange={(e) => setInsumoActualId(e.target.value)}
+                                        onChange={(e) => {
+                                            setInsumoActualId(e.target.value);
+                                            setError('');
+                                        }}
                                         style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid var(--color-borde)', fontSize: '0.85rem' }}
                                     >
-                                        <option value="">-- Seleccionar producto (Tela, Botón, Hilo, Cierre...) --</option>
-                                        {materiales.map(m => (
-                                            <option key={m.id_material} value={m.id_material}>
-                                                {m.nombre_material} [Stock: {m.cantidad_actual} {m.unidad_medida}]
-                                            </option>
-                                        ))}
+                                        <option value="">-- Seleccionar insumo del almacén --</option>
+                                        {materiales.map(m => {
+                                            const yaAgregado = insumosSeleccionados.some(i => String(i.id_producto) === String(m.id_material));
+                                            const stockVal = parseFloat(m.cantidad_actual !== undefined ? m.cantidad_actual : m.cantidad_stock) || 0;
+                                            return (
+                                                <option key={m.id_material} value={m.id_material} disabled={yaAgregado}>
+                                                    {m.nombre_material} [Stock: {stockVal} {m.unidad_medida || 'un'}]{yaAgregado ? ' — (Ya agregado)' : ''}
+                                                </option>
+                                            );
+                                        })}
                                     </select>
+                                    {insumoSeleccionadoObj && origenMaterial === 'Taller' && (
+                                        <div style={{ fontSize: '0.75rem', color: stockMaxInsumo > 0 ? '#059669' : '#dc2626', fontWeight: 600, marginTop: '0.25rem' }}>
+                                            📦 Stock disponible en almacén: <strong>{stockMaxInsumo} {insumoSeleccionadoObj.unidad_medida || 'un'}</strong>
+                                            {stockMaxInsumo <= 0 && <span style={{ color: '#dc2626', marginLeft: '0.4rem' }}>[AGOTADO]</span>}
+                                        </div>
+                                    )}
                                 </div>
                                 <div style={{ flex: '1 1 90px' }}>
                                     <label style={{ fontSize: '0.78rem', color: 'var(--color-texto-secundario)' }}>Cantidad</label>
                                     <input 
-                                        type="number" 
-                                        step="0.1" 
-                                        min="0.1" 
+                                        type="text"
+                                        inputMode="decimal"
+                                        placeholder="1"
                                         value={insumoActualCantidad}
+                                        onKeyDown={blockMathKeys}
                                         onChange={(e) => setInsumoActualCantidad(filterPositiveDecimal(e.target.value))}
                                         style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid var(--color-borde)', fontSize: '0.85rem', boxSizing: 'border-box' }}
                                     />
@@ -589,23 +691,80 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                         <legend style={{ padding: '0 0.5rem', fontWeight: 600, color: 'var(--color-azul-oscuro)' }}>Fechas y Finanzas</legend>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
                             <div>
-                                <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Fecha de Entrega *</label>
-                                <input type="date" value={fechaEntrega} onChange={(e) => setFechaEntrega(e.target.value)} min={hoy} required style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid var(--color-borde)', boxSizing: 'border-box' }} />
+                                <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Fecha de Entrega (Límite Máximo) *</label>
+                                <input
+                                    type="date"
+                                    value={fechaEntrega}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setFechaEntrega(val);
+                                        if (fechaPrueba && val && new Date(fechaPrueba) > new Date(val)) {
+                                            setFechaPrueba(val);
+                                        }
+                                        setError('');
+                                    }}
+                                    min={fechaPrueba || hoy}
+                                    required
+                                    style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid var(--color-borde)', boxSizing: 'border-box' }}
+                                />
                             </div>
                             <div>
-                                <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Fecha de Prueba</label>
-                                <input type="date" value={fechaPrueba} onChange={(e) => setFechaPrueba(e.target.value)} min={hoy} style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid var(--color-borde)', boxSizing: 'border-box' }} />
+                                <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Fecha de Prueba (Opcional)</label>
+                                <input
+                                    type="date"
+                                    value={fechaPrueba}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (fechaEntrega && val && new Date(val) > new Date(fechaEntrega)) {
+                                            setError('La fecha de prueba no puede ser posterior a la fecha de entrega.');
+                                            return;
+                                        }
+                                        setError('');
+                                        setFechaPrueba(val);
+                                    }}
+                                    min={hoy}
+                                    max={fechaEntrega || undefined}
+                                    style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid var(--color-borde)', boxSizing: 'border-box' }}
+                                />
+                                {fechaEntrega && (
+                                    <small style={{ color: '#64748b', fontSize: '0.74rem' }}>
+                                        Límite: hasta {new Date(fechaEntrega + 'T00:00:00').toLocaleDateString('es-ES')}
+                                    </small>
+                                )}
                             </div>
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.2fr', gap: '0.8rem', marginTop: '0.8rem' }}>
                             <div>
                                 <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Costo Total (Bs.) *</label>
-                                <input type="number" step="0.01" min="0" value={costoTotal} onChange={(e) => setCostoTotal(filterPositiveDecimal(e.target.value))} required style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid var(--color-borde)', boxSizing: 'border-box' }} />
+                                <input
+                                    type="text"
+                                    inputMode="decimal"
+                                    placeholder="0.00"
+                                    value={costoTotal}
+                                    onKeyDown={blockMathKeys}
+                                    onChange={(e) => {
+                                        setCostoTotal(filterPositiveDecimal(e.target.value));
+                                        setError('');
+                                    }}
+                                    required
+                                    style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid var(--color-borde)', boxSizing: 'border-box' }}
+                                />
                             </div>
                             <div>
-                                <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Adelanto (Bs.)</label>
-                                <input type="number" step="0.01" min="0" value={adelanto} onChange={(e) => setAdelanto(filterPositiveDecimal(e.target.value))} style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid var(--color-borde)', boxSizing: 'border-box' }} />
+                                <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Adelanto Inicial (Bs.)</label>
+                                <input
+                                    type="text"
+                                    inputMode="decimal"
+                                    placeholder="0.00"
+                                    value={adelanto}
+                                    onKeyDown={blockMathKeys}
+                                    onChange={(e) => {
+                                        setAdelanto(filterPositiveDecimal(e.target.value));
+                                        setError('');
+                                    }}
+                                    style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid var(--color-borde)', boxSizing: 'border-box' }}
+                                />
                             </div>
                             <div>
                                 <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Metodo de Adelanto</label>

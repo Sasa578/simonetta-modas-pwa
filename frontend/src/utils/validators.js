@@ -34,18 +34,46 @@ export const filterCI = (val) => {
 };
 
 /**
- * Permite únicamente números positivos y hasta un solo punto decimal.
- * Bloquea letras, signos negativos y múltiples puntos.
+ * Permite únicamente dígitos (0-9) y un solo separador decimal (punto o coma).
+ * Bloquea tajantemente operadores matemáticos (+, -, *, /, e, E) y letras.
  * Ideal para: montos de dinero, adelantos, precios, medidas anatómicas.
  */
 export const filterPositiveDecimal = (val) => {
-    if (typeof val !== 'string' && typeof val !== 'number') return '';
-    const str = String(val).replace(/[^0-9.]/g, '');
-    const parts = str.split('.');
-    if (parts.length > 2) {
-        return `${parts[0]}.${parts.slice(1).join('')}`;
+    if (val === undefined || val === null || val === '') return '';
+    let str = String(val);
+    
+    // 1. Eliminar operadores matemáticos y caracteres no numéricos
+    str = str.replace(/[+-*/eE]/g, '');
+    str = str.replace(/[^0-9.,]/g, '');
+
+    // 2. Controlar máximo un separador decimal (sea punto o coma)
+    const firstSepMatch = str.match(/[.,]/);
+    if (firstSepMatch) {
+        const sep = firstSepMatch[0];
+        const parts = str.split(/[.,]/);
+        return `${parts[0]}${sep}${parts.slice(1).join('')}`;
     }
+
     return str;
+};
+
+/**
+ * Convierte una cadena numérica (con coma o punto) a número flotante JavaScript.
+ */
+export const parseDecimalString = (val) => {
+    if (val === undefined || val === null || val === '') return 0;
+    const str = String(val).replace(',', '.').trim();
+    const num = parseFloat(str);
+    return isNaN(num) ? 0 : num;
+};
+
+/**
+ * Event handler para onKeyDown: bloquea teclas matemáticas en inputs numéricos.
+ */
+export const blockMathKeys = (e) => {
+    if (['+', '-', '*', '/', 'e', 'E'].includes(e.key)) {
+        e.preventDefault();
+    }
 };
 
 /**

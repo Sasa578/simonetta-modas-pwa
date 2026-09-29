@@ -30,12 +30,20 @@ const AdminPedidos = () => {
         cargarPedidos();
     }, []);
 
+    const usuarioActual = JSON.parse(localStorage.getItem('usuario') || '{}');
+    const rolActual = usuarioActual.rol || usuarioActual.nombre_rol || '';
+    const esSecretaria = rolActual === 'Secretaria';
+
     const actualizarEstado = async (id, nuevoEstado) => {
         try {
             await api.put(`/pedidos/${id}/estado`, { estado: nuevoEstado });
+            setMsg('');
             cargarPedidos();
-        } catch {
-            alert('Error al actualizar estado del pedido');
+        } catch (err) {
+            const mensajeError = err.response?.data?.error || 'Error al actualizar estado del pedido.';
+            setMsg(mensajeError);
+            alert(mensajeError);
+            cargarPedidos(); // Reestablecer estado previo en el select
         }
     };
 
@@ -185,25 +193,37 @@ const AdminPedidos = () => {
                                         <td>
                                             <select
                                                 value={p.estado}
+                                                disabled={esSecretaria && p.estado !== 'Terminado'}
                                                 onChange={(e) => actualizarEstado(p.id_pedido, e.target.value)}
+                                                title={
+                                                    esSecretaria && p.estado !== 'Terminado'
+                                                        ? 'Pedido en confección a cargo de la costurera. Solo se puede entregar cuando la costurera lo marque como Terminado.'
+                                                        : 'Cambiar estado del pedido'
+                                                }
                                                 style={{
-                                                    padding: '0.3rem 0.5rem',
+                                                    padding: '0.35rem 0.5rem',
                                                     borderRadius: '6px',
                                                     border: '1px solid var(--color-borde)',
                                                     fontSize: '0.8rem',
                                                     fontWeight: 600,
-                                                    background: p.estado === 'Entregado' ? '#f0fdf4' : p.estado === 'Terminado' ? '#eff6ff' : '#fff',
-                                                    color: p.estado === 'Entregado' ? '#166534' : 'inherit'
+                                                    background: p.estado === 'Entregado' ? '#f0fdf4' : p.estado === 'Terminado' ? '#eff6ff' : (esSecretaria && p.estado !== 'Terminado' ? '#f8fafc' : '#fff'),
+                                                    color: p.estado === 'Entregado' ? '#166534' : p.estado === 'Terminado' ? '#1d4ed8' : (esSecretaria && p.estado !== 'Terminado' ? '#64748b' : 'inherit'),
+                                                    cursor: (esSecretaria && p.estado !== 'Terminado') ? 'not-allowed' : 'pointer',
+                                                    opacity: (esSecretaria && p.estado !== 'Terminado') ? 0.85 : 1
                                                 }}
                                             >
-                                                <option value="Pendiente">Pendiente</option>
-                                                <option value="Corte">Corte</option>
-                                                <option value="Armado">Armado</option>
-                                                <option value="Prueba">Prueba</option>
-                                                <option value="Terminado">Terminado</option>
-                                                <option value="Entregado">Entregado</option>
+                                                <option value="Pendiente" disabled={esSecretaria}>Pendiente</option>
+                                                <option value="En Confección" disabled={esSecretaria}>En Confección</option>
+                                                <option value="Prueba" disabled={esSecretaria}>Prueba</option>
+                                                <option value="Terminado" disabled={esSecretaria}>Terminado</option>
+                                                <option value="Entregado" disabled={esSecretaria && p.estado !== 'Terminado'}>Entregado</option>
                                                 <option value="Cancelado">Cancelado</option>
                                             </select>
+                                            {esSecretaria && p.estado !== 'Terminado' && (
+                                                <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: '0.15rem' }}>
+                                                    🧵 En Taller ({p.costurera || 'Costurera'})
+                                                </div>
+                                            )}
                                         </td>
                                         <td>
                                             <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center', flexWrap: 'wrap' }}>
