@@ -136,7 +136,15 @@ const crearPedido = async (req, res) => {
         });
     } catch (error) {
         console.error('Error al crear pedido:', error);
-        return res.status(500).json({ error: 'Error interno del servidor al crear pedido.' });
+        if (error.message && (
+            error.message.includes('Stock insuficiente') ||
+            error.message.includes('duplicados') ||
+            error.message.includes('costurera') ||
+            error.message.includes('fecha')
+        )) {
+            return res.status(400).json({ error: error.message });
+        }
+        return res.status(500).json({ error: error.message || 'Error interno del servidor al crear pedido.' });
     }
 };
 
