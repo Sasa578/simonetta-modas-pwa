@@ -28,7 +28,7 @@ const AlmacenModel = {
     obtenerInventario: async () => {
         const query = `
             SELECT pa.id_producto, pa.id_producto as id_material,
-                   pa.nombre_articulo, pa.nombre_articulo as nombre_material, pa.nombre_articulo as producto,
+                   pa.nombre_articulo, pa.nombre_articulo as nombre_material, pa.nombre_articulo as nombre_producto, pa.nombre_articulo as producto,
                    pa.cantidad_stock, pa.cantidad_stock as cantidad_actual, pa.cantidad_stock as stock,
                    pa.stock_minimo, pa.stock_minimo as minimo,
                    -- Catálogos
@@ -68,7 +68,7 @@ const AlmacenModel = {
      */
     buscarPorId: async (id) => {
         const query = `
-            SELECT pa.id_producto, pa.nombre_articulo, pa.cantidad_stock, pa.stock_minimo,
+            SELECT pa.id_producto, pa.id_producto as id_material, pa.nombre_articulo, pa.nombre_articulo as nombre_producto, pa.nombre_articulo as nombre_material, pa.cantidad_stock, pa.stock_minimo,
                    tp.id_tipo_producto, tp.nombre_tipo,
                    ca.id_categoria, ca.nombre_categoria,
                    um.id_unidad_medida, um.abreviatura as unidad_medida,
@@ -142,6 +142,7 @@ const AlmacenModel = {
 
             // Extraer características unificadas
             const cPrincipal = caracteristica_principal || 
+                               especificaciones.caracteristica_principal ||
                                especificaciones.textura || 
                                especificaciones.tipo_boton || 
                                especificaciones.tipo_hilo || 
@@ -149,12 +150,14 @@ const AlmacenModel = {
                                'Estándar';
 
             const cSecundaria = caracteristica_secundaria || 
+                                especificaciones.caracteristica_secundaria ||
                                 especificaciones.calidad || 
                                 especificaciones.tamano || 
                                 especificaciones.grosor || 
                                 '';
 
             const obsTecnicas = observaciones_tecnicas || 
+                                especificaciones.observaciones_tecnicas ||
                                 especificaciones.observaciones || 
                                 '';
 

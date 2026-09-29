@@ -5,7 +5,9 @@ const NotaVentaModel = {
      * Genera una fotografía inmutable (Nota de Venta) para un pedido finalizado o entregado.
      * Si la nota ya fue emitida con anterioridad, se devuelve el registro existente sin alterar montos.
      */
-    generarNotaVenta: async ({ id_pedido, id_descuento = null }) => {
+    generarNotaVenta: async (arg1, arg2 = null) => {
+        const id_pedido = (typeof arg1 === 'object' && arg1 !== null) ? arg1.id_pedido : arg1;
+        const id_descuento = (typeof arg1 === 'object' && arg1 !== null) ? arg1.id_descuento : arg2;
         const client = await db.pool.connect();
         try {
             await client.query('BEGIN');

@@ -16,6 +16,8 @@ describe('Auth API (Integration)', () => {
     const testPassword = 'password_seguro';
 
     beforeAll(async () => {
+        await db.query("DELETE FROM datos_usuario WHERE id_usuario IN (SELECT id_usuario FROM usuarios WHERE correo_electronico LIKE 'test_%')");
+        await db.query("DELETE FROM usuarios WHERE correo_electronico LIKE 'test_%'");
         // Crear un usuario real en BD para probar login
         const user = await UsuarioModel.crear({
             correo: testEmail,
@@ -30,6 +32,7 @@ describe('Auth API (Integration)', () => {
     afterAll(async () => {
         // Limpiar usuario de prueba
         if (testUserId) {
+            await db.query('DELETE FROM datos_usuario WHERE id_usuario = $1', [testUserId]);
             await db.query('DELETE FROM usuarios WHERE id_usuario = $1', [testUserId]);
         }
     });
