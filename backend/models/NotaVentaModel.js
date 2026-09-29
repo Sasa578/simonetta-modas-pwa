@@ -101,7 +101,7 @@ const NotaVentaModel = {
                    dcp.telefono as cliente_telefono,
                    dci.nit, dci.nombre_contacto, dci.telefono_contacto,
                    -- Prenda
-                   pr.tipo_prenda, pr.color,
+                   COALESCE(tp.nombre_tipo, 'Prenda a Medida') as tipo_prenda, COALESCE(tp.nombre_tipo, 'Prenda a Medida') as prenda, COALESCE(col.nombre_color, 'Color Personalizado') as color, col.codigo_hexadecimal,
                    dp.cantidad, dp.subtotal as subtotal_prenda,
                    nd.notas_diseno,
                    -- Pagos acumulados
@@ -118,7 +118,7 @@ const NotaVentaModel = {
                 SELECT id_detalle, id_prenda, cantidad, subtotal
                 FROM detalle_pedido WHERE id_pedido = p.id_pedido LIMIT 1
             ) dp ON true
-            LEFT JOIN prendas pr ON dp.id_prenda = pr.id_prenda
+            LEFT JOIN prendas pr ON dp.id_prenda = pr.id_prenda LEFT JOIN tipos_prenda tp ON pr.id_tipo_prenda = tp.id_tipo_prenda LEFT JOIN colores col ON pr.id_color = col.id_color
             LEFT JOIN notas_diseno_detalle nd ON dp.id_detalle = nd.id_detalle
             LEFT JOIN (
                 SELECT id_pedido, SUM(monto_pago) as total_pagado FROM pagos GROUP BY id_pedido
@@ -150,7 +150,7 @@ const NotaVentaModel = {
                    cl.correo_electronico as cliente_correo,
                    tc.nombre_tipo as tipo_cliente,
                    d.nombre_descuento, d.porcentaje as porcentaje_descuento,
-                   pr.tipo_prenda as prenda,
+                   COALESCE(tp.nombre_tipo, 'Prenda a Medida') as prenda,
                    ep.nombre_estado as estado_pedido
             FROM notas_venta nv
             JOIN pedidos p ON nv.id_pedido = p.id_pedido
@@ -163,7 +163,7 @@ const NotaVentaModel = {
             LEFT JOIN LATERAL (
                 SELECT id_prenda FROM detalle_pedido WHERE id_pedido = p.id_pedido LIMIT 1
             ) dp ON true
-            LEFT JOIN prendas pr ON dp.id_prenda = pr.id_prenda
+            LEFT JOIN prendas pr ON dp.id_prenda = pr.id_prenda LEFT JOIN tipos_prenda tp ON pr.id_tipo_prenda = tp.id_tipo_prenda LEFT JOIN colores col ON pr.id_color = col.id_color
             ORDER BY nv.fecha_emision DESC, nv.id_nota_venta DESC;
         `;
         const res = await db.query(query);

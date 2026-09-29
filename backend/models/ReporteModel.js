@@ -40,7 +40,7 @@ const ReporteModel = {
                    COALESCE(NULLIF(TRIM(CONCAT(dcp.nombre, ' ', dcp.apellido)), ''), dci.razon_social, 'Cliente Particular') as cliente,
                    COALESCE(dcp.telefono, dci.telefono_contacto, '') as telefono_cliente,
                    cl.correo_electronico as correo_cliente,
-                   pr.tipo_prenda as prenda, pr.color,
+                   COALESCE(tp.nombre_tipo, 'Prenda a Medida') as prenda, COALESCE(tp.nombre_tipo, 'Prenda a Medida') as tipo_prenda, COALESCE(col.nombre_color, 'Color Personalizado') as color, col.codigo_hexadecimal,
                    COALESCE(NULLIF(TRIM(CONCAT(du_cost.nombre, ' ', du_cost.apellido)), ''), u_cost.correo_electronico, 'Taller Simonetta') as costurera,
                    COALESCE(pagos_res.total_pagado, 0) as total_pagado,
                    GREATEST(0, p.costo_total - COALESCE(pagos_res.total_pagado, 0)) as saldo
@@ -54,7 +54,7 @@ const ReporteModel = {
             LEFT JOIN LATERAL (
                 SELECT dp.id_prenda FROM detalle_pedido dp WHERE dp.id_pedido = p.id_pedido ORDER BY dp.id_detalle ASC LIMIT 1
             ) det ON true
-            LEFT JOIN prendas pr ON det.id_prenda = pr.id_prenda
+            LEFT JOIN prendas pr ON det.id_prenda = pr.id_prenda LEFT JOIN tipos_prenda tp ON pr.id_tipo_prenda = tp.id_tipo_prenda LEFT JOIN colores col ON pr.id_color = col.id_color
             LEFT JOIN (
                 SELECT id_pedido, SUM(monto_pago) as total_pagado FROM pagos GROUP BY id_pedido
             ) pagos_res ON p.id_pedido = pagos_res.id_pedido
@@ -103,7 +103,7 @@ const ReporteModel = {
                    COALESCE(NULLIF(TRIM(CONCAT(dcp.nombre, ' ', dcp.apellido)), ''), dci.razon_social, 'Cliente') as cliente,
                    COALESCE(dcp.telefono, dci.telefono_contacto, 'Sin teléfono') as telefono,
                    cl.correo_electronico as correo,
-                   pr.tipo_prenda as prenda,
+                   COALESCE(tp.nombre_tipo, 'Prenda a Medida') as prenda,
                    ep.nombre_estado as estado
             FROM pedidos p
             JOIN estados_pedido ep ON p.id_estado_pedido = ep.id_estado_pedido
@@ -113,7 +113,7 @@ const ReporteModel = {
             LEFT JOIN LATERAL (
                 SELECT id_prenda FROM detalle_pedido WHERE id_pedido = p.id_pedido LIMIT 1
             ) dp ON true
-            LEFT JOIN prendas pr ON dp.id_prenda = pr.id_prenda
+            LEFT JOIN prendas pr ON dp.id_prenda = pr.id_prenda LEFT JOIN tipos_prenda tp ON pr.id_tipo_prenda = tp.id_tipo_prenda LEFT JOIN colores col ON pr.id_color = col.id_color
             LEFT JOIN (
                 SELECT id_pedido, SUM(monto_pago) as total_pagado FROM pagos GROUP BY id_pedido
             ) pagos_res ON p.id_pedido = pagos_res.id_pedido
@@ -215,7 +215,7 @@ const ReporteModel = {
                    -- Costurera
                    COALESCE(NULLIF(TRIM(CONCAT(du_cost.nombre, ' ', du_cost.apellido)), ''), u_cost.correo_electronico, 'Taller Simonetta Modas') as costurera,
                    -- Prenda principal
-                   pr.id_prenda, pr.tipo_prenda as prenda, pr.color,
+                   pr.id_prenda, COALESCE(tp.nombre_tipo, 'Prenda a Medida') as prenda, COALESCE(tp.nombre_tipo, 'Prenda a Medida') as tipo_prenda, COALESCE(col.nombre_color, 'Color Personalizado') as color, col.codigo_hexadecimal,
                    dp.id_detalle,
                    nd.notas_diseno,
                    -- Medidas Convencionales
@@ -232,7 +232,7 @@ const ReporteModel = {
             LEFT JOIN LATERAL (
                 SELECT dp.id_detalle, dp.id_prenda FROM detalle_pedido dp WHERE dp.id_pedido = p.id_pedido ORDER BY dp.id_detalle ASC LIMIT 1
             ) dp ON true
-            LEFT JOIN prendas pr ON dp.id_prenda = pr.id_prenda
+            LEFT JOIN prendas pr ON dp.id_prenda = pr.id_prenda LEFT JOIN tipos_prenda tp ON pr.id_tipo_prenda = tp.id_tipo_prenda LEFT JOIN colores col ON pr.id_color = col.id_color
             LEFT JOIN notas_diseno_detalle nd ON dp.id_detalle = nd.id_detalle
             LEFT JOIN medidas_convencionales mc ON dp.id_detalle = mc.id_detalle
             LEFT JOIN medidas_anatomicas ma ON dp.id_detalle = ma.id_detalle

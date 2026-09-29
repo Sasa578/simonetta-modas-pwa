@@ -117,13 +117,17 @@ const crearPedido = async (req, res) => {
 // GET /api/pedidos/catalogos
 const obtenerCatalogos = async (req, res) => {
     try {
-        const [estados, metodos] = await Promise.all([
+        const [estados, metodos, tiposPrenda, colores] = await Promise.all([
             db.query('SELECT id_estado_pedido, nombre_estado FROM estados_pedido ORDER BY id_estado_pedido'),
-            db.query('SELECT id_metodo_pago, nombre_metodo FROM metodos_pago WHERE id_metodo_pago IN (1, 2) ORDER BY id_metodo_pago')
+            db.query('SELECT id_metodo_pago, nombre_metodo FROM metodos_pago WHERE id_metodo_pago IN (1, 2) ORDER BY id_metodo_pago'),
+            db.query('SELECT id_tipo_prenda, nombre_tipo FROM tipos_prenda ORDER BY id_tipo_prenda'),
+            db.query('SELECT id_color, nombre_color, codigo_hexadecimal FROM colores ORDER BY id_color')
         ]);
         res.json({
             estados: estados.rows,
-            metodos_pago: metodos.rows
+            metodos_pago: metodos.rows,
+            tipos_prenda: tiposPrenda.rows,
+            colores: colores.rows
         });
     } catch (error) {
         console.error('Error al obtener catálogos de pedidos:', error);
