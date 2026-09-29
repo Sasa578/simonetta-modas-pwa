@@ -152,7 +152,22 @@ const AdminPedidos = () => {
                                         </td>
                                         <td>
                                             <div style={{ fontWeight: 500 }}>{p.prenda || 'Prenda a Medida'}</div>
-                                            {p.color && <small style={{ color: 'var(--color-texto-secundario)' }}>🎨 {p.color}</small>}
+                                            {p.color && (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.2rem' }}>
+                                                    {p.codigo_hexadecimal && (
+                                                        <span style={{
+                                                            display: 'inline-block',
+                                                            width: '11px',
+                                                            height: '11px',
+                                                            borderRadius: '50%',
+                                                            backgroundColor: p.codigo_hexadecimal,
+                                                            border: '1px solid rgba(0,0,0,0.2)',
+                                                            flexShrink: 0
+                                                        }} />
+                                                    )}
+                                                    <small style={{ color: 'var(--color-texto-secundario)', fontSize: '0.78rem' }}>{p.color}</small>
+                                                </div>
+                                            )}
                                         </td>
                                         <td style={{ fontWeight: 'bold' }}>{formatBs(p.costo_total)}</td>
                                         <td style={{ color: 'var(--color-verde)', fontWeight: 600 }}>{formatBs(p.adelanto)}</td>

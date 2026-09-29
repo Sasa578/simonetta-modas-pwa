@@ -1,3 +1,4 @@
+import ColorPickerHoneycomb, { COLORES_ALTA_COSTURA } from './ColorPickerHoneycomb';
 import { filterPositiveDecimal, filterLetters } from '../utils/validators';
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
@@ -21,9 +22,27 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
     const [adelanto, setAdelanto] = useState('');
     const [idMetodoPago, setIdMetodoPago] = useState(1);
 
-    // --- Prenda & Diseño ---
-    const [tipoPrenda, setTipoPrenda] = useState('');
-    const [colorPrenda, setColorPrenda] = useState('');
+    // --- Catálogos V2 (Prendas y Colores) ---
+    const [tiposPrenda, setTiposPrenda] = useState([
+        { id_tipo_prenda: 1, nombre_tipo: 'Vestido de Gala / Noche' },
+        { id_tipo_prenda: 2, nombre_tipo: 'Vestido de Novia' },
+        { id_tipo_prenda: 3, nombre_tipo: 'Vestido de 15 Años' },
+        { id_tipo_prenda: 4, nombre_tipo: 'Traje Sastre Dama' },
+        { id_tipo_prenda: 5, nombre_tipo: 'Traje Sastre Caballero' },
+        { id_tipo_prenda: 6, nombre_tipo: 'Corset de Alta Costura' },
+        { id_tipo_prenda: 7, nombre_tipo: 'Pollera Tradicional' },
+        { id_tipo_prenda: 8, nombre_tipo: 'Blusa de Seda / Fiesta' },
+        { id_tipo_prenda: 9, nombre_tipo: 'Falda Plisada / Tubo' },
+        { id_tipo_prenda: 10, nombre_tipo: 'Abrigo / Chaqueta de Paño' }
+    ]);
+    const [colores, setColores] = useState(COLORES_ALTA_COSTURA);
+
+    // --- Prenda & Diseño (V2) ---
+    const [idTipoPrenda, setIdTipoPrenda] = useState(1);
+    const [tipoPrenda, setTipoPrenda] = useState('Vestido de Gala / Noche');
+    const [idColor, setIdColor] = useState(1);
+    const [colorPrenda, setColorPrenda] = useState('Negro Azabache');
+    const [codigoHex, setCodigoHex] = useState('#111111');
     const [notasDiseno, setNotasDiseno] = useState('');
 
     // --- Medidas por Pedido (Excluyente: Convencional vs Personalizada) ---
@@ -70,11 +89,12 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
 
     const cargarDatos = async () => {
         try {
-            const [resClientes, resUsuarios, resAlmacen, resPagos] = await Promise.all([
+            const [resClientes, resUsuarios, resAlmacen, resPagos, resCatalogosPedidos] = await Promise.all([
                 api.get('/clientes'),
                 api.get('/usuarios/costureras'),
                 api.get('/almacen'),
-                api.get('/pagos/catalogos')
+                api.get('/pagos/catalogos'),
+                api.get('/pedidos/catalogos').catch(() => ({ data: {} }))
             ]);
             setClientes(resClientes.data || []);
             setCostureras(resUsuarios.data || []);
@@ -192,8 +212,10 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                 costo_total: costo,
                 adelanto: adelantoFloat,
                 id_metodo_pago: Number(idMetodoPago),
-                tipo_prenda: tipoPrenda.trim(),
-                color: colorPrenda.trim() || 'A elección',
+                id_tipo_prenda: idTipoPrenda ? Number(idTipoPrenda) : 1,
+                tipo_prenda: tipoPrenda.trim() || 'Vestido de Gala / Noche',
+                id_color: idColor ? Number(idColor) : 1,
+                color: colorPrenda.trim() || 'Negro Azabache',
                 notas_diseno: notasTotales,
                 talla: tallaFinal,
                 medidas_anatomicas: medidasPayload,
@@ -281,26 +303,53 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                     {/* 2. Prenda & Diseño */}
                     <fieldset style={{ border: '1px solid var(--color-borde)', padding: '1.2rem', borderRadius: '8px' }}>
                         <legend style={{ padding: '0 0.5rem', fontWeight: 600, color: 'var(--color-azul-oscuro)' }}>Prenda y Detalles de Diseno</legend>
-                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                            <div style={{ flex: '2 1 220px', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                                <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Tipo de Prenda *</label>
-                                <input
-                                    type="text"
-                                    placeholder="Ej: Vestido de Gala, Traje Sastre, Blusa de Seda"
-                                    value={tipoPrenda}
-                                    onChange={(e) => setTipoPrenda(filterLetters(e.target.value))}
+                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-start', marginTop: '0.5rem' }}>
+                            <div style={{ flex: '1 1 240px', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                                <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-azul-oscuro)' }}>
+                                    Tipo de Prenda (Catálogo Preestablecido) *
+                                </label>
+                                <select
+                                    value={idTipoPrenda}
+                                    onChange={(e) => {
+                                        const val = Number(e.target.value);
+                                        setIdTipoPrenda(val);
+                                        const tp = tiposPrenda.find(t => t.id_tipo_prenda === val);
+                                        if (tp) setTipoPrenda(tp.nombre_tipo);
+                                    }}
                                     required
-                                    style={{ padding: '0.65rem', borderRadius: '6px', border: '1px solid var(--color-borde)' }}
-                                />
+                                    style={{
+                                        padding: '0.65rem',
+                                        borderRadius: '8px',
+                                        border: '1.5px solid var(--color-borde)',
+                                        background: '#ffffff',
+                                        fontWeight: 600,
+                                        color: '#1e293b',
+                                        fontSize: '0.9rem',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    {tiposPrenda.map(tp => (
+                                        <option key={tp.id_tipo_prenda} value={tp.id_tipo_prenda}>
+                                            👗 {tp.nombre_tipo}
+                                        </option>
+                                    ))}
+                                </select>
+                                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                                    Prenda seleccionada: <strong>{tipoPrenda}</strong>
+                                </span>
                             </div>
-                            <div style={{ flex: '1 1 150px', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                                <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Color de Prenda</label>
-                                <input
-                                    type="text"
-                                    placeholder="Ej: Rojo Borgoña, Negro, Marfil"
-                                    value={colorPrenda}
-                                    onChange={(e) => setColorPrenda(filterLetters(e.target.value))}
-                                    style={{ padding: '0.65rem', borderRadius: '6px', border: '1px solid var(--color-borde)' }}
+
+                            <div style={{ flex: '1 1 270px', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                                <ColorPickerHoneycomb
+                                    value={idColor}
+                                    onChange={(col) => {
+                                        setIdColor(col.id_color);
+                                        setColorPrenda(col.nombre_color);
+                                        setCodigoHex(col.codigo_hexadecimal);
+                                    }}
+                                    coloresList={colores}
+                                    label="Color de Prenda (Paleta Panal de Abeja)"
+                                    required
                                 />
                             </div>
                         </div>

@@ -1,3 +1,4 @@
+import ColorPickerHoneycomb from './ColorPickerHoneycomb';
 import { filterPositiveDecimal } from '../utils/validators';
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
@@ -20,15 +21,10 @@ const ModalAlmacen = ({ isOpen, onClose, onSuccess, materialEdit = null }) => {
         id_unidad_medida: '',
         id_color: '',
         id_material_base: '',
-        // Especificaciones
-        tela_textura: '',
-        tela_calidad: '',
-        tipo_boton: '',
-        boton_tamano: '',
-        tipo_hilo: '',
-        hilo_grosor: '',
-        tipo_cierre: '',
-        cierre_tamano: ''
+        // Especificaciones Técnicas Unificadas (V2)
+        caracteristica_principal: '',
+        caracteristica_secundaria: '',
+        observaciones_tecnicas: ''
     });
 
     const [cargando, setCargando] = useState(false);
@@ -55,14 +51,9 @@ const ModalAlmacen = ({ isOpen, onClose, onSuccess, materialEdit = null }) => {
                     id_unidad_medida: materialEdit.id_unidad_medida || '',
                     id_color: materialEdit.id_color || '',
                     id_material_base: materialEdit.id_material_base || '',
-                    tela_textura: materialEdit.tela_textura || '',
-                    tela_calidad: materialEdit.tela_calidad || '',
-                    tipo_boton: materialEdit.tipo_boton || '',
-                    boton_tamano: materialEdit.boton_tamano || '',
-                    tipo_hilo: materialEdit.tipo_hilo || '',
-                    hilo_grosor: materialEdit.hilo_grosor || '',
-                    tipo_cierre: materialEdit.tipo_cierre || '',
-                    cierre_tamano: materialEdit.cierre_tamano || ''
+                    caracteristica_principal: materialEdit.caracteristica_principal || materialEdit.tela_textura || materialEdit.tipo_boton || materialEdit.tipo_hilo || materialEdit.tipo_cierre || '',
+                    caracteristica_secundaria: materialEdit.caracteristica_secundaria || materialEdit.tela_calidad || materialEdit.boton_tamano || materialEdit.hilo_grosor || materialEdit.cierre_tamano || '',
+                    observaciones_tecnicas: materialEdit.observaciones_tecnicas || ''
                 });
             } else {
                 const defaultCat = data.categorias[0]?.id_categoria || '';
@@ -76,14 +67,9 @@ const ModalAlmacen = ({ isOpen, onClose, onSuccess, materialEdit = null }) => {
                     id_unidad_medida: data.unidades[0]?.id_unidad_medida || '',
                     id_color: '',
                     id_material_base: '',
-                    tela_textura: '',
-                    tela_calidad: '',
-                    tipo_boton: '',
-                    boton_tamano: '',
-                    tipo_hilo: '',
-                    hilo_grosor: '',
-                    tipo_cierre: '',
-                    cierre_tamano: ''
+                    caracteristica_principal: '',
+                    caracteristica_secundaria: '',
+                    observaciones_tecnicas: ''
                 });
             }
             setError('');
@@ -114,20 +100,11 @@ const ModalAlmacen = ({ isOpen, onClose, onSuccess, materialEdit = null }) => {
         setCargando(true);
 
         try {
-            const especificaciones = {};
-            if (nombreCat.includes('tela')) {
-                if (form.tela_textura) especificaciones.textura = form.tela_textura;
-                if (form.tela_calidad) especificaciones.calidad = form.tela_calidad;
-            } else if (nombreCat.includes('botón') || nombreCat.includes('boton')) {
-                if (form.tipo_boton) especificaciones.tipo_boton = form.tipo_boton;
-                if (form.boton_tamano) especificaciones.tamano = form.boton_tamano;
-            } else if (nombreCat.includes('hilo')) {
-                if (form.tipo_hilo) especificaciones.tipo_hilo = form.tipo_hilo;
-                if (form.hilo_grosor) especificaciones.grosor = form.hilo_grosor;
-            } else if (nombreCat.includes('cierre')) {
-                if (form.tipo_cierre) especificaciones.tipo_cierre = form.tipo_cierre;
-                if (form.cierre_tamano) especificaciones.tamano = form.cierre_tamano;
-            }
+            const especificaciones = {
+                caracteristica_principal: form.caracteristica_principal || '',
+                caracteristica_secundaria: form.caracteristica_secundaria || '',
+                observaciones_tecnicas: form.observaciones_tecnicas || ''
+            };
 
             const payload = {
                 nombre_articulo: form.nombre_articulo,
@@ -284,24 +261,17 @@ const ModalAlmacen = ({ isOpen, onClose, onSuccess, materialEdit = null }) => {
                         </div>
                     </div>
 
-                    {/* COLOR Y MATERIAL BASE */}
-                    <div style={{ display: 'flex', gap: '0.8rem' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                            <label style={labelStyle}>Color</label>
-                            <select
+                    {/* COLOR (PANAL DE ABEJA) Y MATERIAL BASE */}
+                    <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'flex-start' }}>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                            <ColorPickerHoneycomb
                                 value={form.id_color}
-                                onChange={(e) => setForm({ ...form, id_color: e.target.value })}
-                                style={inputStyle}
-                            >
-                                <option value="">(Opcional - Sin color)</option>
-                                {catalogos.colores.map(c => (
-                                    <option key={c.id_color} value={c.id_color}>
-                                        {c.nombre_color}
-                                    </option>
-                                ))}
-                            </select>
+                                onChange={(col) => setForm({ ...form, id_color: col.id_color })}
+                                coloresList={catalogos.colores}
+                                label="Color Asociado (Panal de Abeja)"
+                            />
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                             <label style={labelStyle}>Material Base</label>
                             <select
                                 value={form.id_material_base}
@@ -318,70 +288,59 @@ const ModalAlmacen = ({ isOpen, onClose, onSuccess, materialEdit = null }) => {
                         </div>
                     </div>
 
-                    {/* SECCIÓN DE ESPECIFICACIONES CUALITATIVAS SEGÚN CATEGORÍA */}
-                    {nombreCat.includes('tela') && (
-                        <div style={{ background: '#F8FAFC', padding: '0.8rem', borderRadius: '10px', border: '1px dashed #CBD5E1', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}> Especificaciones de Tela:</span>
-                            <div style={{ display: 'flex', gap: '0.8rem' }}>
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                    <label style={labelStyle}>Textura</label>
-                                    <input type="text" placeholder="Ej. Sarga diagonal, Lisa" value={form.tela_textura} onChange={(e) => setForm({ ...form, tela_textura: e.target.value })} style={inputStyle} />
-                                </div>
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                    <label style={labelStyle}>Calidad</label>
-                                    <input type="text" placeholder="Ej. Alta densidad, Premium" value={form.tela_calidad} onChange={(e) => setForm({ ...form, tela_calidad: e.target.value })} style={inputStyle} />
-                                </div>
-                            </div>
+                    {/* FICHA TÉCNICA UNIFICADA (detalles_tecnicos_producto - V2) */}
+                    <div style={{
+                        background: '#F8FAFC',
+                        padding: '1rem',
+                        borderRadius: '10px',
+                        border: '1.5px solid #E2E8F0',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.75rem'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-azul-oscuro, #455E8B)' }}>
+                                📋 Ficha Técnica y Especificaciones de Almacén
+                            </span>
+                            <span style={{ fontSize: '0.72rem', background: '#E2E8F0', padding: '0.1rem 0.5rem', borderRadius: '12px', color: '#475569', fontWeight: 600 }}>
+                                detalles_tecnicos_producto
+                            </span>
                         </div>
-                    )}
 
-                    {(nombreCat.includes('botón') || nombreCat.includes('boton')) && (
-                        <div style={{ background: '#F8FAFC', padding: '0.8rem', borderRadius: '10px', border: '1px dashed #CBD5E1', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}> Especificaciones de Botones:</span>
-                            <div style={{ display: 'flex', gap: '0.8rem' }}>
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                    <label style={labelStyle}>Tipo de Botón</label>
-                                    <input type="text" placeholder="Ej. 4 Ojales sastrería" value={form.tipo_boton} onChange={(e) => setForm({ ...form, tipo_boton: e.target.value })} style={inputStyle} />
-                                </div>
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                    <label style={labelStyle}>Tamaño / Calibre</label>
-                                    <input type="text" placeholder="Ej. 24L (15mm)" value={form.boton_tamano} onChange={(e) => setForm({ ...form, boton_tamano: e.target.value })} style={inputStyle} />
-                                </div>
+                        <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
+                            <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column' }}>
+                                <label style={labelStyle}>Característica Principal (Textura / Calibre / Tipo)</label>
+                                <input
+                                    type="text"
+                                    placeholder="Ej. Sarga diagonal, 4 Ojales, Metálico #5"
+                                    value={form.caracteristica_principal}
+                                    onChange={(e) => setForm({ ...form, caracteristica_principal: e.target.value })}
+                                    style={inputStyle}
+                                />
+                            </div>
+                            <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column' }}>
+                                <label style={labelStyle}>Característica Secundaria (Calidad / Grosor / Tamaño)</label>
+                                <input
+                                    type="text"
+                                    placeholder="Ej. Alta densidad, No. 40, Longitud 35cm"
+                                    value={form.caracteristica_secundaria}
+                                    onChange={(e) => setForm({ ...form, caracteristica_secundaria: e.target.value })}
+                                    style={inputStyle}
+                                />
                             </div>
                         </div>
-                    )}
 
-                    {nombreCat.includes('hilo') && (
-                        <div style={{ background: '#F8FAFC', padding: '0.8rem', borderRadius: '10px', border: '1px dashed #CBD5E1', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}> Especificaciones de Hilos:</span>
-                            <div style={{ display: 'flex', gap: '0.8rem' }}>
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                    <label style={labelStyle}>Tipo de Hilo</label>
-                                    <input type="text" placeholder="Ej. Mercerizado, Coselotodo" value={form.tipo_hilo} onChange={(e) => setForm({ ...form, tipo_hilo: e.target.value })} style={inputStyle} />
-                                </div>
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                    <label style={labelStyle}>Grosor</label>
-                                    <input type="text" placeholder="Ej. No. 40, No. 120" value={form.hilo_grosor} onChange={(e) => setForm({ ...form, hilo_grosor: e.target.value })} style={inputStyle} />
-                                </div>
-                            </div>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <label style={labelStyle}>Observaciones Técnicas y Recomendaciones de Taller</label>
+                            <textarea
+                                rows="2"
+                                placeholder="Ej. Lavado en seco, resistente al calor, apto para vestidos de noche..."
+                                value={form.observaciones_tecnicas}
+                                onChange={(e) => setForm({ ...form, observaciones_tecnicas: e.target.value })}
+                                style={{ ...inputStyle, resize: 'vertical' }}
+                            />
                         </div>
-                    )}
-
-                    {nombreCat.includes('cierre') && (
-                        <div style={{ background: '#F8FAFC', padding: '0.8rem', borderRadius: '10px', border: '1px dashed #CBD5E1', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}> Especificaciones de Cierre:</span>
-                            <div style={{ display: 'flex', gap: '0.8rem' }}>
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                    <label style={labelStyle}>Tipo de Cierre</label>
-                                    <input type="text" placeholder="Ej. Invisible, Metálico" value={form.tipo_cierre} onChange={(e) => setForm({ ...form, tipo_cierre: e.target.value })} style={inputStyle} />
-                                </div>
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                    <label style={labelStyle}>Tamaño</label>
-                                    <input type="text" placeholder="Ej. 20 cm, 50 cm" value={form.cierre_tamano} onChange={(e) => setForm({ ...form, cierre_tamano: e.target.value })} style={inputStyle} />
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    </div>
 
                     <div style={{ display: 'flex', gap: '0.8rem', marginTop: '0.6rem' }}>
                         <button type="button" onClick={onClose} style={{
