@@ -43,7 +43,7 @@ export const filterPositiveDecimal = (val) => {
     let str = String(val);
     
     // 1. Eliminar operadores matemáticos y caracteres no numéricos
-    str = str.replace(/[+-*/eE]/g, '');
+    str = str.replace(/[+\-*\/eE]/g, '');
     str = str.replace(/[^0-9.,]/g, '');
 
     // 2. Controlar máximo un separador decimal (sea punto o coma)
