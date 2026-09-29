@@ -1,392 +1,404 @@
--- =====================================================================
--- SIMONETTA MODAS - MODELO RELACIONAL UNIFICADO POSTGRESQL (3FN)
--- =====================================================================
+-- Simonetta Modas - Base de Datos V2
+-- Estructura DDL Oficial y Semillas Iniciales
 
--- =====================================================================
--- MÓDULO 1: SEGURIDAD, USUARIOS Y CLIENTES
--- =====================================================================
-
-CREATE TABLE IF NOT EXISTS estados_usuario (
-    id_estado_usuario SERIAL PRIMARY KEY,
-    nombre_estado VARCHAR(50) NOT NULL UNIQUE
+CREATE TABLE "estados_usuario" (
+  "id_estado_usuario" serial PRIMARY KEY,
+  "nombre_estado" varchar
 );
 
-CREATE TABLE IF NOT EXISTS estados_cliente (
-    id_estado_cliente SERIAL PRIMARY KEY,
-    nombre_estado VARCHAR(50) NOT NULL UNIQUE
+CREATE TABLE "estados_cliente" (
+  "id_estado_cliente" serial PRIMARY KEY,
+  "nombre_estado" varchar
 );
 
-CREATE TABLE IF NOT EXISTS roles (
-    id_rol SERIAL PRIMARY KEY,
-    nombre_rol VARCHAR(50) NOT NULL UNIQUE
+CREATE TABLE "roles" (
+  "id_rol" serial PRIMARY KEY,
+  "nombre_rol" varchar
 );
 
-CREATE TABLE IF NOT EXISTS descripciones_rol (
-    id_descripcion_rol SERIAL PRIMARY KEY,
-    id_rol INTEGER UNIQUE NOT NULL REFERENCES roles(id_rol) ON DELETE CASCADE,
-    descripcion TEXT
+CREATE TABLE "descripciones_rol" (
+  "id_descripcion_rol" serial PRIMARY KEY,
+  "id_rol" int UNIQUE,
+  "descripcion" text
 );
 
-CREATE TABLE IF NOT EXISTS tipo_cliente (
-    id_tipo_cliente SERIAL PRIMARY KEY,
-    nombre_tipo VARCHAR(50) NOT NULL UNIQUE
+CREATE TABLE "tipo_cliente" (
+  "id_tipo_cliente" serial PRIMARY KEY,
+  "nombre_tipo" varchar
 );
 
-CREATE TABLE IF NOT EXISTS descripciones_tipo_cliente (
-    id_descripcion_tipo SERIAL PRIMARY KEY,
-    id_tipo_cliente INTEGER UNIQUE NOT NULL REFERENCES tipo_cliente(id_tipo_cliente) ON DELETE CASCADE,
-    descripcion TEXT
+CREATE TABLE "descripciones_tipo_cliente" (
+  "id_descripcion_tipo" serial PRIMARY KEY,
+  "id_tipo_cliente" int UNIQUE,
+  "descripcion" text
 );
 
-CREATE TABLE IF NOT EXISTS usuarios (
-    id_usuario SERIAL PRIMARY KEY,
-    id_rol INTEGER NOT NULL REFERENCES roles(id_rol),
-    id_estado_usuario INTEGER NOT NULL REFERENCES estados_usuario(id_estado_usuario),
-    correo_electronico VARCHAR(150) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    debe_cambiar_password BOOLEAN DEFAULT TRUE
+CREATE TABLE "usuarios" (
+  "id_usuario" serial PRIMARY KEY,
+  "id_rol" int,
+  "id_estado_usuario" int,
+  "correo_electronico" varchar UNIQUE,
+  "password_hash" varchar
 );
 
-CREATE TABLE IF NOT EXISTS datos_usuario (
-    id_datos_usuario SERIAL PRIMARY KEY,
-    id_usuario INTEGER UNIQUE NOT NULL REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
-    nombre VARCHAR(100) NOT NULL,
-    apellido VARCHAR(100) NOT NULL,
-    carnet_identidad VARCHAR(30) UNIQUE,
-    fecha_nacimiento DATE,
-    telefono VARCHAR(30),
-    fecha_registro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE "datos_usuario" (
+  "id_datos_usuario" serial PRIMARY KEY,
+  "id_usuario" int UNIQUE,
+  "nombre" varchar,
+  "apellido" varchar,
+  "carnet_identidad" varchar UNIQUE,
+  "fecha_nacimiento" date,
+  "telefono" varchar,
+  "fecha_registro" timestamp
 );
 
-CREATE TABLE IF NOT EXISTS clientes (
-    id_cliente SERIAL PRIMARY KEY,
-    id_tipo_cliente INTEGER NOT NULL REFERENCES tipo_cliente(id_tipo_cliente),
-    id_rol INTEGER NOT NULL REFERENCES roles(id_rol),
-    id_estado_cliente INTEGER NOT NULL REFERENCES estados_cliente(id_estado_cliente),
-    correo_electronico VARCHAR(150) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    fecha_registro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE "clientes" (
+  "id_cliente" serial PRIMARY KEY,
+  "id_tipo_cliente" int,
+  "id_rol" int,
+  "id_estado_cliente" int,
+  "correo_electronico" varchar UNIQUE,
+  "password_hash" varchar,
+  "fecha_registro" timestamp
 );
 
-CREATE TABLE IF NOT EXISTS datos_cliente_persona (
-    id_datos_persona SERIAL PRIMARY KEY,
-    id_cliente INTEGER UNIQUE NOT NULL REFERENCES clientes(id_cliente) ON DELETE CASCADE,
-    nombre VARCHAR(100) NOT NULL,
-    apellido VARCHAR(100) NOT NULL,
-    telefono VARCHAR(30),
-    fecha_nacimiento DATE
+CREATE TABLE "datos_cliente_persona" (
+  "id_datos_persona" serial PRIMARY KEY,
+  "id_cliente" int UNIQUE,
+  "nombre" varchar,
+  "apellido" varchar,
+  "telefono" varchar,
+  "fecha_nacimiento" date
 );
 
-CREATE TABLE IF NOT EXISTS datos_cliente_institucional (
-    id_datos_institucional SERIAL PRIMARY KEY,
-    id_cliente INTEGER UNIQUE NOT NULL REFERENCES clientes(id_cliente) ON DELETE CASCADE,
-    razon_social VARCHAR(200) NOT NULL,
-    nit VARCHAR(50) NOT NULL,
-    nombre_contacto VARCHAR(150),
-    telefono_contacto VARCHAR(30)
+CREATE TABLE "datos_cliente_institucional" (
+  "id_datos_institucional" serial PRIMARY KEY,
+  "id_cliente" int UNIQUE,
+  "razon_social" varchar,
+  "nit" varchar,
+  "nombre_contacto" varchar,
+  "telefono_contacto" varchar
 );
 
-CREATE TABLE IF NOT EXISTS atributos_cliente (
-    id_atributo_cliente SERIAL PRIMARY KEY,
-    id_cliente INTEGER NOT NULL REFERENCES clientes(id_cliente) ON DELETE CASCADE,
-    nombre_atributo VARCHAR(100) NOT NULL,
-    valor_atributo VARCHAR(255) NOT NULL
+CREATE TABLE "atributos_cliente" (
+  "id_atributo_cliente" serial PRIMARY KEY,
+  "id_cliente" int,
+  "nombre_atributo" varchar,
+  "valor_atributo" varchar
 );
 
-CREATE TABLE IF NOT EXISTS contratos (
-    id_contrato SERIAL PRIMARY KEY,
-    id_datos_institucional INTEGER NOT NULL REFERENCES datos_cliente_institucional(id_datos_institucional) ON DELETE CASCADE,
-    numero_contrato VARCHAR(100) UNIQUE NOT NULL,
-    fecha_firma DATE,
-    fecha_vencimiento DATE,
-    url_clausulas_pdf VARCHAR(500)
+CREATE TABLE "contratos" (
+  "id_contrato" serial PRIMARY KEY,
+  "id_datos_institucional" int,
+  "numero_contrato" varchar UNIQUE,
+  "fecha_firma" date,
+  "fecha_vencimiento" date,
+  "url_clausulas_pdf" varchar
 );
 
--- =====================================================================
--- MÓDULO 2: PEDIDOS Y MEDIDAS
--- =====================================================================
-
-CREATE TABLE IF NOT EXISTS estados_pedido (
-    id_estado_pedido SERIAL PRIMARY KEY,
-    nombre_estado VARCHAR(50) NOT NULL UNIQUE
+CREATE TABLE "estados_pedido" (
+  "id_estado_pedido" serial PRIMARY KEY,
+  "nombre_estado" varchar
 );
 
-CREATE TABLE IF NOT EXISTS estados_pago (
-    id_estado_pago SERIAL PRIMARY KEY,
-    nombre_estado VARCHAR(50) NOT NULL UNIQUE
+CREATE TABLE "estados_pago" (
+  "id_estado_pago" serial PRIMARY KEY,
+  "nombre_estado" varchar
 );
 
-CREATE TABLE IF NOT EXISTS metodos_pago (
-    id_metodo_pago SERIAL PRIMARY KEY,
-    nombre_metodo VARCHAR(50) NOT NULL UNIQUE
+CREATE TABLE "metodos_pago" (
+  "id_metodo_pago" serial PRIMARY KEY,
+  "nombre_metodo" varchar
 );
 
-CREATE TABLE IF NOT EXISTS estados_cita (
-    id_estado_cita SERIAL PRIMARY KEY,
-    nombre_estado VARCHAR(50) NOT NULL UNIQUE
+CREATE TABLE "estados_cita" (
+  "id_estado_cita" serial PRIMARY KEY,
+  "nombre_estado" varchar
 );
 
-CREATE TABLE IF NOT EXISTS pedidos (
-    id_pedido SERIAL PRIMARY KEY,
-    id_cliente INTEGER NOT NULL REFERENCES clientes(id_cliente) ON DELETE RESTRICT,
-    id_costurera INTEGER REFERENCES usuarios(id_usuario) ON DELETE SET NULL,
-    id_estado_pedido INTEGER NOT NULL REFERENCES estados_pedido(id_estado_pedido),
-    fecha_inicio TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_prueba TIMESTAMP,
-    fecha_entrega TIMESTAMP,
-    costo_total DECIMAL(10,2) NOT NULL DEFAULT 0.00
+CREATE TABLE "pedidos" (
+  "id_pedido" serial PRIMARY KEY,
+  "id_cliente" int,
+  "id_estado_pedido" int,
+  "fecha_inicio" timestamp,
+  "fecha_prueba" timestamp,
+  "fecha_entrega" timestamp,
+  "costo_total" decimal
 );
 
-CREATE TABLE IF NOT EXISTS catalogo (
-    id_catalogo SERIAL PRIMARY KEY,
-    nombre_catalogo VARCHAR(150) NOT NULL,
-    url_imagen_catalogo VARCHAR(500)
+CREATE TABLE "catalogo" (
+  "id_catalogo" serial PRIMARY KEY,
+  "nombre_catalogo" varchar,
+  "url_imagen_catalogo" varchar
 );
 
-CREATE TABLE IF NOT EXISTS descripciones_catalogo (
-    id_descripcion_catalogo SERIAL PRIMARY KEY,
-    id_catalogo INTEGER UNIQUE NOT NULL REFERENCES catalogo(id_catalogo) ON DELETE CASCADE,
-    descripcion TEXT
+CREATE TABLE "descripciones_catalogo" (
+  "id_descripcion_catalogo" serial PRIMARY KEY,
+  "id_catalogo" int UNIQUE,
+  "descripcion" text
 );
 
-CREATE TABLE IF NOT EXISTS prendas (
-    id_prenda SERIAL PRIMARY KEY,
-    id_catalogo INTEGER REFERENCES catalogo(id_catalogo) ON DELETE SET NULL,
-    tipo_prenda VARCHAR(100) NOT NULL,
-    color VARCHAR(50)
+CREATE TABLE "tipos_prenda" (
+  "id_tipo_prenda" serial PRIMARY KEY,
+  "nombre_tipo" varchar
 );
 
-CREATE TABLE IF NOT EXISTS descripciones_prenda (
-    id_descripcion_prenda SERIAL PRIMARY KEY,
-    id_prenda INTEGER UNIQUE NOT NULL REFERENCES prendas(id_prenda) ON DELETE CASCADE,
-    descripcion_detallada TEXT
+CREATE TABLE "prendas" (
+  "id_prenda" serial PRIMARY KEY,
+  "id_catalogo" int,
+  "id_tipo_prenda" int,
+  "id_color" int
 );
 
-CREATE TABLE IF NOT EXISTS detalle_pedido (
-    id_detalle SERIAL PRIMARY KEY,
-    id_pedido INTEGER NOT NULL REFERENCES pedidos(id_pedido) ON DELETE CASCADE,
-    id_prenda INTEGER NOT NULL REFERENCES prendas(id_prenda) ON DELETE RESTRICT,
-    cantidad INTEGER NOT NULL DEFAULT 1 CHECK (cantidad > 0),
-    subtotal DECIMAL(10,2) NOT NULL DEFAULT 0.00 CHECK (subtotal >= 0)
+CREATE TABLE "descripciones_prenda" (
+  "id_descripcion_prenda" serial PRIMARY KEY,
+  "id_prenda" int UNIQUE,
+  "descripcion_detallada" text
 );
 
-CREATE TABLE IF NOT EXISTS notas_diseno_detalle (
-    id_nota_diseno SERIAL PRIMARY KEY,
-    id_detalle INTEGER UNIQUE NOT NULL REFERENCES detalle_pedido(id_detalle) ON DELETE CASCADE,
-    notas_diseno TEXT
+CREATE TABLE "detalle_pedido" (
+  "id_detalle" serial PRIMARY KEY,
+  "id_pedido" int,
+  "id_prenda" int,
+  "cantidad" integer,
+  "subtotal" decimal
 );
 
-CREATE TABLE IF NOT EXISTS medidas_anatomicas (
-    id_medida_anatomica SERIAL PRIMARY KEY,
-    id_detalle INTEGER UNIQUE NOT NULL REFERENCES detalle_pedido(id_detalle) ON DELETE CASCADE,
-    cortas DECIMAL(5,2),
-    cintura DECIMAL(5,2),
-    frente DECIMAL(5,2),
-    alto_cadera DECIMAL(5,2),
-    cadera DECIMAL(5,2),
-    entre_busto DECIMAL(5,2),
-    busto DECIMAL(5,2),
-    espalda DECIMAL(5,2),
-    hombro DECIMAL(5,2)
+CREATE TABLE "notas_diseno_detalle" (
+  "id_nota_diseno" serial PRIMARY KEY,
+  "id_detalle" int UNIQUE,
+  "notas_diseno" text
 );
 
-CREATE TABLE IF NOT EXISTS medidas_convencionales (
-    id_medida_convencional SERIAL PRIMARY KEY,
-    id_detalle INTEGER UNIQUE NOT NULL REFERENCES detalle_pedido(id_detalle) ON DELETE CASCADE,
-    talla VARCHAR(20),
-    equivalencia_europea VARCHAR(20)
+CREATE TABLE "medidas_anatomicas" (
+  "id_medida_anatomica" serial PRIMARY KEY,
+  "id_detalle" int UNIQUE,
+  "cortas" decimal,
+  "cintura" decimal,
+  "frente" decimal,
+  "alto_cadera" decimal,
+  "cadera" decimal,
+  "entre_busto" decimal,
+  "busto" decimal,
+  "espalda" decimal,
+  "hombro" decimal
 );
 
-CREATE TABLE IF NOT EXISTS pagos (
-    id_pago SERIAL PRIMARY KEY,
-    id_pedido INTEGER NOT NULL REFERENCES pedidos(id_pedido) ON DELETE CASCADE,
-    id_estado_pago INTEGER NOT NULL REFERENCES estados_pago(id_estado_pago),
-    id_metodo_pago INTEGER NOT NULL REFERENCES metodos_pago(id_metodo_pago),
-    monto_pago DECIMAL(10,2) NOT NULL DEFAULT 0.00 CHECK (monto_pago >= 0),
-    fecha_pago TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE "medidas_convencionales" (
+  "id_medida_convencional" serial PRIMARY KEY,
+  "id_detalle" int UNIQUE,
+  "talla" varchar,
+  "equivalencia_europea" varchar
 );
 
-CREATE TABLE IF NOT EXISTS citas (
-    id_cita SERIAL PRIMARY KEY,
-    id_cliente INTEGER NOT NULL REFERENCES clientes(id_cliente) ON DELETE CASCADE,
-    id_pedido INTEGER REFERENCES pedidos(id_pedido) ON DELETE CASCADE,
-    id_estado_cita INTEGER NOT NULL REFERENCES estados_cita(id_estado_cita),
-    fecha_cita TIMESTAMP NOT NULL,
-    motivo_cita VARCHAR(255)
+CREATE TABLE "pagos" (
+  "id_pago" serial PRIMARY KEY,
+  "id_pedido" int,
+  "id_estado_pago" int,
+  "id_metodo_pago" int,
+  "monto_pago" decimal,
+  "fecha_pago" timestamp
 );
 
--- =====================================================================
--- MÓDULO 3: ALMACÉN E INVENTARIO
--- =====================================================================
-
-CREATE TABLE IF NOT EXISTS colores (
-    id_color SERIAL PRIMARY KEY,
-    nombre_color VARCHAR(50) NOT NULL UNIQUE,
-    codigo_hexadecimal VARCHAR(20)
+CREATE TABLE "citas" (
+  "id_cita" serial PRIMARY KEY,
+  "id_cliente" int,
+  "id_pedido" int,
+  "id_estado_cita" int,
+  "fecha_cita" timestamp,
+  "motivo_cita" varchar
 );
 
-CREATE TABLE IF NOT EXISTS materiales_base (
-    id_material_base SERIAL PRIMARY KEY,
-    nombre_material VARCHAR(100) NOT NULL UNIQUE
+CREATE TABLE "colores" (
+  "id_color" serial PRIMARY KEY,
+  "nombre_color" varchar,
+  "codigo_hexadecimal" varchar
 );
 
-CREATE TABLE IF NOT EXISTS unidades_medida (
-    id_unidad_medida SERIAL PRIMARY KEY,
-    abreviatura VARCHAR(20) NOT NULL UNIQUE,
-    descripcion VARCHAR(100)
+CREATE TABLE "materiales_base" (
+  "id_material_base" serial PRIMARY KEY,
+  "nombre_material" varchar
 );
 
-CREATE TABLE IF NOT EXISTS categorias_almacen (
-    id_categoria SERIAL PRIMARY KEY,
-    nombre_categoria VARCHAR(100) NOT NULL UNIQUE
+CREATE TABLE "unidades_medida" (
+  "id_unidad_medida" serial PRIMARY KEY,
+  "abreviatura" varchar,
+  "descripcion" varchar
 );
 
-CREATE TABLE IF NOT EXISTS tipos_producto (
-    id_tipo_producto SERIAL PRIMARY KEY,
-    id_categoria INTEGER NOT NULL REFERENCES categorias_almacen(id_categoria) ON DELETE CASCADE,
-    nombre_tipo VARCHAR(100) NOT NULL,
-    CONSTRAINT uq_categoria_tipo UNIQUE (id_categoria, nombre_tipo)
+CREATE TABLE "categorias_almacen" (
+  "id_categoria" serial PRIMARY KEY,
+  "nombre_categoria" varchar
 );
 
-CREATE TABLE IF NOT EXISTS productos_almacen (
-    id_producto SERIAL PRIMARY KEY,
-    id_tipo_producto INTEGER NOT NULL REFERENCES tipos_producto(id_tipo_producto),
-    id_unidad_medida INTEGER NOT NULL REFERENCES unidades_medida(id_unidad_medida),
-    id_color INTEGER REFERENCES colores(id_color) ON DELETE SET NULL,
-    id_material_base INTEGER REFERENCES materiales_base(id_material_base) ON DELETE SET NULL,
-    nombre_articulo VARCHAR(150) NOT NULL,
-    cantidad_stock DECIMAL(10,2) NOT NULL DEFAULT 0.00 CHECK (cantidad_stock >= 0),
-    stock_minimo DECIMAL(10,2) NOT NULL DEFAULT 0.00 CHECK (stock_minimo >= 0)
+CREATE TABLE "tipos_producto" (
+  "id_tipo_producto" serial PRIMARY KEY,
+  "id_categoria" int,
+  "nombre_tipo" varchar
 );
 
--- Tablas de especificaciones especializadas (1:1 con productos_almacen)
-CREATE TABLE IF NOT EXISTS esp_telas (
-    id_producto INTEGER PRIMARY KEY REFERENCES productos_almacen(id_producto) ON DELETE CASCADE,
-    grupo VARCHAR(100),
-    subgrupo VARCHAR(100),
-    textura VARCHAR(100),
-    calidad VARCHAR(100)
+CREATE TABLE "productos_almacen" (
+  "id_producto" serial PRIMARY KEY,
+  "id_tipo_producto" int,
+  "id_unidad_medida" int,
+  "id_color" int,
+  "id_material_base" int,
+  "nombre_articulo" varchar,
+  "cantidad_stock" decimal,
+  "stock_minimo" decimal
 );
 
-CREATE TABLE IF NOT EXISTS esp_botones (
-    id_producto INTEGER PRIMARY KEY REFERENCES productos_almacen(id_producto) ON DELETE CASCADE,
-    tipo_boton VARCHAR(100),
-    tamano VARCHAR(50)
+CREATE TABLE "detalles_tecnicos_producto" (
+  "id_producto" int PRIMARY KEY,
+  "caracteristica_principal" varchar,
+  "caracteristica_secundaria" varchar,
+  "observaciones_tecnicas" text
 );
 
-CREATE TABLE IF NOT EXISTS esp_hilos (
-    id_producto INTEGER PRIMARY KEY REFERENCES productos_almacen(id_producto) ON DELETE CASCADE,
-    tipo_hilo VARCHAR(100),
-    grosor VARCHAR(50)
+CREATE TABLE "descuentos" (
+  "id_descuento" serial PRIMARY KEY,
+  "id_tipo_cliente" int,
+  "nombre_descuento" varchar,
+  "porcentaje" decimal
 );
 
-CREATE TABLE IF NOT EXISTS esp_cierres (
-    id_producto INTEGER PRIMARY KEY REFERENCES productos_almacen(id_producto) ON DELETE CASCADE,
-    tipo_cierre VARCHAR(100),
-    tamano VARCHAR(50)
+CREATE TABLE "notas_venta" (
+  "id_nota_venta" serial PRIMARY KEY,
+  "id_pedido" int UNIQUE,
+  "id_descuento" int,
+  "numero_nota" varchar UNIQUE,
+  "fecha_emision" timestamp,
+  "subtotal" decimal,
+  "total_final" decimal,
+  "estado_envio_correo" varchar
 );
 
-CREATE TABLE IF NOT EXISTS esp_varillas (
-    id_producto INTEGER PRIMARY KEY REFERENCES productos_almacen(id_producto) ON DELETE CASCADE,
-    tipo VARCHAR(100),
-    grosor VARCHAR(50)
+CREATE TABLE "proveedores" (
+  "id_proveedor" serial PRIMARY KEY,
+  "nombre_empresa" varchar,
+  "nombre_contacto" varchar,
+  "telefono_contacto" varchar,
+  "direccion" varchar
 );
 
-CREATE TABLE IF NOT EXISTS esp_broches (
-    id_producto INTEGER PRIMARY KEY REFERENCES productos_almacen(id_producto) ON DELETE CASCADE,
-    tipo VARCHAR(100)
+CREATE TABLE "tipos_movimiento" (
+  "id_tipo_movimiento" serial PRIMARY KEY,
+  "nombre_movimiento" varchar
 );
 
-CREATE TABLE IF NOT EXISTS esp_encajes (
-    id_producto INTEGER PRIMARY KEY REFERENCES productos_almacen(id_producto) ON DELETE CASCADE,
-    grosor VARCHAR(50)
+CREATE TABLE "origenes_material" (
+  "id_origen" serial PRIMARY KEY,
+  "nombre_origen" varchar
 );
 
-CREATE TABLE IF NOT EXISTS esp_cintas (
-    id_producto INTEGER PRIMARY KEY REFERENCES productos_almacen(id_producto) ON DELETE CASCADE,
-    grosor VARCHAR(50)
+CREATE TABLE "movimientos_almacen" (
+  "id_movimiento" serial PRIMARY KEY,
+  "id_producto" int,
+  "id_proveedor" int,
+  "id_detalle_pedido" int,
+  "id_tipo_movimiento" int,
+  "id_origen" int,
+  "cantidad" decimal,
+  "fecha_movimiento" timestamp
 );
 
-CREATE TABLE IF NOT EXISTS esp_apliques (
-    id_producto INTEGER PRIMARY KEY REFERENCES productos_almacen(id_producto) ON DELETE CASCADE,
-    forma VARCHAR(100),
-    fijacion VARCHAR(100)
+CREATE TABLE "observaciones_movimiento" (
+  "id_observacion" serial PRIMARY KEY,
+  "id_movimiento" int UNIQUE,
+  "observacion" text
 );
 
-CREATE TABLE IF NOT EXISTS esp_ribetes (
-    id_producto INTEGER PRIMARY KEY REFERENCES productos_almacen(id_producto) ON DELETE CASCADE,
-    ancho VARCHAR(50)
-);
+ALTER TABLE "descripciones_rol" ADD FOREIGN KEY ("id_rol") REFERENCES "roles" ("id_rol") DEFERRABLE INITIALLY IMMEDIATE;
 
--- =====================================================================
--- MÓDULO 4: KARDEX, REPORTES Y NOTAS DE VENTA
--- =====================================================================
+ALTER TABLE "descripciones_tipo_cliente" ADD FOREIGN KEY ("id_tipo_cliente") REFERENCES "tipo_cliente" ("id_tipo_cliente") DEFERRABLE INITIALLY IMMEDIATE;
 
-CREATE TABLE IF NOT EXISTS descuentos (
-    id_descuento SERIAL PRIMARY KEY,
-    id_tipo_cliente INTEGER REFERENCES tipo_cliente(id_tipo_cliente) ON DELETE SET NULL,
-    nombre_descuento VARCHAR(100) NOT NULL,
-    porcentaje DECIMAL(5,2) NOT NULL DEFAULT 0.00 CHECK (porcentaje >= 0 AND porcentaje <= 100)
-);
+ALTER TABLE "usuarios" ADD FOREIGN KEY ("id_rol") REFERENCES "roles" ("id_rol") DEFERRABLE INITIALLY IMMEDIATE;
 
-CREATE TABLE IF NOT EXISTS notas_venta (
-    id_nota_venta SERIAL PRIMARY KEY,
-    id_pedido INTEGER UNIQUE NOT NULL REFERENCES pedidos(id_pedido) ON DELETE RESTRICT,
-    id_descuento INTEGER REFERENCES descuentos(id_descuento) ON DELETE SET NULL,
-    numero_nota VARCHAR(100) UNIQUE NOT NULL,
-    fecha_emision TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    subtotal DECIMAL(10,2) NOT NULL DEFAULT 0.00 CHECK (subtotal >= 0),
-    total_final DECIMAL(10,2) NOT NULL DEFAULT 0.00 CHECK (total_final >= 0),
-    estado_envio_correo VARCHAR(50) DEFAULT 'Pendiente'
-);
+ALTER TABLE "usuarios" ADD FOREIGN KEY ("id_estado_usuario") REFERENCES "estados_usuario" ("id_estado_usuario") DEFERRABLE INITIALLY IMMEDIATE;
 
-CREATE TABLE IF NOT EXISTS proveedores (
-    id_proveedor SERIAL PRIMARY KEY,
-    nombre_empresa VARCHAR(150) NOT NULL,
-    nombre_contacto VARCHAR(100),
-    telefono_contacto VARCHAR(30),
-    direccion VARCHAR(255)
-);
+ALTER TABLE "datos_usuario" ADD FOREIGN KEY ("id_usuario") REFERENCES "usuarios" ("id_usuario") DEFERRABLE INITIALLY IMMEDIATE;
 
-CREATE TABLE IF NOT EXISTS tipos_movimiento (
-    id_tipo_movimiento SERIAL PRIMARY KEY,
-    nombre_movimiento VARCHAR(50) NOT NULL UNIQUE
-);
+ALTER TABLE "clientes" ADD FOREIGN KEY ("id_tipo_cliente") REFERENCES "tipo_cliente" ("id_tipo_cliente") DEFERRABLE INITIALLY IMMEDIATE;
 
-CREATE TABLE IF NOT EXISTS origenes_material (
-    id_origen SERIAL PRIMARY KEY,
-    nombre_origen VARCHAR(50) NOT NULL UNIQUE
-);
+ALTER TABLE "clientes" ADD FOREIGN KEY ("id_rol") REFERENCES "roles" ("id_rol") DEFERRABLE INITIALLY IMMEDIATE;
 
-CREATE TABLE IF NOT EXISTS movimientos_almacen (
-    id_movimiento SERIAL PRIMARY KEY,
-    id_producto INTEGER NOT NULL REFERENCES productos_almacen(id_producto) ON DELETE RESTRICT,
-    id_proveedor INTEGER REFERENCES proveedores(id_proveedor) ON DELETE SET NULL,
-    id_detalle_pedido INTEGER REFERENCES detalle_pedido(id_detalle) ON DELETE SET NULL,
-    id_tipo_movimiento INTEGER NOT NULL REFERENCES tipos_movimiento(id_tipo_movimiento),
-    id_origen INTEGER REFERENCES origenes_material(id_origen),
-    cantidad DECIMAL(10,2) NOT NULL CHECK (cantidad > 0),
-    fecha_movimiento TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+ALTER TABLE "clientes" ADD FOREIGN KEY ("id_estado_cliente") REFERENCES "estados_cliente" ("id_estado_cliente") DEFERRABLE INITIALLY IMMEDIATE;
 
-CREATE TABLE IF NOT EXISTS observaciones_movimiento (
-    id_observacion SERIAL PRIMARY KEY,
-    id_movimiento INTEGER UNIQUE NOT NULL REFERENCES movimientos_almacen(id_movimiento) ON DELETE CASCADE,
-    observacion TEXT
-);
+ALTER TABLE "datos_cliente_persona" ADD FOREIGN KEY ("id_cliente") REFERENCES "clientes" ("id_cliente") DEFERRABLE INITIALLY IMMEDIATE;
 
--- =====================================================================
--- ÍNDICES PARA RENDIMIENTO EN CONSULTAS FRECUENTES
--- =====================================================================
+ALTER TABLE "datos_cliente_institucional" ADD FOREIGN KEY ("id_cliente") REFERENCES "clientes" ("id_cliente") DEFERRABLE INITIALLY IMMEDIATE;
 
-CREATE INDEX IF NOT EXISTS idx_usuarios_correo ON usuarios(correo_electronico);
-CREATE INDEX IF NOT EXISTS idx_clientes_correo ON clientes(correo_electronico);
-CREATE INDEX IF NOT EXISTS idx_pedidos_cliente ON pedidos(id_cliente);
-CREATE INDEX IF NOT EXISTS idx_pedidos_estado ON pedidos(id_estado_pedido);
-CREATE INDEX IF NOT EXISTS idx_detalle_pedido_id ON detalle_pedido(id_pedido);
-CREATE INDEX IF NOT EXISTS idx_pagos_pedido ON pagos(id_pedido);
-CREATE INDEX IF NOT EXISTS idx_citas_cliente ON citas(id_cliente);
-CREATE INDEX IF NOT EXISTS idx_citas_pedido ON citas(id_pedido);
-CREATE INDEX IF NOT EXISTS idx_productos_tipo ON productos_almacen(id_tipo_producto);
-CREATE INDEX IF NOT EXISTS idx_movimientos_producto ON movimientos_almacen(id_producto);
-CREATE INDEX IF NOT EXISTS idx_movimientos_fecha ON movimientos_almacen(fecha_movimiento);
+ALTER TABLE "atributos_cliente" ADD FOREIGN KEY ("id_cliente") REFERENCES "clientes" ("id_cliente") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "contratos" ADD FOREIGN KEY ("id_datos_institucional") REFERENCES "datos_cliente_institucional" ("id_datos_institucional") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "pedidos" ADD FOREIGN KEY ("id_cliente") REFERENCES "clientes" ("id_cliente") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "pedidos" ADD FOREIGN KEY ("id_estado_pedido") REFERENCES "estados_pedido" ("id_estado_pedido") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "descripciones_catalogo" ADD FOREIGN KEY ("id_catalogo") REFERENCES "catalogo" ("id_catalogo") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "prendas" ADD FOREIGN KEY ("id_catalogo") REFERENCES "catalogo" ("id_catalogo") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "prendas" ADD FOREIGN KEY ("id_tipo_prenda") REFERENCES "tipos_prenda" ("id_tipo_prenda") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "prendas" ADD FOREIGN KEY ("id_color") REFERENCES "colores" ("id_color") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "descripciones_prenda" ADD FOREIGN KEY ("id_prenda") REFERENCES "prendas" ("id_prenda") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "detalle_pedido" ADD FOREIGN KEY ("id_pedido") REFERENCES "pedidos" ("id_pedido") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "detalle_pedido" ADD FOREIGN KEY ("id_prenda") REFERENCES "prendas" ("id_prenda") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "notas_diseno_detalle" ADD FOREIGN KEY ("id_detalle") REFERENCES "detalle_pedido" ("id_detalle") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "medidas_anatomicas" ADD FOREIGN KEY ("id_detalle") REFERENCES "detalle_pedido" ("id_detalle") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "medidas_convencionales" ADD FOREIGN KEY ("id_detalle") REFERENCES "detalle_pedido" ("id_detalle") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "pagos" ADD FOREIGN KEY ("id_pedido") REFERENCES "pedidos" ("id_pedido") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "pagos" ADD FOREIGN KEY ("id_estado_pago") REFERENCES "estados_pago" ("id_estado_pago") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "pagos" ADD FOREIGN KEY ("id_metodo_pago") REFERENCES "metodos_pago" ("id_metodo_pago") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "citas" ADD FOREIGN KEY ("id_cliente") REFERENCES "clientes" ("id_cliente") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "citas" ADD FOREIGN KEY ("id_pedido") REFERENCES "pedidos" ("id_pedido") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "citas" ADD FOREIGN KEY ("id_estado_cita") REFERENCES "estados_cita" ("id_estado_cita") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "tipos_producto" ADD FOREIGN KEY ("id_categoria") REFERENCES "categorias_almacen" ("id_categoria") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "productos_almacen" ADD FOREIGN KEY ("id_tipo_producto") REFERENCES "tipos_producto" ("id_tipo_producto") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "productos_almacen" ADD FOREIGN KEY ("id_unidad_medida") REFERENCES "unidades_medida" ("id_unidad_medida") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "productos_almacen" ADD FOREIGN KEY ("id_color") REFERENCES "colores" ("id_color") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "productos_almacen" ADD FOREIGN KEY ("id_material_base") REFERENCES "materiales_base" ("id_material_base") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "detalles_tecnicos_producto" ADD FOREIGN KEY ("id_producto") REFERENCES "productos_almacen" ("id_producto") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "descuentos" ADD FOREIGN KEY ("id_tipo_cliente") REFERENCES "tipo_cliente" ("id_tipo_cliente") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "notas_venta" ADD FOREIGN KEY ("id_pedido") REFERENCES "pedidos" ("id_pedido") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "notas_venta" ADD FOREIGN KEY ("id_descuento") REFERENCES "descuentos" ("id_descuento") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "movimientos_almacen" ADD FOREIGN KEY ("id_producto") REFERENCES "productos_almacen" ("id_producto") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "movimientos_almacen" ADD FOREIGN KEY ("id_proveedor") REFERENCES "proveedores" ("id_proveedor") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "movimientos_almacen" ADD FOREIGN KEY ("id_detalle_pedido") REFERENCES "detalle_pedido" ("id_detalle") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "movimientos_almacen" ADD FOREIGN KEY ("id_tipo_movimiento") REFERENCES "tipos_movimiento" ("id_tipo_movimiento") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "movimientos_almacen" ADD FOREIGN KEY ("id_origen") REFERENCES "origenes_material" ("id_origen") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "observaciones_movimiento" ADD FOREIGN KEY ("id_movimiento") REFERENCES "movimientos_almacen" ("id_movimiento") DEFERRABLE INITIALLY IMMEDIATE;
+
+
+-- Extensiones y columnas de compatibilidad operativas
+ALTER TABLE "usuarios" ADD COLUMN IF NOT EXISTS "debe_cambiar_password" boolean DEFAULT false;
+ALTER TABLE "pedidos" ADD COLUMN IF NOT EXISTS "id_costurera" int REFERENCES "usuarios"("id_usuario");
