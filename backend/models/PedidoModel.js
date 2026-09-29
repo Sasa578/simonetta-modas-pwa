@@ -10,6 +10,20 @@ const PedidoModel = {
         try {
             await client.query('BEGIN');
 
+            // 0. Validar obligatoriedad de Costurera asignada
+            if (!datosPedido.id_costurera) {
+                throw new Error('Debe asignar obligatoriamente una costurera para la confección del pedido.');
+            }
+
+            // Validar que no existan insumos duplicados en el pedido
+            const listaInsumos = datosDetalle?.insumos || datosPedido?.insumos || [];
+            if (Array.isArray(listaInsumos) && listaInsumos.length > 0) {
+                const ids = listaInsumos.map(i => Number(i.id_producto || i.id_material)).filter(Boolean);
+                if (new Set(ids).size !== ids.length) {
+                    throw new Error('No se permiten insumos duplicados en el mismo pedido. Especifique la cantidad total requerida.');
+                }
+            }
+
             // 1. Resolver el id_estado_pedido
             let idEstadoPedido = 1; // 'Pendiente' por defecto
             if (datosPedido.estado) {
@@ -171,9 +185,24 @@ const PedidoModel = {
                     const idProd = Number(ins.id_producto || ins.id_material);
                     const cant = parseFloat(ins.cantidad) || 0;
                     if (idProd && cant > 0) {
-                        // Insumos seleccionados del almacén siempre descuentan stock físico del taller
+                        // 1. Validar en tiempo real que exista stock suficiente en almacén
+                        const stockCheckRes = await client.query(
+                            'SELECT id_producto, nombre_articulo, cantidad_stock FROM productos_almacen WHERE id_producto = $1 FOR UPDATE',
+                            [idProd]
+                        );
+                        if (stockCheckRes.rows.length === 0) {
+                            throw new Error(`El insumo con ID ${idProd} no existe en el almacén.`);
+                        }
+                        const stockDisponible = parseFloat(stockCheckRes.rows[0].cantidad_stock) || 0;
+                        const nombreArt = stockCheckRes.rows[0].nombre_articulo;
+
+                        if (stockDisponible < cant) {
+                            throw new Error(`Stock insuficiente para el insumo "${nombreArt}". Disponible en almacén: ${stockDisponible}, solicitado: ${cant}`);
+                        }
+
+                        // 2. Consumir del stock físico
                         await client.query(
-                            'UPDATE productos_almacen SET cantidad_stock = GREATEST(0, cantidad_stock - $1) WHERE id_producto = $2',
+                            'UPDATE productos_almacen SET cantidad_stock = cantidad_stock - $1 WHERE id_producto = $2',
                             [cant, idProd]
                         );
 

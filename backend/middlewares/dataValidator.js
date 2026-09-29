@@ -117,8 +117,10 @@ const validarEmail = (email, campo = 'correo electrónico', obligatorio = false)
 
 /**
  * Valida montos monetarios o valores numéricos positivos.
+ * Rechaza operadores matemáticos (+, -, *, /) y admite comas o puntos decimales.
+ * Permite exigir monto estrictamente mayor a 0 (estrictoMayorACero).
  */
-const validarMonto = (monto, campo = 'monto', obligatorio = false) => {
+const validarMonto = (monto, campo = 'monto', obligatorio = false, estrictoMayorACero = false) => {
     if (monto === undefined || monto === null || monto === '') {
         if (obligatorio) {
             return { valido: false, error: `El campo ${campo} es obligatorio.` };
@@ -126,13 +128,35 @@ const validarMonto = (monto, campo = 'monto', obligatorio = false) => {
         return { valido: true, limpio: null };
     }
 
-    const num = Number(monto);
+    const strMonto = String(monto).trim();
+
+    // 1. Rechazar operadores o símbolos matemáticos prohibidos
+    if (/[+*/eE]/.test(strMonto)) {
+        return { valido: false, error: `El campo ${campo} no debe contener operadores matemáticos ni caracteres especiales.` };
+    }
+    if ((strMonto.match(/-/g) || []).length > 0) {
+        return { valido: false, error: `El campo ${campo} no puede ser negativo ni contener signos de resta.` };
+    }
+
+    // 2. Normalizar coma decimal a punto
+    const normalizado = strMonto.replace(',', '.');
+
+    // Verificar formato numérico con máximo un solo punto decimal
+    if (!/^[0-9]+(.[0-9]+)?$/.test(normalizado)) {
+        return { valido: false, error: `El campo ${campo} debe contener solo dígitos y una coma o punto decimal.` };
+    }
+
+    const num = Number(normalizado);
     if (isNaN(num)) {
         return { valido: false, error: `El campo ${campo} debe ser un valor numérico válido.` };
     }
 
     if (num < 0) {
         return { valido: false, error: `El campo ${campo} no puede ser negativo.` };
+    }
+
+    if (estrictoMayorACero && num <= 0) {
+        return { valido: false, error: `El campo ${campo} debe ser un monto mayor a 0.` };
     }
 
     return { valido: true, limpio: num };

@@ -33,15 +33,41 @@ const crearPedido = async (req, res) => {
         if (!id_cliente) {
             return res.status(400).json({ error: 'El cliente es obligatorio.' });
         }
+        if (!fecha_entrega) {
+            return res.status(400).json({ error: 'La fecha de entrega es obligatoria.' });
+        }
 
-        
-        // VALIDACION DEFENSIVA PEDIDO
-        const vCosto = validarMonto(costo_total, 'costo total', true);
+        // 1. Costurera obligatoria (no se permite nulo ni taller)
+        if (!id_costurera) {
+            return res.status(400).json({ error: 'Debe asignar obligatoriamente una costurera al pedido.' });
+        }
+        const costCheck = await db.query(
+            'SELECT u.id_usuario, r.nombre_rol FROM usuarios u JOIN roles r ON u.id_rol = r.id_rol WHERE u.id_usuario = $1',
+            [id_costurera]
+        );
+        if (costCheck.rows.length === 0 || costCheck.rows[0].nombre_rol !== 'Costurera') {
+            return res.status(400).json({ error: 'El usuario asignado debe ser una costurera registrada y activa en el sistema.' });
+        }
+
+        // 2. Validación cruzada de fechas: Fecha de prueba <= Fecha de entrega
+        if (fecha_prueba && fecha_entrega) {
+            const dPrueba = new Date(fecha_prueba);
+            const dEntrega = new Date(fecha_entrega);
+            if (dPrueba > dEntrega) {
+                return res.status(400).json({ error: 'La fecha de prueba no puede ser posterior a la fecha de entrega.' });
+            }
+        }
+
+        // 3. Validación de Costo (> 0) y Adelanto
+        const vCosto = validarMonto(costo_total, 'costo total', true, true);
         if (!vCosto.valido) return res.status(400).json({ error: vCosto.error });
 
         if (adelanto !== undefined && adelanto !== null && adelanto !== '') {
-            const vAdelanto = validarMonto(adelanto, 'adelanto', false);
+            const vAdelanto = validarMonto(adelanto, 'adelanto', false, false);
             if (!vAdelanto.valido) return res.status(400).json({ error: vAdelanto.error });
+            if (Number(vAdelanto.limpio) > Number(vCosto.limpio)) {
+                return res.status(400).json({ error: 'El adelanto no puede ser superior al costo total del pedido.' });
+            }
         }
 
         if (!fecha_entrega) {
@@ -163,6 +189,58 @@ const actualizarEstado = async (req, res) => {
     try {
         const { id } = req.params;
         const { estado } = req.body;
+        const rolUsuario = req.usuario?.rol || req.usuario?.nombre_rol;
+
+        // Obtener estado actual del pedido y su costurera
+        const pedActualRes = await db.query(
+            `SELECT p.id_pedido, p.id_costurera, ep.nombre_estado as estado_actual
+             FROM pedidos p
+             JOIN estados_pedido ep ON p.id_estado_pedido = ep.id_estado_pedido
+             WHERE p.id_pedido = $1`,
+            [id]
+        );
+
+        if (pedActualRes.rows.length === 0) {
+            return res.status(404).json({ error: 'Pedido no encontrado' });
+        }
+
+        const estadoActual = pedActualRes.rows[0].estado_actual;
+        const nuevoEstadoNorm = (estado || '').trim().toLowerCase();
+        const aliasMap = {
+            'listo para prueba': 'prueba',
+            'para entregar': 'terminado',
+            'acabados': 'terminado',
+            'corte': 'en confección',
+            'armado': 'en confección'
+        };
+        const estadoFinalNorm = aliasMap[nuevoEstadoNorm] || nuevoEstadoNorm;
+
+        // 1. Control de Rol: Secretaria no puede alterar estado si la costurera aún tiene el pedido en taller
+        if (rolUsuario === 'Secretaria') {
+            const estadosProduccion = ['pendiente', 'en confección', 'corte', 'armado', 'prueba', 'listo para prueba'];
+            const estaEnTaller = estadosProduccion.includes(estadoActual.toLowerCase());
+
+            if (estaEnTaller) {
+                // La costurera aún tiene el pedido en taller
+                return res.status(403).json({
+                    error: `El pedido #${id} se encuentra en fase de producción (${estadoActual}) a cargo de la costurera. La secretaría solo puede marcarlo como 'Entregado' una vez que la costurera lo haya marcado como 'Terminado'.`
+                });
+            }
+
+            // Si está Terminado, secretaría puede marcarlo como 'Entregado' o 'Cancelado'
+            if (estadoActual.toLowerCase() === 'terminado' && estadoFinalNorm !== 'entregado' && estadoFinalNorm !== 'cancelado') {
+                return res.status(403).json({
+                    error: "Un pedido terminado en secretaría solo puede avanzar a 'Entregado'."
+                });
+            }
+        }
+
+        // 2. Control de Rol: Costurera no puede marcar 'Entregado' (la entrega y cobro final corresponde a Secretaría/Admin)
+        if (rolUsuario === 'Costurera' && estadoFinalNorm === 'entregado') {
+            return res.status(403).json({
+                error: "La entrega final al cliente debe realizarse en recepción por secretaría o administración."
+            });
+        }
         
         const pedido = await PedidoModel.actualizarEstado(id, estado);
         if (!pedido) {

@@ -72,14 +72,29 @@ describe('DataValidator Middleware & Helper Tests', () => {
     });
 
     describe('validarMonto', () => {
-        test('debe aceptar valores positivos numéricos', () => {
+        test('debe aceptar valores positivos numéricos con punto o coma', () => {
             expect(validarMonto(150.50, 'costo', true).valido).toBe(true);
             expect(validarMonto('2500', 'costo', true).valido).toBe(true);
+            expect(validarMonto('1850,75', 'costo', true).valido).toBe(true);
         });
 
         test('debe rechazar valores negativos o no numéricos', () => {
             expect(validarMonto(-50, 'costo', true).valido).toBe(false);
             expect(validarMonto('quinientos', 'costo', true).valido).toBe(false);
+        });
+
+        test('debe rechazar operadores matemáticos (+, -, *, /)', () => {
+            expect(validarMonto('100+50', 'costo', true).valido).toBe(false);
+            expect(validarMonto('200*2', 'costo', true).valido).toBe(false);
+            expect(validarMonto('500/2', 'costo', true).valido).toBe(false);
+            expect(validarMonto('1e5', 'costo', true).valido).toBe(false);
+        });
+
+        test('debe exigir mayor a cero cuando estrictoMayorACero es true', () => {
+            expect(validarMonto(0, 'costo', true, true).valido).toBe(false);
+            expect(validarMonto('0.00', 'costo', true, true).valido).toBe(false);
+            expect(validarMonto('0,00', 'costo', true, true).valido).toBe(false);
+            expect(validarMonto(10, 'costo', true, true).valido).toBe(true);
         });
     });
 
