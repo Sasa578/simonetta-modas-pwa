@@ -65,6 +65,31 @@ describe('Auth API (Integration)', () => {
         expect(response.body).toHaveProperty('error', 'Credenciales inválidas.');
     });
 
+    it('POST /api/auth/login - debe bloquear la cuenta por 1 minuto tras 3 intentos fallidos', async () => {
+        const bruteEmail = 'brute.force@simonetta.com';
+        
+        // Intento 1
+        let res = await request(app).post('/api/auth/login').send({ correo: bruteEmail, password: 'fail1' });
+        expect(res.status).toBe(401);
+        expect(res.body.intentos_fallidos).toBe(1);
+
+        // Intento 2
+        res = await request(app).post('/api/auth/login').send({ correo: bruteEmail, password: 'fail2' });
+        expect(res.status).toBe(401);
+        expect(res.body.intentos_fallidos).toBe(2);
+
+        // Intento 3: Bloqueo
+        res = await request(app).post('/api/auth/login').send({ correo: bruteEmail, password: 'fail3' });
+        expect(res.status).toBe(403);
+        expect(res.body.bloqueado).toBe(true);
+        expect(res.body.segundos_bloqueo).toBeGreaterThanOrEqual(58);
+
+        // Intento 4: Rechazo inmediato por estar bloqueado
+        res = await request(app).post('/api/auth/login').send({ correo: bruteEmail, password: 'any' });
+        expect(res.status).toBe(403);
+        expect(res.body.bloqueado).toBe(true);
+    });
+
     it('POST /api/auth/login - debe fallar si falta correo o contraseña', async () => {
         const response = await request(app)
             .post('/api/auth/login')

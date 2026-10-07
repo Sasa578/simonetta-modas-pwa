@@ -9,6 +9,11 @@ require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 const JWT_SECRET = process.env.JWT_SECRET || 'simonetta_modas_jwt_secreto_2025';
 
+// Control en memoria de intentos fallidos de autenticación (Usuario y Contraseña)
+const intentosLogin = new Map();
+const MAX_INTENTOS_FALLIDOS = 3;
+const TIEMPO_BLOQUEO_MS = 60 * 1000; // 1 minuto (60 segundos)
+
 // POST /api/auth/login — Inicio de sesión unificado (Personal o Clientes)
 const login = async (req, res) => {
     const { correo, password } = req.body;
@@ -17,14 +22,31 @@ const login = async (req, res) => {
         return res.status(400).json({ error: 'Correo y contraseña son obligatorios.' });
     }
 
-    try {
-        const cleanCorreo = correo.trim().toLowerCase();
+    const cleanCorreo = correo.trim().toLowerCase();
+    const ahora = Date.now();
 
-        // 1. Verificar si es personal interno (usuarios)
+    // 1. Verificar si la cuenta/correo está actualmente bloqueada
+    const estadoIntento = intentosLogin.get(cleanCorreo);
+    if (estadoIntento && estadoIntento.bloqueadoHasta) {
+        if (ahora < estadoIntento.bloqueadoHasta) {
+            const segundosRestantes = Math.ceil((estadoIntento.bloqueadoHasta - ahora) / 1000);
+            return res.status(403).json({
+                error: `Demasiados intentos fallidos. Su cuenta ha sido bloqueada temporalmente por 1 minuto por seguridad. Intente nuevamente en ${segundosRestantes} segundo${segundosRestantes === 1 ? '' : 's'}.`,
+                bloqueado: true,
+                segundos_bloqueo: segundosRestantes
+            });
+        } else {
+            // El tiempo de bloqueo de 1 minuto expiró, reseteamos el registro
+            intentosLogin.delete(cleanCorreo);
+        }
+    }
+
+    try {
+        // 2. Verificar si es personal interno (usuarios)
         let usuario = await UsuarioModel.buscarPorCorreo(cleanCorreo);
         let esCliente = false;
 
-        // 2. Si no es personal, verificar si es cliente (clientes)
+        // 3. Si no es personal, verificar si es cliente (clientes)
         if (!usuario) {
             usuario = await ClienteModel.buscarPorCorreo(cleanCorreo);
             if (usuario) {
@@ -32,15 +54,39 @@ const login = async (req, res) => {
             }
         }
 
-        if (!usuario) {
-            return res.status(401).json({ error: 'Credenciales inválidas.' });
+        // Comprobar contraseña
+        let passwordValido = false;
+        if (usuario && usuario.password_hash) {
+            passwordValido = await bcrypt.compare(password, usuario.password_hash);
         }
 
-        // Verificar contraseña
-        const passwordValido = await bcrypt.compare(password, usuario.password_hash);
-        if (!passwordValido) {
-            return res.status(401).json({ error: 'Credenciales inválidas.' });
+        // Si el usuario no existe o la contraseña es errónea: registrar intento fallido
+        if (!usuario || !passwordValido) {
+            const intentosPrevios = intentosLogin.get(cleanCorreo)?.intentos || 0;
+            const nuevoTotalIntentos = intentosPrevios + 1;
+
+            if (nuevoTotalIntentos >= MAX_INTENTOS_FALLIDOS) {
+                const bloqueadoHasta = Date.now() + TIEMPO_BLOQUEO_MS;
+                intentosLogin.set(cleanCorreo, { intentos: nuevoTotalIntentos, bloqueadoHasta });
+                return res.status(403).json({
+                    error: 'Ha alcanzado el límite de 3 intentos fallidos de usuario y contraseña. Su cuenta ha sido bloqueada por 1 minuto por seguridad.',
+                    bloqueado: true,
+                    segundos_bloqueo: 60
+                });
+            } else {
+                intentosLogin.set(cleanCorreo, { intentos: nuevoTotalIntentos, bloqueadoHasta: null });
+                const restantes = MAX_INTENTOS_FALLIDOS - nuevoTotalIntentos;
+                return res.status(401).json({
+                    error: 'Credenciales inválidas.',
+                    advertencia: `Intento ${nuevoTotalIntentos} de ${MAX_INTENTOS_FALLIDOS} antes del bloqueo temporal.`,
+                    intentos_fallidos: nuevoTotalIntentos,
+                    intentos_restantes: restantes
+                });
+            }
         }
+
+        // Login exitoso: limpiar historial de intentos fallidos
+        intentosLogin.delete(cleanCorreo);
 
         const tokenPayload = {
             id_usuario: esCliente ? null : usuario.id_usuario,

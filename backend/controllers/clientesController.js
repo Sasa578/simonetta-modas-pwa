@@ -246,10 +246,11 @@ const obtenerMiPerfil = async (req, res) => {
             let medidas = null;
             if (cliente) {
                 const medidasRes = await db.query(
-                    `SELECT ma.*, p.fecha_inicio as fecha_toma, pr.tipo_prenda
+                    `SELECT ma.*, p.fecha_inicio as fecha_toma, tp.nombre_tipo as tipo_prenda
                      FROM pedidos p
                      JOIN detalle_pedido dp ON p.id_pedido = dp.id_pedido
                      JOIN prendas pr ON dp.id_prenda = pr.id_prenda
+                     LEFT JOIN tipos_prenda tp ON pr.id_tipo_prenda = tp.id_tipo_prenda
                      JOIN medidas_anatomicas ma ON dp.id_detalle = ma.id_detalle
                      WHERE p.id_cliente = $1
                      ORDER BY p.fecha_inicio DESC, ma.id_medida_anatomica DESC
