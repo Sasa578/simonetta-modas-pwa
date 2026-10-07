@@ -41,7 +41,11 @@ const Register = () => {
         setCargando(true);
 
         try {
-            await api.post('/auth/register', formData);
+            await api.post('/auth/register', {
+                ...formData,
+                id_tipo_cliente: 1, // Persona Natural por defecto
+                tipo_cliente: 'Persona Natural'
+            });
             // Registro exitoso, redirigimos a login
             navigate('/login');
         } catch (err) {

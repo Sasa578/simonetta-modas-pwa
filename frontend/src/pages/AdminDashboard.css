@@ -671,3 +671,68 @@ a.nav-item.active {
 
 .btn-secundario { background: var(--color-borde); color: var(--color-texto-secundario); border: none; border-radius: var(--radio-borde-sm); cursor: pointer; font-size: 0.85rem; font-weight: 500; }
 .btn-secundario:hover { background: var(--color-gris-azulado); color: #fff; }
+
+
+/* ============================================================
+   BARRAS DESLIZANTES ELEGANTES (Scrollbars del Panel y Bloques)
+   ============================================================ */
+.main-content,
+.card-body,
+.mini-cards-lista,
+.usuarios-lista {
+    scrollbar-width: thin;
+    scrollbar-color: #94a3b8 #f1f5f9;
+}
+
+.main-content::-webkit-scrollbar,
+.card-body::-webkit-scrollbar,
+.mini-cards-lista::-webkit-scrollbar,
+.usuarios-lista::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.main-content::-webkit-scrollbar-track,
+.card-body::-webkit-scrollbar-track,
+.mini-cards-lista::-webkit-scrollbar-track,
+.usuarios-lista::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.main-content::-webkit-scrollbar-thumb,
+.card-body::-webkit-scrollbar-thumb,
+.mini-cards-lista::-webkit-scrollbar-thumb,
+.usuarios-lista::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 4px;
+    border: 2px solid #f1f5f9;
+}
+
+.main-content::-webkit-scrollbar-thumb:hover,
+.card-body::-webkit-scrollbar-thumb:hover,
+.mini-cards-lista::-webkit-scrollbar-thumb:hover,
+.usuarios-lista::-webkit-scrollbar-thumb:hover {
+    background: var(--color-azul-oscuro);
+}
+
+/* Scroll individual para cada bloque del Dashboard Admin */
+.card-produccion .card-body,
+.card-entregados .card-body,
+.card-almacen .card-body {
+    max-height: 290px;
+    overflow-y: auto;
+    overflow-x: auto;
+    padding-right: 1.25rem;
+}
+
+/* Sidebar scroll individual */
+.mini-cards-lista {
+    max-height: calc(100vh - 130px);
+    overflow-y: auto;
+}
+
+.usuarios-lista {
+    max-height: 260px;
+    overflow-y: auto;
+}

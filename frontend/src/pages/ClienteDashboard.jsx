@@ -51,6 +51,7 @@ const ClienteDashboard = () => {
             setCitasOcupadas(resDisp.data || []);
             setCatalogo(resCat.data || []);
             setPerfil(resPerfil.data?.cliente || null);
+            setMedidasCliente(resPerfil.data?.medidas || null);
         } catch (err) {
             console.error('Error cargando datos del cliente:', err);
         } finally {
@@ -510,6 +511,12 @@ const ClienteDashboard = () => {
                                 </div>
 
                                 {/* Formulario para confirmar la cita */}
+                                {msg && (
+                                    <div className="alerta-exito-inline fade-in">
+                                        <span>✨</span>
+                                        <span>{msg}</span>
+                                    </div>
+                                )}
                                 <form onSubmit={handleAgendarCita} className="form-agendar-cita">
                                     <h3 style={{ fontSize: '1.05rem', color: 'var(--color-azul-oscuro)', margin: '0 0 1rem' }}>
                                         {fechaSeleccionadaCita 

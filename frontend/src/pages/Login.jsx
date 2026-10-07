@@ -20,6 +20,7 @@ const Login = () => {
     const [captchaInput, setCaptchaInput] = useState('');
     const [error, setError] = useState('');
     const [cargando, setCargando] = useState(false);
+    const [segundosBloqueo, setSegundosBloqueo] = useState(0);
     const [mostrarModalPassword, setMostrarModalPassword] = useState(false);
     const [usuarioPendiente, setUsuarioPendiente] = useState(null);
     const { login, logout } = useAuth();
@@ -102,7 +103,21 @@ const Login = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="login-form">
-                    {error && <div className="login-error">{error}</div>}
+                    {segundosBloqueo > 0 && (
+                        <div style={{
+                            background: '#fee2e2', border: '1.5px solid #ef4444', color: '#991b1b',
+                            padding: '0.85rem 1rem', borderRadius: '8px', marginBottom: '1rem',
+                            textAlign: 'center', fontSize: '0.88rem'
+                        }}>
+                            <div style={{ fontSize: '1.4rem', marginBottom: '0.2rem' }}>⏳🔒</div>
+                            <strong>Acceso Temporalmente Bloqueado</strong>
+                            <p style={{ margin: '0.25rem 0' }}>Has fallado 3 veces consecutivas usuario y contraseña.</p>
+                            <span style={{ fontWeight: 700, color: '#b91c1c' }}>
+                                Podrás intentar nuevamente en: {segundosBloqueo}s
+                            </span>
+                        </div>
+                    )}
+                    {error && segundosBloqueo === 0 && <div className="login-error">{error}</div>}
 
                     <div className="form-group">
                         <label htmlFor="correo">Correo electronico</label>

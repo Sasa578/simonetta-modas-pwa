@@ -18,7 +18,19 @@ const calendarioDias = () => {
 };
 
 const SecretariaDashboard = () => {
-    const [mesActual] = useState(new Date().toLocaleString('es', { month: 'long', year: 'numeric' }));
+    const [fechaCalendario, setFechaCalendario] = useState(new Date());
+
+    const handleMesAnterior = () => {
+        setFechaCalendario(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+    };
+
+    const handleMesSiguiente = () => {
+        setFechaCalendario(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+    };
+
+    const handleMesHoy = () => {
+        setFechaCalendario(new Date());
+    };
     const [isModalOpen, setIsModalOpen] = useState(false);
     
     // Estados para el Modal Pedido
@@ -116,7 +128,8 @@ const SecretariaDashboard = () => {
         return indicadores;
     };
 
-    const dias = calendarioDias();
+    const dias = calendarioDias(fechaCalendario);
+    const mesActual = fechaCalendario.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
     const hoyStr = new Date().toISOString().split('T')[0];
 
     return (

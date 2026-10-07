@@ -1085,3 +1085,197 @@
         transform: translateY(0);
     }
 }
+
+
+/* ============================================================
+   MODAL DE CONFIRMACIÓN DE CITA Y ALERTAS VISUALES
+   ============================================================ */
+.modal-overlay-cita {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.modal-cita-exito-card {
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 1.75rem 1.5rem;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    border: 1px solid #E2E8F0;
+    animation: modalPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPopIn {
+    0% { transform: scale(0.9); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.modal-cita-icono {
+    font-size: 2.8rem;
+    margin-bottom: 0.5rem;
+    line-height: 1;
+}
+
+.modal-cita-exito-card h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.35rem;
+    color: var(--color-azul-oscuro, #455E8B);
+    margin: 0 0 0.5rem 0;
+}
+
+.modal-cita-desc {
+    font-size: 0.85rem;
+    color: #64748B;
+    margin: 0 0 1.25rem 0;
+    line-height: 1.45;
+}
+
+.modal-cita-detalles {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    font-size: 0.85rem;
+    margin-bottom: 1.35rem;
+}
+
+.modal-cita-detalles div {
+    display: flex;
+    justify-content: space-between;
+}
+
+.modal-cita-detalles strong {
+    color: #475569;
+}
+
+.modal-cita-detalles span {
+    font-weight: 600;
+    color: #0F172A;
+}
+
+.modal-cita-acciones {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.btn-ir-inicio {
+    background: linear-gradient(135deg, #455E8B 0%, #2A3B58 100%);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 12px;
+    padding: 0.85rem;
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(42, 59, 88, 0.25);
+    transition: all 0.2s;
+}
+
+.btn-ir-inicio:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(42, 59, 88, 0.35);
+}
+
+.btn-cerrar-modal-cita {
+    background: #F1F5F9;
+    color: #475569;
+    border: 1px solid #CBD5E1;
+    border-radius: 12px;
+    padding: 0.75rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-cerrar-modal-cita:hover {
+    background: #E2E8F0;
+    color: #1E293B;
+}
+
+.alerta-exito-inline {
+    background: #ECFDF5;
+    border: 1.5px solid #6EE7B7;
+    color: #065F46;
+    padding: 0.85rem 1rem;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+/* MEDIDAS EN EL PERFIL DEL CLIENTE */
+.perfil-medidas-box {
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 1.35rem 1.25rem;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.25rem;
+    text-align: left;
+}
+
+.perfil-medidas-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid #F1F5F9;
+}
+
+.perfil-medidas-header h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--color-azul-oscuro, #455E8B);
+    font-weight: 700;
+}
+
+.perfil-medidas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 0.65rem;
+}
+
+.medida-item-card {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 0.65rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.medida-item-card span {
+    font-size: 0.7rem;
+    color: #64748B;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.medida-item-card strong {
+    font-size: 1.05rem;
+    color: #1E293B;
+    margin-top: 0.2rem;
+}
