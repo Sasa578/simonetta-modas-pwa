@@ -2,7 +2,7 @@ import { filterLetters, filterPhone, filterCI, isValidEmail, isValidPhone } from
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 
-const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
+const ModalCliente = ({ isOpen, onClose, onSuccess, clienteEdit = null }) => {
     const [tipoCliente, setTipoCliente] = useState(1); // 1: Persona, 2: Institucional
     const [form, setForm] = useState({
         // Persona
@@ -26,28 +26,57 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
     const [cargando, setCargando] = useState(false);
     const [error, setError] = useState('');
 
-    useEffect(() => {
-        if (isOpen) {
-            setTipoCliente(1);
+        useEffect(() => {
+        if (!isOpen) {
             setForm({
                 nombre: '',
                 apellido: '',
                 carnet_identidad: '',
                 telefono_whatsapp: '',
+                correo: '',
                 fecha_nacimiento: '',
                 razon_social: '',
                 nit: '',
                 nombre_contacto: '',
                 telefono_contacto: '',
-                correo: '',
                 numero_contrato: '',
                 fecha_firma: '',
                 fecha_vencimiento: '',
                 atributo_preferencia: ''
             });
             setError('');
+        } else if (clienteEdit) {
+            const isInst = Number(clienteEdit.id_tipo_cliente) === 2 || 
+                (clienteEdit.tipo_cliente && clienteEdit.tipo_cliente.toLowerCase().includes('instituc'));
+            setTipoCliente(isInst ? 2 : 1);
+            
+            let n = clienteEdit.nombre || '';
+            let a = clienteEdit.apellido || '';
+            if (!n && clienteEdit.nombre_completo) {
+                const parts = clienteEdit.nombre_completo.trim().split(' ');
+                n = parts[0] || '';
+                a = parts.slice(1).join(' ') || '';
+            }
+
+            setForm({
+                nombre: n,
+                apellido: a,
+                carnet_identidad: clienteEdit.carnet_identidad || '',
+                telefono_whatsapp: clienteEdit.telefono_whatsapp || clienteEdit.telefono || '',
+                correo: clienteEdit.correo || clienteEdit.correo_electronico || '',
+                fecha_nacimiento: clienteEdit.fecha_nacimiento ? clienteEdit.fecha_nacimiento.split('T')[0] : '',
+                razon_social: clienteEdit.razon_social || clienteEdit.nombre_completo || '',
+                nit: clienteEdit.nit || clienteEdit.carnet_identidad || '',
+                nombre_contacto: clienteEdit.nombre_contacto || '',
+                telefono_contacto: clienteEdit.telefono_contacto || clienteEdit.telefono || '',
+                numero_contrato: clienteEdit.numero_contrato || '',
+                fecha_firma: clienteEdit.fecha_firma ? clienteEdit.fecha_firma.split('T')[0] : '',
+                fecha_vencimiento: clienteEdit.fecha_vencimiento ? clienteEdit.fecha_vencimiento.split('T')[0] : '',
+                atributo_preferencia: clienteEdit.atributo_preferencia || ''
+            });
+            setError('');
         }
-    }, [isOpen]);
+    }, [isOpen, clienteEdit]);
 
     if (!isOpen) return null;
 
@@ -301,7 +330,7 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
                             border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: cargando ? 'not-allowed' : 'pointer',
                             transition: 'opacity 0.2s', opacity: cargando ? 0.7 : 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem'
                         }}>
-                            {cargando ? 'Guardando...' : (tipoCliente === 1 ? 'Registrar Persona' : 'Registrar Institución')}
+                            {cargando ? 'Guardando...' : (clienteEdit ? 'Guardar Cambios' : (tipoCliente === 1 ? 'Registrar Persona' : 'Registrar Institución'))}
                         </button>
                     </div>
                 </form>

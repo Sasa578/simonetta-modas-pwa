@@ -157,8 +157,8 @@ const ModalAlmacen = ({ isOpen, onClose, onSuccess, materialEdit = null }) => {
         }}>
             <div style={{
                 background: '#ffffff', padding: '2rem', borderRadius: '16px',
-                width: '90%', maxWidth: '520px', boxShadow: '0 20px 40px rgba(0,0,0,0.12)',
-                maxHeight: '90vh', overflowY: 'auto'
+                width: '94%', maxWidth: '820px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+                maxHeight: '90vh', overflowY: 'auto', overflowX: 'hidden'
             }}>
                 <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
