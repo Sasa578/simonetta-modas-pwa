@@ -352,6 +352,32 @@ const ClienteModel = {
     /**
      * Elimina un cliente. Las restricciones en cascada eliminan los subtipos y atributos.
      */
+    /**
+     * Restablece la contraseña de un cliente y sincroniza la cuenta en usuarios si existe.
+     */
+    resetPassword: async (id_cliente, nuevaPassword) => {
+        const clienteActual = await ClienteModel.buscarPorId(id_cliente);
+        if (!clienteActual) return null;
+
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(nuevaPassword, salt);
+
+        await db.query(
+            'UPDATE clientes SET password_hash = $1 WHERE id_cliente = $2',
+            [hash, id_cliente]
+        );
+
+        if (clienteActual.correo_electronico || clienteActual.correo) {
+            const mail = (clienteActual.correo_electronico || clienteActual.correo).toLowerCase().trim();
+            await db.query(
+                'UPDATE usuarios SET password_hash = $1 WHERE LOWER(correo) = LOWER($2)',
+                [hash, mail]
+            );
+        }
+
+        return true;
+    },
+
     eliminar: async (id) => {
         const res = await db.query('DELETE FROM clientes WHERE id_cliente = $1 RETURNING id_cliente', [id]);
         return res.rows.length > 0;

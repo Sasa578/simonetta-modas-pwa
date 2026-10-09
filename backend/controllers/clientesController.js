@@ -278,7 +278,34 @@ const obtenerMiPerfil = async (req, res) => {
     }
 };
 
+// PUT /api/clientes/:id/reset-password — Restablecer contraseña de cliente (Exclusivo Admin)
+const resetPasswordCliente = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { password } = req.body;
+        const passFinal = (password && String(password).trim().length > 0) ? String(password).trim() : '0986067862';
+
+        if (passFinal.length < 6) {
+            return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres.' });
+        }
+
+        const exito = await ClienteModel.resetPassword(id, passFinal);
+        if (!exito) {
+            return res.status(404).json({ error: 'Cliente no encontrado.' });
+        }
+
+        return res.json({
+            mensaje: `Contraseña restablecida exitosamente. La nueva clave es: ${passFinal}`,
+            nueva_password: passFinal
+        });
+    } catch (error) {
+        console.error('Error al restablecer contraseña de cliente:', error);
+        return res.status(500).json({ error: 'Error interno del servidor al restablecer contraseña.' });
+    }
+};
+
 module.exports = {
+    resetPasswordCliente,
     listarClientes,
     obtenerCliente,
     crearCliente,

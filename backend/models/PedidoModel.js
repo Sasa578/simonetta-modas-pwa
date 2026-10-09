@@ -71,6 +71,17 @@ const PedidoModel = {
                 insumos: datosDetalle.insumos || datosPedido.insumos || []
             };
 
+            // Validación obligatoria de medidas: o talla o medidas anatómicas
+            const tieneTalla = Boolean(d.talla && String(d.talla).trim() && String(d.talla).trim() !== 'A Medida');
+            const mObj = d.medidas_anatomicas;
+            const tieneMedidas = Boolean(
+                mObj && typeof mObj === 'object' &&
+                Object.values(mObj).some(v => v !== null && v !== '' && !isNaN(Number(v)) && Number(v) > 0)
+            );
+            if (!tieneTalla && !tieneMedidas) {
+                throw new Error('El pedido debe registrar obligatoriamente medidas anatómicas del cliente o una talla convencional.');
+            }
+
             // 3. Resolver o crear la prenda confeccionable (V2)
             let idPrenda = d.id_prenda;
             if (!idPrenda) {
@@ -242,9 +253,18 @@ const PedidoModel = {
         let idEstado = nuevoEstado;
         if (typeof nuevoEstado === 'string') {
             const aliasMap = {
+                'corte': 'en confección',
+                'armado': 'en confección',
+                'acabados': 'en confección',
+                'en confección': 'en confección',
+                'en confeccion': 'en confección',
                 'listo para prueba': 'prueba',
+                'prueba': 'prueba',
                 'para entregar': 'terminado',
-                'acabados': 'terminado'
+                'terminado': 'terminado',
+                'entregado': 'entregado',
+                'cancelado': 'cancelado',
+                'pendiente': 'pendiente'
             };
             const limpio = nuevoEstado.trim().toLowerCase();
             const busqueda = aliasMap[limpio] || limpio;

@@ -58,6 +58,19 @@ const crearPedido = async (req, res) => {
             }
         }
 
+        // 3.1. Validación obligatoria de medidas corporales o talla
+        const tieneTalla = Boolean(talla && String(talla).trim() && String(talla).trim() !== 'A Medida');
+        const mToCheck = medidas_anatomicas || medidas;
+        const tieneMedidas = Boolean(
+            mToCheck && typeof mToCheck === 'object' &&
+            Object.values(mToCheck).some(v => v !== null && v !== '' && !isNaN(Number(v)) && Number(v) > 0)
+        );
+        if (!tieneTalla && !tieneMedidas) {
+            return res.status(400).json({
+                error: 'El pedido debe registrar obligatoriamente medidas anatómicas del cliente o una talla convencional.'
+            });
+        }
+
         // 3. Validación de Costo (> 0) y Adelanto
         const vCosto = validarMonto(costo_total, 'costo total', true, true);
         if (!vCosto.valido) return res.status(400).json({ error: vCosto.error });
