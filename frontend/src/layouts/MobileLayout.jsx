@@ -33,13 +33,23 @@ const MobileLayout = () => {
             </main>
 
             {/* Bottom Navigation Bar */}
-            <nav className="bottom-nav" style={{ position: 'relative' }}>
-                <button className={`bottom-nav-item ${isActive('/mobile') ? 'active' : ''}`} onClick={() => navigate('/mobile')}>
-                    <span className="nav-icon">🏠</span>
-                    <span className="nav-label">Tareas</span>
+            <nav className="bottom-nav">
+                <button 
+                    type="button"
+                    className={`bottom-nav-item ${isActive('/mobile') ? 'active' : ''}`} 
+                    onClick={() => navigate('/mobile')}
+                    title="Mis Tareas y Pedidos Asignados"
+                >
+                    <span className="nav-icon">🧵</span>
+                    <span className="nav-label">Mis Tareas</span>
                 </button>
                 
-                <button className={`bottom-nav-item ${isActive('/mobile/perfil') ? 'active' : ''}`} onClick={() => navigate('/mobile/perfil')}>
+                <button 
+                    type="button"
+                    className={`bottom-nav-item ${isActive('/mobile/perfil') ? 'active' : ''}`} 
+                    onClick={() => navigate('/mobile/perfil')}
+                    title="Mi Perfil de Costurera"
+                >
                     <span className="nav-icon">👤</span>
                     <span className="nav-label">Mi Perfil</span>
                 </button>

@@ -149,6 +149,7 @@ const MobileDashboard = () => {
                         const progreso = getProgreso(p.estado);
                         const tieneMedidas = p.busto || p.cintura || p.cadera || p.espalda;
                         const esActualizando = actualizandoId === p.id_pedido;
+                        const estNorm = (p.estado || '').toLowerCase().trim();
 
                         return (
                             <article key={p.id_pedido} className="costurera-card-pedido">
