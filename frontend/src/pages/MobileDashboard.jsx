@@ -151,6 +151,11 @@ const MobileDashboard = () => {
                         const tieneMedidas = p.busto || p.cintura || p.cadera || p.espalda;
                         const esActualizando = actualizandoId === p.id_pedido;
                         const estNorm = (p.estado || '').toLowerCase().trim();
+                        const esPendiente = estNorm === 'pendiente';
+                        const esEnConfeccion = estNorm.includes('confecc') || estNorm === 'corte' || estNorm === 'armado' || estNorm === 'acabados';
+                        const esPrueba = estNorm.includes('prueba');
+                        const esTerminado = estNorm.includes('terminado');
+                        const esEntregado = estNorm.includes('entregado');
 
                         return (
                             <article key={p.id_pedido} className="costurera-card-pedido">
@@ -220,17 +225,17 @@ const MobileDashboard = () => {
                                 <div className="fechas-cronograma-grid">
                                     <div className="fecha-item">
                                         <small>Registro</small>
-                                        <strong>{new Date(p.fecha_pedido).toLocaleDateString()}</strong>
+                                        <strong>{p.fecha_pedido ? new Date(p.fecha_pedido).toLocaleDateString() : '—'}</strong>
                                     </div>
                                     {p.fecha_prueba && (
                                         <div className="fecha-item">
                                             <small>✂️ Prueba</small>
-                                            <strong>{new Date(p.fecha_prueba).toLocaleDateString()}</strong>
+                                            <strong>{p.fecha_prueba ? new Date(p.fecha_prueba).toLocaleDateString() : '—'}</strong>
                                         </div>
                                     )}
                                     <div className="fecha-item fecha-entrega-item">
                                         <small>🏁 Entrega</small>
-                                        <strong>{new Date(p.fecha_entrega).toLocaleDateString()}</strong>
+                                        <strong>{p.fecha_entrega ? new Date(p.fecha_entrega).toLocaleDateString() : '—'}</strong>
                                     </div>
                                 </div>
 
@@ -321,7 +326,7 @@ const MobileDashboard = () => {
                             <div>
                                 <h3>Medidas de Confección</h3>
                                 <span className="modal-sub">
-                                    Pedido #{modalMedidas.pedido.id_pedido} — {modalMedidas.pedido.cliente}
+                                    Pedido #{modalMedidas.pedido?.id_pedido || ''} — {modalMedidas.pedido?.cliente || ''}
                                 </span>
                             </div>
                             <button className="btn-modal-cerrar" onClick={() => setModalMedidas(null)}>✕</button>
@@ -329,8 +334,8 @@ const MobileDashboard = () => {
 
                         <div className="modal-body-medidas">
                             <div className="info-prenda-modal">
-                                <strong>{modalMedidas.pedido.prenda}</strong>
-                                {modalMedidas.pedido.color && <span>({modalMedidas.pedido.color})</span>}
+                                <strong>{modalMedidas.pedido?.prenda || 'Prenda a Medida'}</strong>
+                                {modalMedidas.pedido?.color && <span>({modalMedidas.pedido.color})</span>}
                             </div>
 
                             {modalMedidas.pedido.talla && modalMedidas.pedido.talla !== 'A Medida' ? (
@@ -349,7 +354,7 @@ const MobileDashboard = () => {
                                     <div key={campo} className="medida-costurera-item">
                                         <span className="medida-nombre">{etiqueta}</span>
                                         <strong className="medida-valor">
-                                            {modalMedidas.pedido[campo] ? `${modalMedidas.pedido[campo]} cm` : '—'}
+                                            {modalMedidas.pedido?.[campo] ? `${modalMedidas.pedido[campo]} cm` : '—'}
                                         </strong>
                                     </div>
                                 ))}
