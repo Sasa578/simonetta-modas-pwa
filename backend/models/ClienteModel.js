@@ -370,7 +370,7 @@ const ClienteModel = {
         if (clienteActual.correo_electronico || clienteActual.correo) {
             const mail = (clienteActual.correo_electronico || clienteActual.correo).toLowerCase().trim();
             await db.query(
-                'UPDATE usuarios SET password_hash = $1 WHERE LOWER(correo) = LOWER($2)',
+                'UPDATE usuarios SET password_hash = $1 WHERE LOWER(correo_electronico) = LOWER($2)',
                 [hash, mail]
             );
         }
