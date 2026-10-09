@@ -64,11 +64,16 @@ const AdminPedidos = () => {
 
         // Filtro por pestaña de estado
         if (!matchBusqueda) return false;
+        const estNorm = (p.estado || '').toLowerCase().trim();
         if (filtroEstado === 'todos') return true;
-        if (filtroEstado === 'pendientes') return p.estado === 'Pendiente';
-        if (filtroEstado === 'taller') return ['Corte', 'Armado', 'Prueba'].includes(p.estado);
-        if (filtroEstado === 'terminados') return p.estado === 'Terminado';
-        if (filtroEstado === 'entregados') return p.estado === 'Entregado';
+        if (filtroEstado === 'pendientes') return estNorm === 'pendiente';
+        if (filtroEstado === 'taller') {
+            return estNorm.includes('confección') || estNorm.includes('confeccion') || estNorm === 'corte' || estNorm === 'armado' || estNorm.includes('prueba');
+        }
+        if (filtroEstado === 'terminados') {
+            return estNorm.includes('terminado') || estNorm.includes('listo');
+        }
+        if (filtroEstado === 'entregados') return estNorm === 'entregado';
         return true;
     });
 
@@ -212,12 +217,12 @@ const AdminPedidos = () => {
                                                     opacity: (esSecretaria && p.estado !== 'Terminado') ? 0.85 : 1
                                                 }}
                                             >
-                                                <option value="Pendiente" disabled={esSecretaria}>Pendiente</option>
-                                                <option value="En Confección" disabled={esSecretaria}>En Confección</option>
-                                                <option value="Prueba" disabled={esSecretaria}>Prueba</option>
-                                                <option value="Terminado" disabled={esSecretaria}>Terminado</option>
-                                                <option value="Entregado" disabled={esSecretaria && p.estado !== 'Terminado'}>Entregado</option>
-                                                <option value="Cancelado">Cancelado</option>
+                                                <option value="Pendiente" disabled={esSecretaria} style={{ color: '#0F172A', backgroundColor: '#FFFFFF' }}>Pendiente</option>
+                                                <option value="En Confección" disabled={esSecretaria} style={{ color: '#0F172A', backgroundColor: '#FFFFFF' }}>En Confección</option>
+                                                <option value="Prueba" disabled={esSecretaria} style={{ color: '#0F172A', backgroundColor: '#FFFFFF' }}>Prueba</option>
+                                                <option value="Terminado" disabled={esSecretaria} style={{ color: '#0F172A', backgroundColor: '#FFFFFF' }}>Terminado</option>
+                                                <option value="Entregado" disabled={esSecretaria && p.estado !== 'Terminado'} style={{ color: '#0F172A', backgroundColor: '#FFFFFF' }}>Entregado</option>
+                                                <option value="Cancelado" style={{ color: '#0F172A', backgroundColor: '#FFFFFF' }}>Cancelado</option>
                                             </select>
                                             {esSecretaria && p.estado !== 'Terminado' && (
                                                 <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: '0.15rem' }}>

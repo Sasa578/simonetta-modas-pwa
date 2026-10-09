@@ -71,16 +71,12 @@ const MobileDashboard = () => {
     };
 
     const getProgreso = (estado) => {
-        switch (estado) {
-            case 'Pendiente': return 15;
-            case 'Corte': return 35;
-            case 'Armado': return 60;
-            case 'Acabados': return 85;
-            case 'Listo para Prueba': return 92;
-            case 'Terminado': return 98;
-            case 'Entregado': return 100;
-            default: return 10;
-        }
+        const est = (estado || '').toLowerCase().trim();
+        if (est === 'pendiente') return 20;
+        if (est.includes('confecc') || est === 'corte' || est === 'armado' || est === 'acabados') return 60;
+        if (est.includes('prueba')) return 85;
+        if (est.includes('terminado') || est.includes('entregado')) return 100;
+        return 25;
     };
 
     const getEstadoClass = (estado) => {
@@ -89,8 +85,13 @@ const MobileDashboard = () => {
 
     // Filtros de estado para el panel superior
     const pedidosFiltrados = pedidos.filter(p => {
-        if (filtroEstado === 'todos') return p.estado !== 'Entregado' && p.estado !== 'Cancelado';
-        return (p.estado || '').toLowerCase() === filtroEstado.toLowerCase();
+        const est = (p.estado || '').toLowerCase().trim();
+        if (filtroEstado === 'todos') return est !== 'entregado' && est !== 'cancelado';
+        if (filtroEstado === 'pendiente') return est === 'pendiente';
+        if (filtroEstado === 'confeccion') return est.includes('confecc') || est === 'corte' || est === 'armado' || est === 'acabados';
+        if (filtroEstado === 'prueba') return est.includes('prueba');
+        if (filtroEstado === 'terminado') return est.includes('terminado');
+        return est === filtroEstado.toLowerCase();
     });
 
     const nombreUsuario = usuario?.nombre_completo?.split(' ')[0] || 'Costurera';
@@ -115,10 +116,10 @@ const MobileDashboard = () => {
             <div className="costurera-filtros-scroll">
                 {[
                     { id: 'todos', label: 'Todos los activos' },
-                    { id: 'pendiente', label: 'Pendiente' },
-                    { id: 'corte', label: 'En Corte' },
-                    { id: 'armado', label: 'En Armado' },
-                    { id: 'acabados', label: 'En Acabados' }
+                    { id: 'pendiente', label: '⏳ Pendientes' },
+                    { id: 'confeccion', label: '🧵 En Confección' },
+                    { id: 'prueba', label: '📐 En Prueba' },
+                    { id: 'terminado', label: '✨ Terminados' }
                 ].map(tab => (
                     <button
                         key={tab.id}
@@ -235,51 +236,29 @@ const MobileDashboard = () => {
 
                                 {/* Botones de Transición de Etapa de Confección (Touch >= 44px) */}
                                 <div className="acciones-etapa-fila">
-                                    {p.estado === 'Pendiente' && (
+                                    {esPendiente && (
                                         <button
                                             type="button"
                                             disabled={esActualizando}
-                                            onClick={() => actualizarEstado(p.id_pedido, 'Corte')}
+                                            onClick={() => actualizarEstado(p.id_pedido, 'En Confección')}
                                             className="btn-etapa btn-pasar-corte"
                                         >
-                                            {esActualizando ? 'Actualizando...' : '✂️ Iniciar Corte'}
+                                            {esActualizando ? 'Actualizando...' : '🧵 Iniciar Confección'}
                                         </button>
                                     )}
 
-                                    {p.estado === 'Corte' && (
+                                    {esEnConfeccion && (
                                         <button
                                             type="button"
                                             disabled={esActualizando}
-                                            onClick={() => actualizarEstado(p.id_pedido, 'Armado')}
+                                            onClick={() => actualizarEstado(p.id_pedido, 'Prueba')}
                                             className="btn-etapa btn-pasar-armado"
                                         >
-                                            {esActualizando ? 'Actualizando...' : '🧵 Iniciar Armado'}
+                                            {esActualizando ? 'Actualizando...' : '📐 Listo para Prueba'}
                                         </button>
                                     )}
 
-                                    {p.estado === 'Armado' && (
-                                        <button
-                                            type="button"
-                                            disabled={esActualizando}
-                                            onClick={() => actualizarEstado(p.id_pedido, 'Acabados')}
-                                            className="btn-etapa btn-pasar-acabados"
-                                        >
-                                            {esActualizando ? 'Actualizando...' : '✨ Pasar a Acabados'}
-                                        </button>
-                                    )}
-
-                                    {p.estado === 'Acabados' && (
-                                        <button
-                                            type="button"
-                                            disabled={esActualizando}
-                                            onClick={() => actualizarEstado(p.id_pedido, 'Listo para Prueba')}
-                                            className="btn-etapa btn-pasar-terminado"
-                                        >
-                                            {esActualizando ? 'Actualizando...' : '🎉 Listo para Prueba'}
-                                        </button>
-                                    )}
-
-                                    {p.estado === 'Listo para Prueba' && (
+                                    {esPrueba && (
                                         <button
                                             type="button"
                                             disabled={esActualizando}
@@ -288,6 +267,44 @@ const MobileDashboard = () => {
                                         >
                                             {esActualizando ? 'Actualizando...' : '✓ Marcar Terminado'}
                                         </button>
+                                    )}
+
+                                    {esTerminado && (
+                                        <div style={{
+                                            padding: '0.65rem 1rem',
+                                            background: '#ECFDF5',
+                                            border: '1.5px solid #A7F3D0',
+                                            color: '#065F46',
+                                            borderRadius: '10px',
+                                            fontWeight: 700,
+                                            fontSize: '0.85rem',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem',
+                                            width: '100%',
+                                            justifyContent: 'center'
+                                        }}>
+                                            ✨ Confección Finalizada (Listo para Entrega en Secretaría)
+                                        </div>
+                                    )}
+
+                                    {esEntregado && (
+                                        <div style={{
+                                            padding: '0.65rem 1rem',
+                                            background: '#F0FDF4',
+                                            border: '1.5px solid #BBF7D0',
+                                            color: '#166534',
+                                            borderRadius: '10px',
+                                            fontWeight: 700,
+                                            fontSize: '0.85rem',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem',
+                                            width: '100%',
+                                            justifyContent: 'center'
+                                        }}>
+                                            🏁 Pedido Entregado al Cliente
+                                        </div>
                                     )}
                                 </div>
                             </article>

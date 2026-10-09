@@ -259,6 +259,8 @@
 }
 
 .estado-pendiente { background: #FEF3C7; color: #B45309; }
+.estado-en-confección, .estado-en-confeccion { background: #DBEAFE; color: #1E40AF; }
+.estado-prueba { background: #E0E7FF; color: #3730A3; }
 .estado-corte { background: #FDE68A; color: #92400E; }
 .estado-armado { background: #DBEAFE; color: #1E40AF; }
 .estado-acabados { background: #D1FAE5; color: #065F46; }

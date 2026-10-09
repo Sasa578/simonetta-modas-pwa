@@ -495,11 +495,23 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
             background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
         }}>
-            <div style={{
+            <div className="modal-pedido-container" style={{
                 background: '#ffffff', borderRadius: '16px', width: '92%', maxWidth: '900px',
                 maxHeight: '92vh', overflowY: 'auto', overflowX: 'hidden', padding: '1.75rem',
                 boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', position: 'relative'
             }}>
+                <style>{`
+                    .modal-pedido-container select,
+                    .modal-pedido-select {
+                        background-color: #FFFFFF !important;
+                        color: #0F172A !important;
+                    }
+                    .modal-pedido-container select option,
+                    .modal-pedido-select option {
+                        background-color: #FFFFFF !important;
+                        color: #0F172A !important;
+                    }
+                `}</style>
                 <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid #E2E8F0', paddingBottom: '0.8rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                         <span style={{ fontSize: '1.5rem' }}>👗</span>
@@ -626,10 +638,26 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                                         if (found) setTipoPrenda(found.nombre_tipo);
                                     }}
                                     required
-                                    style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid var(--color-borde)', marginTop: '0.2rem' }}
+                                    className="modal-pedido-select"
+                                    style={{ 
+                                        width: '100%', 
+                                        padding: '0.65rem 0.75rem', 
+                                        borderRadius: '6px', 
+                                        border: '1.5px solid #CBD5E1', 
+                                        marginTop: '0.2rem',
+                                        backgroundColor: '#FFFFFF',
+                                        color: '#0F172A',
+                                        fontWeight: 600,
+                                        fontSize: '0.9rem',
+                                        cursor: 'pointer'
+                                    }}
                                 >
                                     {tiposPrenda.map(t => (
-                                        <option key={t.id_tipo_prenda} value={t.id_tipo_prenda}>
+                                        <option 
+                                            key={t.id_tipo_prenda} 
+                                            value={t.id_tipo_prenda}
+                                            style={{ backgroundColor: '#FFFFFF', color: '#0F172A', fontWeight: 600 }}
+                                        >
                                             👗 {t.nombre_tipo}
                                         </option>
                                     ))}
