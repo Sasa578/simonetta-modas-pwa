@@ -136,9 +136,50 @@ const SecretariaDashboard = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '2rem' }}>
             {/* Fila 1: Calendario a Ancho Completo */}
             <section className="card card-calendario" style={{ width: '100%' }}>
-                <div className="card-header">
-                    <h2> {mesActual.charAt(0).toUpperCase() + mesActual.slice(1)}</h2>
-                    <span className="card-subtitle">Haz clic en un día para agendar un nuevo pedido</span>
+                <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+                    <div>
+                        <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+                            📅 {mesActual.charAt(0).toUpperCase() + mesActual.slice(1)}
+                        </h2>
+                        <span className="card-subtitle">Haz clic en un día para agendar un nuevo pedido</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <button
+                            type="button"
+                            onClick={handleMesAnterior}
+                            style={{
+                                padding: '0.45rem 0.85rem', background: '#F1F5F9', border: '1px solid #CBD5E1',
+                                borderRadius: '8px', cursor: 'pointer', fontWeight: 600, color: '#334155',
+                                display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem'
+                            }}
+                            title="Ver mes anterior"
+                        >
+                            ◀ Anterior
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleMesHoy}
+                            style={{
+                                padding: '0.45rem 0.85rem', background: '#EEF2FF', border: '1px solid #C7D2FE',
+                                borderRadius: '8px', cursor: 'pointer', fontWeight: 700, color: '#3730A3', fontSize: '0.85rem'
+                            }}
+                            title="Ir al mes actual"
+                        >
+                            Hoy
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleMesSiguiente}
+                            style={{
+                                padding: '0.45rem 0.85rem', background: '#F1F5F9', border: '1px solid #CBD5E1',
+                                borderRadius: '8px', cursor: 'pointer', fontWeight: 600, color: '#334155',
+                                display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem'
+                            }}
+                            title="Ver mes siguiente"
+                        >
+                            Siguiente ▶
+                        </button>
+                    </div>
                 </div>
                 <div className="calendario-grid-wrapper">
                     <div className="calendario-dias-semana">
