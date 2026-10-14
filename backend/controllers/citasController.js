@@ -4,7 +4,7 @@ const db = require('../config/db');
 // POST /api/citas
 const crearCita = async (req, res) => {
     try {
-        const { fecha_cita, detalles, motivo_cita, id_cliente: bodyIdCliente } = req.body;
+        const { fecha_cita, detalles, motivo_cita, id_motivo_cita, id_cliente: bodyIdCliente } = req.body;
 
         if (!fecha_cita) {
             return res.status(400).json({ error: 'La fecha de la cita es obligatoria.' });

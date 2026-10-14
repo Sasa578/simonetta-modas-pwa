@@ -402,3 +402,69 @@ ALTER TABLE "observaciones_movimiento" ADD FOREIGN KEY ("id_movimiento") REFEREN
 -- Extensiones y columnas de compatibilidad operativas
 ALTER TABLE "usuarios" ADD COLUMN IF NOT EXISTS "debe_cambiar_password" boolean DEFAULT false;
 ALTER TABLE "pedidos" ADD COLUMN IF NOT EXISTS "id_costurera" int REFERENCES "usuarios"("id_usuario");
+
+
+-- ========================================================
+-- TABLAS V3: NORMALIZACIÓN DE MEDIDAS, CITAS Y PRENDAS
+-- ========================================================
+
+CREATE TABLE IF NOT EXISTS "rangos_edad" (
+  "id_rango_edad" serial PRIMARY KEY,
+  "nombre_rango" varchar(50) UNIQUE NOT NULL,
+  "descripcion" varchar(150)
+);
+
+CREATE TABLE IF NOT EXISTS "generos" (
+  "id_genero" serial PRIMARY KEY,
+  "nombre_genero" varchar(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "tallas_estandar" (
+  "id_talla_estandar" serial PRIMARY KEY,
+  "nombre_talla" varchar(10) UNIQUE NOT NULL,
+  "equivalencia_europea" varchar(20),
+  "orden" int
+);
+
+CREATE TABLE IF NOT EXISTS "tabla_medidas_convencionales" (
+  "id_tabla_medida" serial PRIMARY KEY,
+  "id_rango_edad" int REFERENCES "rangos_edad" ("id_rango_edad") ON DELETE RESTRICT,
+  "id_genero" int REFERENCES "generos" ("id_genero") ON DELETE RESTRICT,
+  "id_talla_estandar" int REFERENCES "tallas_estandar" ("id_talla_estandar") ON DELETE RESTRICT,
+  "busto" numeric(6,2),
+  "cintura" numeric(6,2),
+  "cadera" numeric(6,2),
+  "espalda" numeric(6,2),
+  "hombro" numeric(6,2),
+  "cortas" numeric(6,2),
+  "frente" numeric(6,2),
+  "alto_cadera" numeric(6,2),
+  "entre_busto" numeric(6,2),
+  CONSTRAINT "uk_tabla_medidas" UNIQUE ("id_rango_edad", "id_genero", "id_talla_estandar")
+);
+
+CREATE TABLE IF NOT EXISTS "motivos_cita" (
+  "id_motivo_cita" serial PRIMARY KEY,
+  "nombre_motivo" varchar(100) UNIQUE NOT NULL,
+  "descripcion" text
+);
+
+ALTER TABLE "medidas_convencionales" 
+  ADD COLUMN IF NOT EXISTS "id_rango_edad" int REFERENCES "rangos_edad" ("id_rango_edad"),
+  ADD COLUMN IF NOT EXISTS "id_genero" int REFERENCES "generos" ("id_genero"),
+  ADD COLUMN IF NOT EXISTS "id_talla_estandar" int REFERENCES "tallas_estandar" ("id_talla_estandar");
+
+ALTER TABLE "citas" 
+  ADD COLUMN IF NOT EXISTS "id_motivo_cita" int REFERENCES "motivos_cita" ("id_motivo_cita"),
+  ADD COLUMN IF NOT EXISTS "observaciones" text;
+
+ALTER TABLE "descripciones_prenda" 
+  ADD COLUMN IF NOT EXISTS "descripcion_general" varchar(255);
+
+CREATE TABLE IF NOT EXISTS "descripciones_detalladas_prenda" (
+  "id_descripcion_detallada" serial PRIMARY KEY,
+  "id_descripcion_prenda" int UNIQUE REFERENCES "descripciones_prenda" ("id_descripcion_prenda") ON DELETE CASCADE,
+  "descripcion_detallada" text,
+  "especificaciones_patronaje" text,
+  "cuidados_recomendados" text
+);

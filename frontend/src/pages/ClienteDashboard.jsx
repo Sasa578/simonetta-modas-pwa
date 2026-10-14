@@ -31,6 +31,8 @@ const ClienteDashboard = () => {
     const [fechaSeleccionadaCita, setFechaSeleccionadaCita] = useState('');
     const [horaCita, setHoraCita] = useState('10:00');
     const [motivoCita, setMotivoCita] = useState('');
+    const [motivosCitaCatalog, setMotivosCitaCatalog] = useState([]);
+    const [idMotivoCita, setIdMotivoCita] = useState(1);
     const [enviandoCita, setEnviandoCita] = useState(false);
 
     // Filtro de catálogo
@@ -38,10 +40,11 @@ const ClienteDashboard = () => {
 
     const cargarDatos = async () => {
         try {
-            const [resPedidos, resCitas, resDisp, resCat, resPerfil] = await Promise.all([
+            const [resPedidos, resCitas, resDisp, resMotivos, resCat, resPerfil] = await Promise.all([
                 api.get('/pedidos'),
                 api.get('/citas/mis-citas'),
                 api.get('/citas/disponibilidad').catch(() => ({ data: [] })),
+                api.get('/catalogos/motivos-cita').catch(() => ({ data: [] })),
                 api.get('/pedidos/catalogo-prendas').catch(() => ({ data: [] })),
                 api.get('/clientes/mi-perfil').catch(() => ({ data: { cliente: null } }))
             ]);
@@ -49,6 +52,10 @@ const ClienteDashboard = () => {
             setPedidos(resPedidos.data || []);
             setCitas(resCitas.data || []);
             setCitasOcupadas(resDisp.data || []);
+            if (resMotivos?.data?.length > 0) {
+                setMotivosCitaCatalog(resMotivos.data);
+                setIdMotivoCita(resMotivos.data[0].id_motivo_cita);
+            }
             setCatalogo(resCat.data || []);
             setPerfil(resPerfil.data?.cliente || null);
             setMedidasCliente(resPerfil.data?.medidas || null);
@@ -541,14 +548,29 @@ const ClienteDashboard = () => {
                                     </div>
 
                                     <div className="form-group-cita">
-                                        <label>Motivo de la cita</label>
+                                        <label>Motivo de la cita (Catálogo Oficial) *</label>
+                                        <select
+                                            value={idMotivoCita}
+                                            onChange={(e) => setIdMotivoCita(Number(e.target.value))}
+                                            className="input-select-cita"
+                                            style={{ fontWeight: 600, marginBottom: '0.8rem' }}
+                                        >
+                                            {motivosCitaCatalog.map(m => (
+                                                <option key={m.id_motivo_cita} value={m.id_motivo_cita}>
+                                                    {m.nombre_motivo} — {m.descripcion}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="form-group-cita">
+                                        <label>Observaciones o notas de diseño (Opcional)</label>
                                         <textarea
                                             value={motivoCita}
                                             onChange={(e) => setMotivoCita(e.target.value)}
                                             placeholder="Ej: Toma de medidas para vestido de graduación, prueba de calce..."
                                             rows={3}
                                             className="textarea-cita"
-                                            required
                                         />
                                     </div>
 

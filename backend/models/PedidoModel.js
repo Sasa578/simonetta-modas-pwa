@@ -159,12 +159,45 @@ const PedidoModel = {
                 );
             }
 
-            // 7. Insertar talla si viene
-            if (d.talla) {
+            // 7. Insertar talla y medidas convencionales normalizadas si vienen
+            if (d.talla || d.id_talla_estandar) {
+                let idRangoEdad = d.id_rango_edad ? Number(d.id_rango_edad) : null;
+                let idGenero = d.id_genero ? Number(d.id_genero) : null;
+                let idTallaEstandar = d.id_talla_estandar ? Number(d.id_talla_estandar) : null;
+                let nombreTalla = d.talla || null;
+                let equivEuropea = d.equivalencia_europea || null;
+
+                // Si viene id_talla_estandar pero no los nombres, obtenerlos de tallas_estandar
+                if (idTallaEstandar && (!nombreTalla || !equivEuropea)) {
+                    const tRes = await client.query('SELECT nombre_talla, equivalencia_europea FROM tallas_estandar WHERE id_talla_estandar = $1', [idTallaEstandar]);
+                    if (tRes.rows.length > 0) {
+                        nombreTalla = nombreTalla || tRes.rows[0].nombre_talla;
+                        equivEuropea = equivEuropea || tRes.rows[0].equivalencia_europea;
+                    }
+                } else if (nombreTalla && !idTallaEstandar) {
+                    const tClean = nombreTalla.split(' ')[0].trim();
+                    const tRes = await client.query('SELECT id_talla_estandar, equivalencia_europea FROM tallas_estandar WHERE UPPER(nombre_talla) = UPPER($1)', [tClean]);
+                    if (tRes.rows.length > 0) {
+                        idTallaEstandar = tRes.rows[0].id_talla_estandar;
+                        equivEuropea = equivEuropea || tRes.rows[0].equivalencia_europea;
+                    }
+                }
+
+                // Resolver id_rango_edad si vino como nombre
+                if (!idRangoEdad && d.rango_edad) {
+                    const rRes = await client.query('SELECT id_rango_edad FROM rangos_edad WHERE LOWER(nombre_rango) = LOWER($1)', [String(d.rango_edad).trim()]);
+                    if (rRes.rows.length > 0) idRangoEdad = rRes.rows[0].id_rango_edad;
+                }
+                // Resolver id_genero si vino como nombre
+                if (!idGenero && d.genero) {
+                    const gRes = await client.query('SELECT id_genero FROM generos WHERE LOWER(nombre_genero) = LOWER($1)', [String(d.genero).trim()]);
+                    if (gRes.rows.length > 0) idGenero = gRes.rows[0].id_genero;
+                }
+
                 await client.query(
-                    `INSERT INTO medidas_convencionales (id_detalle, talla, equivalencia_europea)
-                     VALUES ($1, $2, $3)`,
-                    [idDetalle, d.talla, d.equivalencia_europea || null]
+                    `INSERT INTO medidas_convencionales (id_detalle, id_rango_edad, id_genero, id_talla_estandar, talla, equivalencia_europea)
+                     VALUES ($1, $2, $3, $4, $5, $6)`,
+                    [idDetalle, idRangoEdad, idGenero, idTallaEstandar, nombreTalla, equivEuropea]
                 );
             }
 
@@ -372,7 +405,7 @@ const PedidoModel = {
                    COALESCE(tp.nombre_tipo, 'Prenda a Medida') as prenda, COALESCE(tp.nombre_tipo, 'Prenda a Medida') as tipo_prenda, COALESCE(col.nombre_color, 'Color Personalizado') as color, col.codigo_hexadecimal,
                    COALESCE(NULLIF(TRIM(CONCAT(cost_du.nombre, ' ', cost_du.apellido)), ''), 'Taller Simonetta') as costurera,
                    -- Medidas asociadas
-                   mc.talla,
+                   mc.id_rango_edad, mc.id_genero, mc.id_talla_estandar, mc.talla, mc.equivalencia_europea, re.nombre_rango as rango_edad, g.nombre_genero as genero, te.nombre_talla as talla_estandar,
                    ma.busto, ma.cintura, ma.cadera, ma.espalda, ma.hombro, ma.cortas, ma.frente, ma.alto_cadera, ma.entre_busto,
                    -- Finanzas
                    COALESCE(pagos_res.total_pagado, 0) as adelanto,
@@ -396,6 +429,9 @@ const PedidoModel = {
             LEFT JOIN notas_diseno_detalle nd ON dp.id_detalle = nd.id_detalle
             LEFT JOIN medidas_anatomicas ma ON dp.id_detalle = ma.id_detalle
             LEFT JOIN medidas_convencionales mc ON dp.id_detalle = mc.id_detalle
+            LEFT JOIN rangos_edad re ON mc.id_rango_edad = re.id_rango_edad
+            LEFT JOIN generos g ON mc.id_genero = g.id_genero
+            LEFT JOIN tallas_estandar te ON mc.id_talla_estandar = te.id_talla_estandar
             LEFT JOIN (
                 SELECT id_pedido, SUM(monto_pago) as total_pagado FROM pagos GROUP BY id_pedido
             ) pagos_res ON p.id_pedido = pagos_res.id_pedido

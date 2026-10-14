@@ -4,90 +4,9 @@ import { useState, useEffect, useRef } from 'react';
 import api from '../api/axios';
 import '../pages/PedidoForm.css';
 
-// Tabla Maestra de Medidas Convencionales por Rango de Edad, Género y Talla (cm)
-const TABLA_MEDIDAS_CONVENCIONALES = {
-    'Adulto': {
-        'Mujer': {
-            'XS':  { busto: 82, cintura: 62, cadera: 88, espalda: 35, hombro: 11, cortas: 38, frente: 41, alto_cadera: 18, entre_busto: 16 },
-            'S':   { busto: 86, cintura: 66, cadera: 92, espalda: 36, hombro: 11.5, cortas: 40, frente: 42, alto_cadera: 19, entre_busto: 17 },
-            'M':   { busto: 92, cintura: 72, cadera: 98, espalda: 37, hombro: 12, cortas: 42, frente: 44, alto_cadera: 20, entre_busto: 18 },
-            'L':   { busto: 100, cintura: 80, cadera: 106, espalda: 38.5, hombro: 12.5, cortas: 43.5, frente: 46, alto_cadera: 21, entre_busto: 19 },
-            'XL':  { busto: 108, cintura: 88, cadera: 114, espalda: 40, hombro: 13, cortas: 45, frente: 48, alto_cadera: 22, entre_busto: 20 },
-            'XXL': { busto: 116, cintura: 96, cadera: 122, espalda: 42, hombro: 13.5, cortas: 46, frente: 50, alto_cadera: 23, entre_busto: 21 }
-        },
-        'Varón': {
-            'XS':  { busto: 88, cintura: 74, cadera: 90, espalda: 41, hombro: 13, cortas: 43, frente: 43, alto_cadera: 20, entre_busto: 19 },
-            'S':   { busto: 94, cintura: 80, cadera: 96, espalda: 43, hombro: 13.5, cortas: 44.5, frente: 45, alto_cadera: 20.5, entre_busto: 20 },
-            'M':   { busto: 100, cintura: 86, cadera: 102, espalda: 45, hombro: 14, cortas: 46, frente: 47, alto_cadera: 21, entre_busto: 21 },
-            'L':   { busto: 108, cintura: 94, cadera: 110, espalda: 47, hombro: 14.5, cortas: 48, frente: 49, alto_cadera: 22, entre_busto: 22 },
-            'XL':  { busto: 116, cintura: 102, cadera: 118, espalda: 49, hombro: 15, cortas: 49.5, frente: 51, alto_cadera: 23, entre_busto: 23 },
-            'XXL': { busto: 124, cintura: 110, cadera: 126, espalda: 51, hombro: 15.5, cortas: 51, frente: 53, alto_cadera: 24, entre_busto: 24 }
-        }
-    },
-    'Adolescente': {
-        'Mujer': {
-            'XS':  { busto: 74, cintura: 56, cadera: 80, espalda: 32, hombro: 9.5, cortas: 34, frente: 36, alto_cadera: 16, entre_busto: 14 },
-            'S':   { busto: 78, cintura: 60, cadera: 84, espalda: 33, hombro: 10, cortas: 36, frente: 38, alto_cadera: 17, entre_busto: 15 },
-            'M':   { busto: 82, cintura: 64, cadera: 88, espalda: 34.5, hombro: 10.5, cortas: 38, frente: 40, alto_cadera: 18, entre_busto: 16 },
-            'L':   { busto: 86, cintura: 68, cadera: 92, espalda: 36, hombro: 11, cortas: 40, frente: 42, alto_cadera: 19, entre_busto: 17 },
-            'XL':  { busto: 92, cintura: 74, cadera: 98, espalda: 37, hombro: 11.5, cortas: 41, frente: 43, alto_cadera: 19.5, entre_busto: 18 },
-            'XXL': { busto: 98, cintura: 80, cadera: 104, espalda: 38, hombro: 12, cortas: 42, frente: 44, alto_cadera: 20, entre_busto: 19 }
-        },
-        'Varón': {
-            'XS':  { busto: 76, cintura: 64, cadera: 80, espalda: 36, hombro: 11, cortas: 38, frente: 38, alto_cadera: 17, entre_busto: 16 },
-            'S':   { busto: 82, cintura: 68, cadera: 84, espalda: 38, hombro: 11.5, cortas: 40, frente: 40, alto_cadera: 18, entre_busto: 17 },
-            'M':   { busto: 88, cintura: 74, cadera: 90, espalda: 40, hombro: 12, cortas: 42, frente: 42, alto_cadera: 19, entre_busto: 18 },
-            'L':   { busto: 94, cintura: 80, cadera: 96, espalda: 42, hombro: 12.5, cortas: 44, frente: 44, alto_cadera: 20, entre_busto: 19 },
-            'XL':  { busto: 100, cintura: 86, cadera: 102, espalda: 44, hombro: 13, cortas: 45.5, frente: 46, alto_cadera: 21, entre_busto: 20 },
-            'XXL': { busto: 106, cintura: 92, cadera: 108, espalda: 46, hombro: 13.5, cortas: 47, frente: 48, alto_cadera: 21.5, entre_busto: 21 }
-        }
-    },
-    'Niño': {
-        'Mujer': {
-            'XS':  { busto: 54, cintura: 50, cadera: 56, espalda: 24, hombro: 7, cortas: 24, frente: 25, alto_cadera: 12, entre_busto: 11 },
-            'S':   { busto: 58, cintura: 53, cadera: 60, espalda: 25.5, hombro: 7.5, cortas: 26, frente: 27, alto_cadera: 13, entre_busto: 12 },
-            'M':   { busto: 62, cintura: 56, cadera: 64, espalda: 27, hombro: 8, cortas: 28, frente: 29, alto_cadera: 14, entre_busto: 13 },
-            'L':   { busto: 66, cintura: 59, cadera: 68, espalda: 28.5, hombro: 8.5, cortas: 30, frente: 31, alto_cadera: 14.5, entre_busto: 13.5 },
-            'XL':  { busto: 70, cintura: 62, cadera: 72, espalda: 30, hombro: 9, cortas: 32, frente: 33, alto_cadera: 15, entre_busto: 14 },
-            'XXL': { busto: 74, cintura: 65, cadera: 76, espalda: 31, hombro: 9.5, cortas: 34, frente: 35, alto_cadera: 15.5, entre_busto: 14.5 }
-        },
-        'Varón': {
-            'XS':  { busto: 56, cintura: 52, cadera: 58, espalda: 25, hombro: 7.5, cortas: 25, frente: 26, alto_cadera: 12.5, entre_busto: 12 },
-            'S':   { busto: 60, cintura: 55, cadera: 62, espalda: 26.5, hombro: 8, cortas: 27, frente: 28, alto_cadera: 13.5, entre_busto: 12.5 },
-            'M':   { busto: 64, cintura: 58, cadera: 66, espalda: 28, hombro: 8.5, cortas: 29, frente: 30, alto_cadera: 14, entre_busto: 13 },
-            'L':   { busto: 68, cintura: 61, cadera: 70, espalda: 29.5, hombro: 9, cortas: 31, frente: 32, alto_cadera: 15, entre_busto: 14 },
-            'XL':  { busto: 72, cintura: 64, cadera: 74, espalda: 31, hombro: 9.5, cortas: 33, frente: 34, alto_cadera: 15.5, entre_busto: 14.5 },
-            'XXL': { busto: 76, cintura: 67, cadera: 78, espalda: 32.5, hombro: 10, cortas: 35, frente: 36, alto_cadera: 16, entre_busto: 15 }
-        }
-    }
-};
-
-const OPCIONES_TIPO_INSUMO_CLIENTE = [
-    'Tela Principal',
-    'Tela Forro',
-    'Botón / Broche',
-    'Cierre / Cremallera',
-    'Encaje / Tul',
-    'Pedrería / Aplique',
-    'Hilo Especial',
-    'Cinta / Elástico',
-    'Otro Insumo'
-];
-
-const OPCIONES_MATERIAL_BASE_CLIENTE = [
-    'Seda Natural',
-    'Raso / Satén',
-    'Lino',
-    'Algodón',
-    'Poliéster / Sintético',
-    'Lana / Paño',
-    'Terciopelo',
-    'Gasa / Tul',
-    'Cuero / Cuerina',
-    'Metálico',
-    'Plástico / Resina',
-    'Otro Material'
-];
+// Catálogos cargados dinámicamente desde la base de datos (PostgreSQL):
+// - /api/catalogos/medidas-convencionales (rangos_edad, generos, tallas_estandar, matriz)
+// - /api/catalogos/insumos-opciones (materiales_base, tipos_producto)
 
 const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCliente = null }) => {
     const errorBottomRef = useRef(null);
@@ -138,6 +57,9 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
     // Medidas convencionales estructuradas
     const [rangoEdad, setRangoEdad] = useState('Adulto'); // 'Niño' | 'Adolescente' | 'Adulto'
     const [generoTalla, setGeneroTalla] = useState('Mujer'); // 'Mujer' | 'Varón'
+    // Catálogos dinámicos cargados desde BD normalizada
+    const [catalogosMedidas, setCatalogosMedidas] = useState({ rangos_edad: [], generos: [], tallas_estandar: [], mapa_medidas: {} });
+    const [opcionesInsumos, setOpcionesInsumos] = useState({ materiales_base: [], tipos_producto: [] });
     const [talla, setTalla] = useState('M');
 
     // 9 Medidas anatómicas personalizadas completas (cm)
@@ -187,6 +109,21 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
         detalle: ''
     });
     const [descMaterialCliente, setDescMaterialCliente] = useState('');
+
+    // Carga de catálogos dinámicos desde la base de datos
+    useEffect(() => {
+        api.get('/catalogos/medidas-convencionales')
+            .then(res => {
+                if (res.data) setCatalogosMedidas(res.data);
+            })
+            .catch(err => console.error('Error al cargar medidas desde BD:', err));
+
+        api.get('/catalogos/insumos-opciones')
+            .then(res => {
+                if (res.data) setOpcionesInsumos(res.data);
+            })
+            .catch(err => console.error('Error al cargar insumos desde BD:', err));
+    }, []);
 
     useEffect(() => {
         if (isOpen) {
@@ -321,8 +258,8 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
         setInsumosCliente(insumosCliente.filter(ic => ic.id !== id));
     };
 
-    // Medidas por defecto calculadas dinámicamente según Rango de Edad, Género y Talla
-    const medidasDefecto = (TABLA_MEDIDAS_CONVENCIONALES[rangoEdad]?.[generoTalla]?.[talla]) || {
+    // Medidas calculadas dinámicamente desde la matriz de la base de datos (tabla_medidas_convencionales)
+    const medidasDefecto = (catalogosMedidas.mapa_medidas?.[rangoEdad]?.[generoTalla]?.[talla]) || {
         busto: 90, cintura: 70, cadera: 95, espalda: 37, hombro: 12, cortas: 40, frente: 43, alto_cadera: 20, entre_busto: 18
     };
 
@@ -401,7 +338,6 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                 return;
             }
             tallaFinal = `${talla} (${rangoEdad} - ${generoTalla})`;
-            // Asignar medidas corporales estándar calculadas para referencia en taller
             medidasPayload = { ...medidasDefecto };
         }
 
@@ -466,6 +402,10 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                 tipo_prenda: tipoPrenda.trim() || 'Vestido de Gala / Noche',
                 color: colorPrenda,
                 talla: tallaFinal,
+                id_rango_edad: catalogosMedidas.rangos_edad?.find(r => r.nombre_rango === rangoEdad)?.id_rango_edad || null,
+                id_genero: catalogosMedidas.generos?.find(g => g.nombre_genero === generoTalla)?.id_genero || null,
+                id_talla_estandar: catalogosMedidas.tallas_estandar?.find(t => t.nombre_talla === talla)?.id_talla_estandar || null,
+                equivalencia_europea: catalogosMedidas.tallas_estandar?.find(t => t.nombre_talla === talla)?.equivalencia_europea || null,
                 medidas_anatomicas: medidasPayload,
                 notas_diseno: notasTotales.trim(),
                 origen_material: origenMaterial,
@@ -730,9 +670,17 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                                             onChange={(e) => setRangoEdad(e.target.value)}
                                             style={{ width: '100%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #CBD5E1', fontWeight: 600 }}
                                         >
-                                            <option value="Adulto">Adulto</option>
-                                            <option value="Adolescente">Adolescente</option>
-                                            <option value="Niño">Niño</option>
+                                            {catalogosMedidas.rangos_edad && catalogosMedidas.rangos_edad.length > 0 ? (
+                                                catalogosMedidas.rangos_edad.map(r => (
+                                                    <option key={r.id_rango_edad} value={r.nombre_rango}>{r.nombre_rango}</option>
+                                                ))
+                                            ) : (
+                                                <>
+                                                    <option value="Adulto">Adulto</option>
+                                                    <option value="Adolescente">Adolescente</option>
+                                                    <option value="Niño">Niño</option>
+                                                </>
+                                            )}
                                         </select>
                                     </div>
 
@@ -745,8 +693,16 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                                             onChange={(e) => setGeneroTalla(e.target.value)}
                                             style={{ width: '100%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #CBD5E1', fontWeight: 600 }}
                                         >
-                                            <option value="Mujer">Mujer</option>
-                                            <option value="Varón">Varón</option>
+                                            {catalogosMedidas.generos && catalogosMedidas.generos.length > 0 ? (
+                                                catalogosMedidas.generos.map(g => (
+                                                    <option key={g.id_genero} value={g.nombre_genero}>{g.nombre_genero}</option>
+                                                ))
+                                            ) : (
+                                                <>
+                                                    <option value="Mujer">Mujer</option>
+                                                    <option value="Varón">Varón</option>
+                                                </>
+                                            )}
                                         </select>
                                     </div>
 
@@ -755,7 +711,10 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                                             Talla Estándar *
                                         </label>
                                         <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
-                                            {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map(t => (
+                                            {(catalogosMedidas.tallas_estandar && catalogosMedidas.tallas_estandar.length > 0
+                                                ? catalogosMedidas.tallas_estandar.map(t => t.nombre_talla)
+                                                : ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+                                            ).map(t => (
                                                 <button
                                                     key={t}
                                                     type="button"
@@ -900,7 +859,10 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                                             onChange={(e) => setItemCliente({ ...itemCliente, tipo: e.target.value })}
                                             style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '0.82rem' }}
                                         >
-                                            {OPCIONES_TIPO_INSUMO_CLIENTE.map(t => <option key={t} value={t}>{t}</option>)}
+                                            {(opcionesInsumos.tipos_producto && opcionesInsumos.tipos_producto.length > 0
+                                                ? opcionesInsumos.tipos_producto.map(tp => tp.nombre_tipo)
+                                                : ['Tela Principal', 'Tela Forro', 'Botón / Broche', 'Cierre / Cremallera', 'Otro Insumo']
+                                            ).map(t => <option key={t} value={t}>{t}</option>)}
                                         </select>
                                     </div>
 
@@ -911,7 +873,10 @@ const ModalPedido = ({ isOpen, onClose, onSuccess, initialFecha = '', initialCli
                                             onChange={(e) => setItemCliente({ ...itemCliente, materialBase: e.target.value })}
                                             style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '0.82rem' }}
                                         >
-                                            {OPCIONES_MATERIAL_BASE_CLIENTE.map(m => <option key={m} value={m}>{m}</option>)}
+                                            {(opcionesInsumos.materiales_base && opcionesInsumos.materiales_base.length > 0
+                                                ? opcionesInsumos.materiales_base.map(mb => mb.nombre_material)
+                                                : ['Algodón', 'Seda', 'Lino', 'Poliéster', 'Lana', 'Otro Material']
+                                            ).map(m => <option key={m} value={m}>{m}</option>)}
                                         </select>
                                     </div>
 
