@@ -5,10 +5,20 @@ import api from '../api/axios';
 import { io } from 'socket.io-client';
 
 const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-const calendarioDias = () => {
-    const hoy = new Date();
-    const año = hoy.getFullYear();
-    const mes = hoy.getMonth();
+const toLocalDateStr = (d) => {
+    if (!d) return '';
+    const dateObj = (d instanceof Date) ? d : new Date(d);
+    if (isNaN(dateObj.getTime())) return '';
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+const calendarioDias = (fechaBase = new Date()) => {
+    const base = (fechaBase instanceof Date && !isNaN(fechaBase.getTime())) ? fechaBase : new Date();
+    const año = base.getFullYear();
+    const mes = base.getMonth();
     const primerDia = new Date(año, mes, 1).getDay();
     const diasEnMes = new Date(año, mes + 1, 0).getDate();
     const dias = [];
@@ -18,7 +28,19 @@ const calendarioDias = () => {
 };
 
 const SecretariaDashboard = () => {
-    const [mesActual] = useState(new Date().toLocaleString('es', { month: 'long', year: 'numeric' }));
+    const [fechaCalendario, setFechaCalendario] = useState(new Date());
+
+    const handleMesAnterior = () => {
+        setFechaCalendario(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+    };
+
+    const handleMesSiguiente = () => {
+        setFechaCalendario(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+    };
+
+    const handleMesHoy = () => {
+        setFechaCalendario(new Date());
+    };
     const [isModalOpen, setIsModalOpen] = useState(false);
     
     // Estados para el Modal Pedido
@@ -66,7 +88,7 @@ const SecretariaDashboard = () => {
     }, []);
 
     const handleDiaClick = (diaFecha) => {
-        const fechaFormat = diaFecha.toISOString().split('T')[0];
+        const fechaFormat = toLocalDateStr(diaFecha);
         setFechaSeleccionada(fechaFormat);
         setClientePreseleccionado(null);
         setCitaAtenderId(null);
@@ -74,7 +96,7 @@ const SecretariaDashboard = () => {
     };
 
     const handleAtenderCita = (cita) => {
-        const fechaFormat = new Date(cita.fecha_cita).toISOString().split('T')[0];
+        const fechaFormat = toLocalDateStr(cita.fecha_cita);
         setFechaSeleccionada(fechaFormat);
         setClientePreseleccionado(cita.id_cliente);
         setCitaAtenderId(cita.id_cita);
@@ -101,31 +123,73 @@ const SecretariaDashboard = () => {
 
     const getIndicadores = (diaFecha) => {
         if (!diaFecha) return [];
-        const fStr = diaFecha.toISOString().split('T')[0];
+        const fStr = toLocalDateStr(diaFecha);
         const indicadores = [];
 
-        if (citas.some(c => new Date(c.fecha_cita).toISOString().split('T')[0] === fStr)) {
+        if (citas.some(c => toLocalDateStr(c.fecha_cita) === fStr)) {
             indicadores.push({ icono: '📌', title: 'Citas programadas' });
         }
-        if (pedidos.some(p => p.fecha_prueba && new Date(p.fecha_prueba).toISOString().split('T')[0] === fStr)) {
+        if (pedidos.some(p => p.fecha_prueba && toLocalDateStr(p.fecha_prueba) === fStr)) {
             indicadores.push({ icono: '✂️', title: 'Pruebas de vestuario' });
         }
-        if (pedidos.some(p => p.fecha_entrega && new Date(p.fecha_entrega).toISOString().split('T')[0] === fStr)) {
+        if (pedidos.some(p => p.fecha_entrega && toLocalDateStr(p.fecha_entrega) === fStr)) {
             indicadores.push({ icono: '🏁', title: 'Entregas' });
         }
         return indicadores;
     };
 
-    const dias = calendarioDias();
-    const hoyStr = new Date().toISOString().split('T')[0];
+    const dias = calendarioDias(fechaCalendario);
+    const mesActual = fechaCalendario.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+    const hoyStr = toLocalDateStr(new Date());
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '2rem' }}>
             {/* Fila 1: Calendario a Ancho Completo */}
             <section className="card card-calendario" style={{ width: '100%' }}>
-                <div className="card-header">
-                    <h2> {mesActual.charAt(0).toUpperCase() + mesActual.slice(1)}</h2>
-                    <span className="card-subtitle">Haz clic en un día para agendar un nuevo pedido</span>
+                <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+                    <div>
+                        <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+                            📅 {mesActual.charAt(0).toUpperCase() + mesActual.slice(1)}
+                        </h2>
+                        <span className="card-subtitle">Haz clic en un día para agendar un nuevo pedido</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <button
+                            type="button"
+                            onClick={handleMesAnterior}
+                            style={{
+                                padding: '0.45rem 0.85rem', background: '#F1F5F9', border: '1px solid #CBD5E1',
+                                borderRadius: '8px', cursor: 'pointer', fontWeight: 600, color: '#334155',
+                                display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem'
+                            }}
+                            title="Ver mes anterior"
+                        >
+                            ◀ Anterior
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleMesHoy}
+                            style={{
+                                padding: '0.45rem 0.85rem', background: '#EEF2FF', border: '1px solid #C7D2FE',
+                                borderRadius: '8px', cursor: 'pointer', fontWeight: 700, color: '#3730A3', fontSize: '0.85rem'
+                            }}
+                            title="Ir al mes actual"
+                        >
+                            Hoy
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleMesSiguiente}
+                            style={{
+                                padding: '0.45rem 0.85rem', background: '#F1F5F9', border: '1px solid #CBD5E1',
+                                borderRadius: '8px', cursor: 'pointer', fontWeight: 600, color: '#334155',
+                                display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem'
+                            }}
+                            title="Ver mes siguiente"
+                        >
+                            Siguiente ▶
+                        </button>
+                    </div>
                 </div>
                 <div className="calendario-grid-wrapper">
                     <div className="calendario-dias-semana">
@@ -133,7 +197,7 @@ const SecretariaDashboard = () => {
                     </div>
                     <div className="calendario-grid">
                         {dias.map((diaFecha, i) => {
-                            const isHoy = diaFecha && diaFecha.toISOString().split('T')[0] === hoyStr;
+                            const isHoy = diaFecha && toLocalDateStr(diaFecha) === hoyStr;
                             const indicadores = getIndicadores(diaFecha);
                             return (
                                 <div

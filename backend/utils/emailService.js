@@ -1,3 +1,4 @@
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 const nodemailer = require('nodemailer');
 const db = require('../config/db');
 

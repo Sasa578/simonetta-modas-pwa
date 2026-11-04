@@ -30,12 +30,20 @@ const AdminPedidos = () => {
         cargarPedidos();
     }, []);
 
+    const usuarioActual = JSON.parse(localStorage.getItem('usuario') || '{}');
+    const rolActual = usuarioActual.rol || usuarioActual.nombre_rol || '';
+    const esSecretaria = rolActual === 'Secretaria';
+
     const actualizarEstado = async (id, nuevoEstado) => {
         try {
             await api.put(`/pedidos/${id}/estado`, { estado: nuevoEstado });
+            setMsg('');
             cargarPedidos();
-        } catch {
-            alert('Error al actualizar estado del pedido');
+        } catch (err) {
+            const mensajeError = err.response?.data?.error || 'Error al actualizar estado del pedido.';
+            setMsg(mensajeError);
+            alert(mensajeError);
+            cargarPedidos(); // Reestablecer estado previo en el select
         }
     };
 
@@ -56,11 +64,16 @@ const AdminPedidos = () => {
 
         // Filtro por pestaña de estado
         if (!matchBusqueda) return false;
+        const estNorm = (p.estado || '').toLowerCase().trim();
         if (filtroEstado === 'todos') return true;
-        if (filtroEstado === 'pendientes') return p.estado === 'Pendiente';
-        if (filtroEstado === 'taller') return ['Corte', 'Armado', 'Prueba'].includes(p.estado);
-        if (filtroEstado === 'terminados') return p.estado === 'Terminado';
-        if (filtroEstado === 'entregados') return p.estado === 'Entregado';
+        if (filtroEstado === 'pendientes') return estNorm === 'pendiente';
+        if (filtroEstado === 'taller') {
+            return estNorm.includes('confección') || estNorm.includes('confeccion') || estNorm === 'corte' || estNorm === 'armado' || estNorm.includes('prueba');
+        }
+        if (filtroEstado === 'terminados') {
+            return estNorm.includes('terminado') || estNorm.includes('listo');
+        }
+        if (filtroEstado === 'entregados') return estNorm === 'entregado';
         return true;
     });
 
@@ -152,7 +165,22 @@ const AdminPedidos = () => {
                                         </td>
                                         <td>
                                             <div style={{ fontWeight: 500 }}>{p.prenda || 'Prenda a Medida'}</div>
-                                            {p.color && <small style={{ color: 'var(--color-texto-secundario)' }}>🎨 {p.color}</small>}
+                                            {p.color && (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.2rem' }}>
+                                                    {p.codigo_hexadecimal && (
+                                                        <span style={{
+                                                            display: 'inline-block',
+                                                            width: '11px',
+                                                            height: '11px',
+                                                            borderRadius: '50%',
+                                                            backgroundColor: p.codigo_hexadecimal,
+                                                            border: '1px solid rgba(0,0,0,0.2)',
+                                                            flexShrink: 0
+                                                        }} />
+                                                    )}
+                                                    <small style={{ color: 'var(--color-texto-secundario)', fontSize: '0.78rem' }}>{p.color}</small>
+                                                </div>
+                                            )}
                                         </td>
                                         <td style={{ fontWeight: 'bold' }}>{formatBs(p.costo_total)}</td>
                                         <td style={{ color: 'var(--color-verde)', fontWeight: 600 }}>{formatBs(p.adelanto)}</td>
@@ -170,25 +198,37 @@ const AdminPedidos = () => {
                                         <td>
                                             <select
                                                 value={p.estado}
+                                                disabled={esSecretaria && p.estado !== 'Terminado'}
                                                 onChange={(e) => actualizarEstado(p.id_pedido, e.target.value)}
+                                                title={
+                                                    esSecretaria && p.estado !== 'Terminado'
+                                                        ? 'Pedido en confección a cargo de la costurera. Solo se puede entregar cuando la costurera lo marque como Terminado.'
+                                                        : 'Cambiar estado del pedido'
+                                                }
                                                 style={{
-                                                    padding: '0.3rem 0.5rem',
+                                                    padding: '0.35rem 0.5rem',
                                                     borderRadius: '6px',
                                                     border: '1px solid var(--color-borde)',
                                                     fontSize: '0.8rem',
                                                     fontWeight: 600,
-                                                    background: p.estado === 'Entregado' ? '#f0fdf4' : p.estado === 'Terminado' ? '#eff6ff' : '#fff',
-                                                    color: p.estado === 'Entregado' ? '#166534' : 'inherit'
+                                                    background: p.estado === 'Entregado' ? '#f0fdf4' : p.estado === 'Terminado' ? '#eff6ff' : (esSecretaria && p.estado !== 'Terminado' ? '#f8fafc' : '#fff'),
+                                                    color: p.estado === 'Entregado' ? '#166534' : p.estado === 'Terminado' ? '#1d4ed8' : (esSecretaria && p.estado !== 'Terminado' ? '#64748b' : 'inherit'),
+                                                    cursor: (esSecretaria && p.estado !== 'Terminado') ? 'not-allowed' : 'pointer',
+                                                    opacity: (esSecretaria && p.estado !== 'Terminado') ? 0.85 : 1
                                                 }}
                                             >
-                                                <option value="Pendiente">Pendiente</option>
-                                                <option value="Corte">Corte</option>
-                                                <option value="Armado">Armado</option>
-                                                <option value="Prueba">Prueba</option>
-                                                <option value="Terminado">Terminado</option>
-                                                <option value="Entregado">Entregado</option>
-                                                <option value="Cancelado">Cancelado</option>
+                                                <option value="Pendiente" disabled={esSecretaria} style={{ color: '#0F172A', backgroundColor: '#FFFFFF' }}>Pendiente</option>
+                                                <option value="En Confección" disabled={esSecretaria} style={{ color: '#0F172A', backgroundColor: '#FFFFFF' }}>En Confección</option>
+                                                <option value="Prueba" disabled={esSecretaria} style={{ color: '#0F172A', backgroundColor: '#FFFFFF' }}>Prueba</option>
+                                                <option value="Terminado" disabled={esSecretaria} style={{ color: '#0F172A', backgroundColor: '#FFFFFF' }}>Terminado</option>
+                                                <option value="Entregado" disabled={esSecretaria && p.estado !== 'Terminado'} style={{ color: '#0F172A', backgroundColor: '#FFFFFF' }}>Entregado</option>
+                                                <option value="Cancelado" style={{ color: '#0F172A', backgroundColor: '#FFFFFF' }}>Cancelado</option>
                                             </select>
+                                            {esSecretaria && p.estado !== 'Terminado' && (
+                                                <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: '0.15rem' }}>
+                                                    🧵 En Taller ({p.costurera || 'Costurera'})
+                                                </div>
+                                            )}
                                         </td>
                                         <td>
                                             <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center', flexWrap: 'wrap' }}>

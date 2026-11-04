@@ -10,6 +10,20 @@ const PedidoModel = {
         try {
             await client.query('BEGIN');
 
+            // 0. Validar obligatoriedad de Costurera asignada
+            if (!datosPedido.id_costurera) {
+                throw new Error('Debe asignar obligatoriamente una costurera para la confección del pedido.');
+            }
+
+            // Validar que no existan insumos duplicados en el pedido
+            const listaInsumos = datosDetalle?.insumos || datosPedido?.insumos || [];
+            if (Array.isArray(listaInsumos) && listaInsumos.length > 0) {
+                const ids = listaInsumos.map(i => Number(i.id_producto || i.id_material)).filter(Boolean);
+                if (new Set(ids).size !== ids.length) {
+                    throw new Error('No se permiten insumos duplicados en el mismo pedido. Especifique la cantidad total requerida.');
+                }
+            }
+
             // 1. Resolver el id_estado_pedido
             let idEstadoPedido = 1; // 'Pendiente' por defecto
             if (datosPedido.estado) {
@@ -41,6 +55,8 @@ const PedidoModel = {
             // Consolidar datos de detalle y medidas (soporta llamada con 2 argumentos o con objeto unificado)
             const d = {
                 id_prenda: datosDetalle.id_prenda || datosPedido.id_prenda,
+                id_tipo_prenda: datosDetalle.id_tipo_prenda || datosPedido.id_tipo_prenda || null,
+                id_color: datosDetalle.id_color || datosPedido.id_color || null,
                 tipo_prenda: datosDetalle.tipo_prenda || datosPedido.tipo_prenda || datosDetalle.descripcion_tela || datosPedido.descripcion_tela || 'Prenda a Medida',
                 color: datosDetalle.color || datosPedido.color || 'A elección',
                 id_catalogo: datosDetalle.id_catalogo || datosPedido.id_catalogo || null,
@@ -55,21 +71,59 @@ const PedidoModel = {
                 insumos: datosDetalle.insumos || datosPedido.insumos || []
             };
 
-            // 3. Resolver o crear la prenda confeccionable
+            // Validación obligatoria de medidas: o talla o medidas anatómicas
+            const tieneTalla = Boolean(d.talla && String(d.talla).trim() && String(d.talla).trim() !== 'A Medida');
+            const mObj = d.medidas_anatomicas;
+            const tieneMedidas = Boolean(
+                mObj && typeof mObj === 'object' &&
+                Object.values(mObj).some(v => v !== null && v !== '' && !isNaN(Number(v)) && Number(v) > 0)
+            );
+            if (!tieneTalla && !tieneMedidas) {
+                throw new Error('El pedido debe registrar obligatoriamente medidas anatómicas del cliente o una talla convencional.');
+            }
+
+            // 3. Resolver o crear la prenda confeccionable (V2)
             let idPrenda = d.id_prenda;
             if (!idPrenda) {
+                let resolvedTipoPrenda = d.id_tipo_prenda ? Number(d.id_tipo_prenda) : null;
+                if (!resolvedTipoPrenda && (d.tipo_prenda || d.prenda)) {
+                    const nomPrenda = (d.tipo_prenda || d.prenda).trim();
+                    const tpRes = await client.query('SELECT id_tipo_prenda FROM tipos_prenda WHERE LOWER(nombre_tipo) = LOWER($1)', [nomPrenda]);
+                    if (tpRes.rows.length > 0) {
+                        resolvedTipoPrenda = tpRes.rows[0].id_tipo_prenda;
+                    } else {
+                        const insTp = await client.query('INSERT INTO tipos_prenda (nombre_tipo) VALUES ($1) RETURNING id_tipo_prenda', [nomPrenda]);
+                        resolvedTipoPrenda = insTp.rows[0].id_tipo_prenda;
+                    }
+                }
+                if (!resolvedTipoPrenda) resolvedTipoPrenda = 1;
+
+                let resolvedColor = d.id_color ? Number(d.id_color) : null;
+                if (!resolvedColor && d.color) {
+                    const nomColor = d.color.trim();
+                    const colRes = await client.query(
+                        'SELECT id_color FROM colores WHERE LOWER(nombre_color) = LOWER($1) OR LOWER(codigo_hexadecimal) = LOWER($1)', 
+                        [nomColor]
+                    );
+                    if (colRes.rows.length > 0) {
+                        resolvedColor = colRes.rows[0].id_color;
+                    }
+                }
+                if (!resolvedColor) resolvedColor = 1;
+
                 const prenRes = await client.query(
-                    `INSERT INTO prendas (id_catalogo, tipo_prenda, color)
+                    `INSERT INTO prendas (id_catalogo, id_tipo_prenda, id_color)
                      VALUES ($1, $2, $3)
                      RETURNING id_prenda`,
-                    [d.id_catalogo, d.tipo_prenda, d.color]
+                    [d.id_catalogo || 1, resolvedTipoPrenda, resolvedColor]
                 );
                 idPrenda = prenRes.rows[0].id_prenda;
 
                 if (d.descripcion_tela) {
                     await client.query(
                         `INSERT INTO descripciones_prenda (id_prenda, descripcion_detallada)
-                         VALUES ($1, $2)`,
+                         VALUES ($1, $2)
+                         ON CONFLICT (id_prenda) DO UPDATE SET descripcion_detallada = EXCLUDED.descripcion_detallada`,
                         [idPrenda, d.descripcion_tela]
                     );
                 }
@@ -105,12 +159,45 @@ const PedidoModel = {
                 );
             }
 
-            // 7. Insertar talla si viene
-            if (d.talla) {
+            // 7. Insertar talla y medidas convencionales normalizadas si vienen
+            if (d.talla || d.id_talla_estandar) {
+                let idRangoEdad = d.id_rango_edad ? Number(d.id_rango_edad) : null;
+                let idGenero = d.id_genero ? Number(d.id_genero) : null;
+                let idTallaEstandar = d.id_talla_estandar ? Number(d.id_talla_estandar) : null;
+                let nombreTalla = d.talla || null;
+                let equivEuropea = d.equivalencia_europea || null;
+
+                // Si viene id_talla_estandar pero no los nombres, obtenerlos de tallas_estandar
+                if (idTallaEstandar && (!nombreTalla || !equivEuropea)) {
+                    const tRes = await client.query('SELECT nombre_talla, equivalencia_europea FROM tallas_estandar WHERE id_talla_estandar = $1', [idTallaEstandar]);
+                    if (tRes.rows.length > 0) {
+                        nombreTalla = nombreTalla || tRes.rows[0].nombre_talla;
+                        equivEuropea = equivEuropea || tRes.rows[0].equivalencia_europea;
+                    }
+                } else if (nombreTalla && !idTallaEstandar) {
+                    const tClean = nombreTalla.split(' ')[0].trim();
+                    const tRes = await client.query('SELECT id_talla_estandar, equivalencia_europea FROM tallas_estandar WHERE UPPER(nombre_talla) = UPPER($1)', [tClean]);
+                    if (tRes.rows.length > 0) {
+                        idTallaEstandar = tRes.rows[0].id_talla_estandar;
+                        equivEuropea = equivEuropea || tRes.rows[0].equivalencia_europea;
+                    }
+                }
+
+                // Resolver id_rango_edad si vino como nombre
+                if (!idRangoEdad && d.rango_edad) {
+                    const rRes = await client.query('SELECT id_rango_edad FROM rangos_edad WHERE LOWER(nombre_rango) = LOWER($1)', [String(d.rango_edad).trim()]);
+                    if (rRes.rows.length > 0) idRangoEdad = rRes.rows[0].id_rango_edad;
+                }
+                // Resolver id_genero si vino como nombre
+                if (!idGenero && d.genero) {
+                    const gRes = await client.query('SELECT id_genero FROM generos WHERE LOWER(nombre_genero) = LOWER($1)', [String(d.genero).trim()]);
+                    if (gRes.rows.length > 0) idGenero = gRes.rows[0].id_genero;
+                }
+
                 await client.query(
-                    `INSERT INTO medidas_convencionales (id_detalle, talla, equivalencia_europea)
-                     VALUES ($1, $2, $3)`,
-                    [idDetalle, d.talla, d.equivalencia_europea || null]
+                    `INSERT INTO medidas_convencionales (id_detalle, id_rango_edad, id_genero, id_talla_estandar, talla, equivalencia_europea)
+                     VALUES ($1, $2, $3, $4, $5, $6)`,
+                    [idDetalle, idRangoEdad, idGenero, idTallaEstandar, nombreTalla, equivEuropea]
                 );
             }
 
@@ -142,9 +229,24 @@ const PedidoModel = {
                     const idProd = Number(ins.id_producto || ins.id_material);
                     const cant = parseFloat(ins.cantidad) || 0;
                     if (idProd && cant > 0) {
-                        // Insumos seleccionados del almacén siempre descuentan stock físico del taller
+                        // 1. Validar en tiempo real que exista stock suficiente en almacén
+                        const stockCheckRes = await client.query(
+                            'SELECT id_producto, nombre_articulo, cantidad_stock FROM productos_almacen WHERE id_producto = $1 FOR UPDATE',
+                            [idProd]
+                        );
+                        if (stockCheckRes.rows.length === 0) {
+                            throw new Error(`El insumo con ID ${idProd} no existe en el almacén.`);
+                        }
+                        const stockDisponible = parseFloat(stockCheckRes.rows[0].cantidad_stock) || 0;
+                        const nombreArt = stockCheckRes.rows[0].nombre_articulo;
+
+                        if (stockDisponible < cant) {
+                            throw new Error(`Stock insuficiente para el insumo "${nombreArt}". Disponible en almacén: ${stockDisponible}, solicitado: ${cant}`);
+                        }
+
+                        // 2. Consumir del stock físico
                         await client.query(
-                            'UPDATE productos_almacen SET cantidad_stock = GREATEST(0, cantidad_stock - $1) WHERE id_producto = $2',
+                            'UPDATE productos_almacen SET cantidad_stock = cantidad_stock - $1 WHERE id_producto = $2',
                             [cant, idProd]
                         );
 
@@ -184,9 +286,18 @@ const PedidoModel = {
         let idEstado = nuevoEstado;
         if (typeof nuevoEstado === 'string') {
             const aliasMap = {
+                'corte': 'en confección',
+                'armado': 'en confección',
+                'acabados': 'en confección',
+                'en confección': 'en confección',
+                'en confeccion': 'en confección',
                 'listo para prueba': 'prueba',
+                'prueba': 'prueba',
                 'para entregar': 'terminado',
-                'acabados': 'terminado'
+                'terminado': 'terminado',
+                'entregado': 'entregado',
+                'cancelado': 'cancelado',
+                'pendiente': 'pendiente'
             };
             const limpio = nuevoEstado.trim().toLowerCase();
             const busqueda = aliasMap[limpio] || limpio;
@@ -221,7 +332,7 @@ const PedidoModel = {
                    cl.correo_electronico as cliente_correo,
                    tc.nombre_tipo as tipo_cliente,
                    -- Prenda principal
-                   pr.id_prenda, pr.tipo_prenda as prenda, pr.color,
+                   pr.id_prenda, COALESCE(tp.nombre_tipo, 'Prenda a Medida') as prenda, COALESCE(tp.nombre_tipo, 'Prenda a Medida') as tipo_prenda, COALESCE(col.nombre_color, 'Color Personalizado') as color, col.codigo_hexadecimal,
                    dp.id_detalle, dp.cantidad, dp.subtotal,
                    nd.notas_diseno,
                    -- Pagos acumulados y saldo
@@ -240,7 +351,7 @@ const PedidoModel = {
                 ORDER BY dp.id_detalle ASC
                 LIMIT 1
             ) dp ON true
-            LEFT JOIN prendas pr ON dp.id_prenda = pr.id_prenda
+            LEFT JOIN prendas pr ON dp.id_prenda = pr.id_prenda LEFT JOIN tipos_prenda tp ON pr.id_tipo_prenda = tp.id_tipo_prenda LEFT JOIN colores col ON pr.id_color = col.id_color
             LEFT JOIN notas_diseno_detalle nd ON dp.id_detalle = nd.id_detalle
             LEFT JOIN (
                 SELECT id_pedido, SUM(monto_pago) as total_pagado
@@ -263,7 +374,7 @@ const PedidoModel = {
             SELECT p.id_pedido, ep.nombre_estado as estado, p.fecha_inicio as fecha_pedido, p.fecha_entrega, p.fecha_prueba,
                    COALESCE(NULLIF(TRIM(CONCAT(dcp.nombre, ' ', dcp.apellido)), ''), dci.razon_social) as cliente,
                    cl.id_cliente,
-                   pr.tipo_prenda as prenda, pr.color,
+                   COALESCE(tp.nombre_tipo, 'Prenda a Medida') as prenda, COALESCE(tp.nombre_tipo, 'Prenda a Medida') as tipo_prenda, COALESCE(col.nombre_color, 'Color Personalizado') as color, col.codigo_hexadecimal,
                    dp.id_detalle, nd.notas_diseno,
                    ma.cortas, ma.cintura, ma.busto, ma.cadera, ma.espalda
             FROM pedidos p
@@ -272,7 +383,7 @@ const PedidoModel = {
             LEFT JOIN datos_cliente_persona dcp ON cl.id_cliente = dcp.id_cliente
             LEFT JOIN datos_cliente_institucional dci ON cl.id_cliente = dci.id_cliente
             JOIN detalle_pedido dp ON p.id_pedido = dp.id_pedido
-            JOIN prendas pr ON dp.id_prenda = pr.id_prenda
+            JOIN prendas pr ON dp.id_prenda = pr.id_prenda LEFT JOIN tipos_prenda tp ON pr.id_tipo_prenda = tp.id_tipo_prenda LEFT JOIN colores col ON pr.id_color = col.id_color
             LEFT JOIN notas_diseno_detalle nd ON dp.id_detalle = nd.id_detalle
             LEFT JOIN medidas_anatomicas ma ON dp.id_detalle = ma.id_detalle
             WHERE ep.nombre_estado IN ('Corte', 'Armado', 'Prueba', 'Terminado')
@@ -291,10 +402,10 @@ const PedidoModel = {
             SELECT p.id_pedido, ep.nombre_estado as estado, p.fecha_inicio as fecha_pedido, p.fecha_entrega, p.fecha_prueba,
                    p.costo_total,
                    COALESCE(NULLIF(TRIM(CONCAT(dcp.nombre, ' ', dcp.apellido)), ''), dci.razon_social) as cliente,
-                   pr.tipo_prenda as prenda, pr.color,
+                   COALESCE(tp.nombre_tipo, 'Prenda a Medida') as prenda, COALESCE(tp.nombre_tipo, 'Prenda a Medida') as tipo_prenda, COALESCE(col.nombre_color, 'Color Personalizado') as color, col.codigo_hexadecimal,
                    COALESCE(NULLIF(TRIM(CONCAT(cost_du.nombre, ' ', cost_du.apellido)), ''), 'Taller Simonetta') as costurera,
                    -- Medidas asociadas
-                   mc.talla,
+                   mc.id_rango_edad, mc.id_genero, mc.id_talla_estandar, mc.talla, mc.equivalencia_europea, re.nombre_rango as rango_edad, g.nombre_genero as genero, te.nombre_talla as talla_estandar,
                    ma.busto, ma.cintura, ma.cadera, ma.espalda, ma.hombro, ma.cortas, ma.frente, ma.alto_cadera, ma.entre_busto,
                    -- Finanzas
                    COALESCE(pagos_res.total_pagado, 0) as adelanto,
@@ -314,10 +425,13 @@ const PedidoModel = {
             LEFT JOIN LATERAL (
                 SELECT id_detalle, id_prenda FROM detalle_pedido WHERE id_pedido = p.id_pedido ORDER BY id_detalle ASC LIMIT 1
             ) dp ON true
-            LEFT JOIN prendas pr ON dp.id_prenda = pr.id_prenda
+            LEFT JOIN prendas pr ON dp.id_prenda = pr.id_prenda LEFT JOIN tipos_prenda tp ON pr.id_tipo_prenda = tp.id_tipo_prenda LEFT JOIN colores col ON pr.id_color = col.id_color
             LEFT JOIN notas_diseno_detalle nd ON dp.id_detalle = nd.id_detalle
             LEFT JOIN medidas_anatomicas ma ON dp.id_detalle = ma.id_detalle
             LEFT JOIN medidas_convencionales mc ON dp.id_detalle = mc.id_detalle
+            LEFT JOIN rangos_edad re ON mc.id_rango_edad = re.id_rango_edad
+            LEFT JOIN generos g ON mc.id_genero = g.id_genero
+            LEFT JOIN tallas_estandar te ON mc.id_talla_estandar = te.id_talla_estandar
             LEFT JOIN (
                 SELECT id_pedido, SUM(monto_pago) as total_pagado FROM pagos GROUP BY id_pedido
             ) pagos_res ON p.id_pedido = pagos_res.id_pedido
@@ -340,7 +454,7 @@ const PedidoModel = {
                    cl.correo_electronico as cliente_correo,
                    COALESCE(NULLIF(TRIM(CONCAT(cost_du.nombre, ' ', cost_du.apellido)), ''), 'Taller Simonetta') as costurera,
                    -- Prenda y detalles
-                   pr.tipo_prenda, pr.color, pr.tipo_prenda as prenda,
+                   COALESCE(tp.nombre_tipo, 'Prenda a Medida') as prenda, COALESCE(tp.nombre_tipo, 'Prenda a Medida') as tipo_prenda, COALESCE(col.nombre_color, 'Color Personalizado') as color, col.codigo_hexadecimal,
                    dp.id_detalle, dp.cantidad, dp.subtotal,
                    nd.notas_diseno,
                    -- Medidas
@@ -360,7 +474,7 @@ const PedidoModel = {
                 SELECT id_detalle, id_prenda, cantidad, subtotal
                 FROM detalle_pedido WHERE id_pedido = p.id_pedido LIMIT 1
             ) dp ON true
-            LEFT JOIN prendas pr ON dp.id_prenda = pr.id_prenda
+            LEFT JOIN prendas pr ON dp.id_prenda = pr.id_prenda LEFT JOIN tipos_prenda tp ON pr.id_tipo_prenda = tp.id_tipo_prenda LEFT JOIN colores col ON pr.id_color = col.id_color
             LEFT JOIN notas_diseno_detalle nd ON dp.id_detalle = nd.id_detalle
             LEFT JOIN medidas_anatomicas ma ON dp.id_detalle = ma.id_detalle
             LEFT JOIN medidas_convencionales mc ON dp.id_detalle = mc.id_detalle
@@ -515,11 +629,11 @@ const PedidoModel = {
         const query = `
             SELECT c.id_catalogo, c.nombre_catalogo as coleccion, c.url_imagen_catalogo as imagen_url,
                    dc.descripcion as descripcion_coleccion,
-                   p.id_prenda, p.tipo_prenda as nombre_prenda, p.color,
+                   p.id_prenda, COALESCE(tp.nombre_tipo, 'Prenda a Medida') as nombre_prenda, COALESCE(col.nombre_color, 'Color Personalizado') as color, col.codigo_hexadecimal,
                    dp.descripcion_detallada as descripcion
             FROM catalogo c
             LEFT JOIN descripciones_catalogo dc ON c.id_catalogo = dc.id_catalogo
-            JOIN prendas p ON c.id_catalogo = p.id_catalogo
+            JOIN prendas p ON c.id_catalogo = p.id_catalogo LEFT JOIN tipos_prenda tp ON p.id_tipo_prenda = tp.id_tipo_prenda LEFT JOIN colores col ON p.id_color = col.id_color
             LEFT JOIN descripciones_prenda dp ON p.id_prenda = dp.id_prenda
             ORDER BY c.id_catalogo ASC, p.id_prenda ASC;
         `;
@@ -535,7 +649,7 @@ const PedidoModel = {
             SELECT p.id_pedido, p.fecha_inicio as fecha_pedido, p.fecha_entrega, p.fecha_prueba,
                    p.costo_total, p.id_costurera,
                    ep.nombre_estado as estado,
-                   pr.id_prenda, pr.tipo_prenda as prenda, pr.color,
+                   pr.id_prenda, COALESCE(tp.nombre_tipo, 'Prenda a Medida') as prenda, COALESCE(tp.nombre_tipo, 'Prenda a Medida') as tipo_prenda, COALESCE(col.nombre_color, 'Color Personalizado') as color, col.codigo_hexadecimal,
                    COALESCE(NULLIF(TRIM(CONCAT(dcp.nombre, ' ', dcp.apellido)), ''), dci.razon_social, 'Cliente') as cliente,
                    COALESCE(dcp.telefono, dci.telefono_contacto, '') as telefono_whatsapp,
                    nt.notas_diseno,
@@ -547,7 +661,7 @@ const PedidoModel = {
             LEFT JOIN datos_cliente_persona dcp ON c.id_cliente = dcp.id_cliente
             LEFT JOIN datos_cliente_institucional dci ON c.id_cliente = dci.id_cliente
             LEFT JOIN detalle_pedido dp ON p.id_pedido = dp.id_pedido
-            LEFT JOIN prendas pr ON dp.id_prenda = pr.id_prenda
+            LEFT JOIN prendas pr ON dp.id_prenda = pr.id_prenda LEFT JOIN tipos_prenda tp ON pr.id_tipo_prenda = tp.id_tipo_prenda LEFT JOIN colores col ON pr.id_color = col.id_color
             LEFT JOIN notas_diseno_detalle nt ON dp.id_detalle = nt.id_detalle
             LEFT JOIN medidas_convencionales mc ON dp.id_detalle = mc.id_detalle
             LEFT JOIN medidas_anatomicas ma ON dp.id_detalle = ma.id_detalle

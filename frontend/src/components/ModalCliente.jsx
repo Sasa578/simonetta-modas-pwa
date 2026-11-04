@@ -1,7 +1,8 @@
+import { filterLetters, filterPhone, filterCI, isValidEmail, isValidPhone } from '../utils/validators';
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 
-const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
+const ModalCliente = ({ isOpen, onClose, onSuccess, clienteEdit = null }) => {
     const [tipoCliente, setTipoCliente] = useState(1); // 1: Persona, 2: Institucional
     const [form, setForm] = useState({
         // Persona
@@ -25,32 +26,82 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
     const [cargando, setCargando] = useState(false);
     const [error, setError] = useState('');
 
-    useEffect(() => {
-        if (isOpen) {
-            setTipoCliente(1);
+        useEffect(() => {
+        if (!isOpen) {
             setForm({
                 nombre: '',
                 apellido: '',
                 carnet_identidad: '',
                 telefono_whatsapp: '',
+                correo: '',
                 fecha_nacimiento: '',
                 razon_social: '',
                 nit: '',
                 nombre_contacto: '',
                 telefono_contacto: '',
-                correo: '',
                 numero_contrato: '',
                 fecha_firma: '',
                 fecha_vencimiento: '',
                 atributo_preferencia: ''
             });
             setError('');
+        } else if (clienteEdit) {
+            const isInst = Number(clienteEdit.id_tipo_cliente) === 2 || 
+                (clienteEdit.tipo_cliente && clienteEdit.tipo_cliente.toLowerCase().includes('instituc'));
+            setTipoCliente(isInst ? 2 : 1);
+            
+            let n = clienteEdit.nombre || '';
+            let a = clienteEdit.apellido || '';
+            if (!n && clienteEdit.nombre_completo) {
+                const parts = clienteEdit.nombre_completo.trim().split(' ');
+                n = parts[0] || '';
+                a = parts.slice(1).join(' ') || '';
+            }
+
+            setForm({
+                nombre: n,
+                apellido: a,
+                carnet_identidad: clienteEdit.carnet_identidad || '',
+                telefono_whatsapp: clienteEdit.telefono_whatsapp || clienteEdit.telefono || '',
+                correo: clienteEdit.correo || clienteEdit.correo_electronico || '',
+                fecha_nacimiento: clienteEdit.fecha_nacimiento ? clienteEdit.fecha_nacimiento.split('T')[0] : '',
+                razon_social: clienteEdit.razon_social || clienteEdit.nombre_completo || '',
+                nit: clienteEdit.nit || clienteEdit.carnet_identidad || '',
+                nombre_contacto: clienteEdit.nombre_contacto || '',
+                telefono_contacto: clienteEdit.telefono_contacto || clienteEdit.telefono || '',
+                numero_contrato: clienteEdit.numero_contrato || '',
+                fecha_firma: clienteEdit.fecha_firma ? clienteEdit.fecha_firma.split('T')[0] : '',
+                fecha_vencimiento: clienteEdit.fecha_vencimiento ? clienteEdit.fecha_vencimiento.split('T')[0] : '',
+                atributo_preferencia: clienteEdit.atributo_preferencia || ''
+            });
+            setError('');
         }
-    }, [isOpen]);
+    }, [isOpen, clienteEdit]);
 
     if (!isOpen) return null;
 
     const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+
+        // VALIDACION EN MODAL CLIENTE
+        if (tipoCliente === 1) {
+            if (form.telefono_whatsapp && !isValidPhone(form.telefono_whatsapp)) {
+                setError('El teléfono / WhatsApp debe tener al menos 7 dígitos válidos.');
+                return;
+            }
+        } else {
+            if (form.telefono_contacto && !isValidPhone(form.telefono_contacto)) {
+                setError('El teléfono de contacto debe tener al menos 7 dígitos válidos.');
+                return;
+            }
+        }
+
+        if (form.correo && !isValidEmail(form.correo)) {
+            setError('El correo electrónico ingresado no tiene un formato válido.');
+            return;
+        }
+
         e.preventDefault();
         setError('');
         setCargando(true);
@@ -184,22 +235,22 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
                             <div style={{ display: 'flex', gap: '0.8rem' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                                     <label style={labelStyle}>Nombre *</label>
-                                    <input type="text" placeholder="Ej. Ana" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} style={inputStyle} required />
+                                    <input type="text" placeholder="Ej. Ana" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: filterLetters(e.target.value) })} style={inputStyle} required />
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                                     <label style={labelStyle}>Apellido *</label>
-                                    <input type="text" placeholder="Ej. García Rojas" value={form.apellido} onChange={(e) => setForm({ ...form, apellido: e.target.value })} style={inputStyle} required />
+                                    <input type="text" placeholder="Ej. García Rojas" value={form.apellido} onChange={(e) => setForm({ ...form, apellido: filterLetters(e.target.value) })} style={inputStyle} required />
                                 </div>
                             </div>
 
                             <div style={{ display: 'flex', gap: '0.8rem' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                                     <label style={labelStyle}>CI / Cédula</label>
-                                    <input type="text" placeholder="Ej. 6543210 LP" value={form.carnet_identidad} onChange={(e) => setForm({ ...form, carnet_identidad: e.target.value })} style={inputStyle} />
+                                    <input type="text" placeholder="Ej. 6543210 LP" value={form.carnet_identidad} onChange={(e) => setForm({ ...form, carnet_identidad: filterCI(e.target.value) })} style={inputStyle} />
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                                     <label style={labelStyle}>WhatsApp / Celular *</label>
-                                    <input type="tel" placeholder="Ej. 77712345" value={form.telefono_whatsapp} onChange={(e) => setForm({ ...form, telefono_whatsapp: e.target.value })} style={inputStyle} required />
+                                    <input type="tel" placeholder="Ej. 77712345" value={form.telefono_whatsapp} onChange={(e) => setForm({ ...form, telefono_whatsapp: filterPhone(e.target.value) })} style={inputStyle} required />
                                 </div>
                             </div>
 
@@ -229,7 +280,7 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
                             <div style={{ display: 'flex', gap: '0.8rem' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                                     <label style={labelStyle}>NIT *</label>
-                                    <input type="text" placeholder="Ej. 1023948571" value={form.nit} onChange={(e) => setForm({ ...form, nit: e.target.value })} style={inputStyle} required />
+                                    <input type="text" placeholder="Ej. 1023948571" value={form.nit} onChange={(e) => setForm({ ...form, nit: filterCI(e.target.value) })} style={inputStyle} required />
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                                     <label style={labelStyle}>N° Contrato (Opcional)</label>
@@ -239,13 +290,13 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
 
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 <label style={labelStyle}>Persona de Contacto *</label>
-                                <input type="text" placeholder="Ej. Lic. Fernando Morales" value={form.nombre_contacto} onChange={(e) => setForm({ ...form, nombre_contacto: e.target.value })} style={inputStyle} required />
+                                <input type="text" placeholder="Ej. Lic. Fernando Morales" value={form.nombre_contacto} onChange={(e) => setForm({ ...form, nombre_contacto: filterLetters(e.target.value) })} style={inputStyle} required />
                             </div>
 
                             <div style={{ display: 'flex', gap: '0.8rem' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                                     <label style={labelStyle}>Teléfono de Contacto *</label>
-                                    <input type="tel" placeholder="Ej. 2 2789000 o 76543210" value={form.telefono_contacto} onChange={(e) => setForm({ ...form, telefono_contacto: e.target.value })} style={inputStyle} required />
+                                    <input type="tel" placeholder="Ej. 2 2789000 o 76543210" value={form.telefono_contacto} onChange={(e) => setForm({ ...form, telefono_contacto: filterPhone(e.target.value) })} style={inputStyle} required />
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                                     <label style={labelStyle}>Correo Institucional</label>
@@ -279,7 +330,7 @@ const ModalCliente = ({ isOpen, onClose, onSuccess }) => {
                             border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: cargando ? 'not-allowed' : 'pointer',
                             transition: 'opacity 0.2s', opacity: cargando ? 0.7 : 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem'
                         }}>
-                            {cargando ? 'Guardando...' : (tipoCliente === 1 ? 'Registrar Persona' : 'Registrar Institución')}
+                            {cargando ? 'Guardando...' : (clienteEdit ? 'Guardar Cambios' : (tipoCliente === 1 ? 'Registrar Persona' : 'Registrar Institución'))}
                         </button>
                     </div>
                 </form>

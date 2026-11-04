@@ -1,3 +1,4 @@
+const { validarTelefono, validarTextoAlfabetico, validarCI, validarEmail } = require('../middlewares/dataValidator');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const UsuarioModel = require('../models/UsuarioModel');
@@ -8,6 +9,11 @@ require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 const JWT_SECRET = process.env.JWT_SECRET || 'simonetta_modas_jwt_secreto_2025';
 
+// Control en memoria de intentos fallidos de autenticación (Usuario y Contraseña)
+const intentosLogin = new Map();
+const MAX_INTENTOS_FALLIDOS = 3;
+const TIEMPO_BLOQUEO_MS = 60 * 1000; // 1 minuto (60 segundos)
+
 // POST /api/auth/login — Inicio de sesión unificado (Personal o Clientes)
 const login = async (req, res) => {
     const { correo, password } = req.body;
@@ -16,14 +22,31 @@ const login = async (req, res) => {
         return res.status(400).json({ error: 'Correo y contraseña son obligatorios.' });
     }
 
-    try {
-        const cleanCorreo = correo.trim().toLowerCase();
+    const cleanCorreo = correo.trim().toLowerCase();
+    const ahora = Date.now();
 
-        // 1. Verificar si es personal interno (usuarios)
+    // 1. Verificar si la cuenta/correo está actualmente bloqueada
+    const estadoIntento = intentosLogin.get(cleanCorreo);
+    if (estadoIntento && estadoIntento.bloqueadoHasta) {
+        if (ahora < estadoIntento.bloqueadoHasta) {
+            const segundosRestantes = Math.ceil((estadoIntento.bloqueadoHasta - ahora) / 1000);
+            return res.status(403).json({
+                error: `Demasiados intentos fallidos. Su cuenta ha sido bloqueada temporalmente por 1 minuto por seguridad. Intente nuevamente en ${segundosRestantes} segundo${segundosRestantes === 1 ? '' : 's'}.`,
+                bloqueado: true,
+                segundos_bloqueo: segundosRestantes
+            });
+        } else {
+            // El tiempo de bloqueo de 1 minuto expiró, reseteamos el registro
+            intentosLogin.delete(cleanCorreo);
+        }
+    }
+
+    try {
+        // 2. Verificar si es personal interno (usuarios)
         let usuario = await UsuarioModel.buscarPorCorreo(cleanCorreo);
         let esCliente = false;
 
-        // 2. Si no es personal, verificar si es cliente (clientes)
+        // 3. Si no es personal, verificar si es cliente (clientes)
         if (!usuario) {
             usuario = await ClienteModel.buscarPorCorreo(cleanCorreo);
             if (usuario) {
@@ -31,15 +54,39 @@ const login = async (req, res) => {
             }
         }
 
-        if (!usuario) {
-            return res.status(401).json({ error: 'Credenciales inválidas.' });
+        // Comprobar contraseña
+        let passwordValido = false;
+        if (usuario && usuario.password_hash) {
+            passwordValido = await bcrypt.compare(password, usuario.password_hash);
         }
 
-        // Verificar contraseña
-        const passwordValido = await bcrypt.compare(password, usuario.password_hash);
-        if (!passwordValido) {
-            return res.status(401).json({ error: 'Credenciales inválidas.' });
+        // Si el usuario no existe o la contraseña es errónea: registrar intento fallido
+        if (!usuario || !passwordValido) {
+            const intentosPrevios = intentosLogin.get(cleanCorreo)?.intentos || 0;
+            const nuevoTotalIntentos = intentosPrevios + 1;
+
+            if (nuevoTotalIntentos >= MAX_INTENTOS_FALLIDOS) {
+                const bloqueadoHasta = Date.now() + TIEMPO_BLOQUEO_MS;
+                intentosLogin.set(cleanCorreo, { intentos: nuevoTotalIntentos, bloqueadoHasta });
+                return res.status(403).json({
+                    error: 'Ha alcanzado el límite de 3 intentos fallidos de usuario y contraseña. Su cuenta ha sido bloqueada por 1 minuto por seguridad.',
+                    bloqueado: true,
+                    segundos_bloqueo: 60
+                });
+            } else {
+                intentosLogin.set(cleanCorreo, { intentos: nuevoTotalIntentos, bloqueadoHasta: null });
+                const restantes = MAX_INTENTOS_FALLIDOS - nuevoTotalIntentos;
+                return res.status(401).json({
+                    error: 'Credenciales inválidas.',
+                    advertencia: `Intento ${nuevoTotalIntentos} de ${MAX_INTENTOS_FALLIDOS} antes del bloqueo temporal.`,
+                    intentos_fallidos: nuevoTotalIntentos,
+                    intentos_restantes: restantes
+                });
+            }
         }
+
+        // Login exitoso: limpiar historial de intentos fallidos
+        intentosLogin.delete(cleanCorreo);
 
         const tokenPayload = {
             id_usuario: esCliente ? null : usuario.id_usuario,
@@ -124,7 +171,28 @@ const registrarCliente = async (req, res) => {
         finalApellido = parts.slice(1).join(' ') || '';
     }
 
-    if (!correo || !password || !finalNombre || !finalTelefono) {
+    
+        // VALIDACION DEFENSIVA REGISTRO CLIENTE
+        const valNom = validarTextoAlfabetico(finalNombre, 'nombre', true);
+        if (!valNom.valido) return res.status(400).json({ error: valNom.error });
+
+        if (finalApellido) {
+            const valApe = validarTextoAlfabetico(finalApellido, 'apellido', false);
+            if (!valApe.valido) return res.status(400).json({ error: valApe.error });
+        }
+
+        const valTel = validarTelefono(finalTelefono, 'teléfono / WhatsApp', true);
+        if (!valTel.valido) return res.status(400).json({ error: valTel.error });
+
+        const valMail = validarEmail(correo, 'correo electrónico', true);
+        if (!valMail.valido) return res.status(400).json({ error: valMail.error });
+
+        if (carnet_identidad) {
+            const valCI = validarCI(carnet_identidad, 'carnet de identidad', false);
+            if (!valCI.valido) return res.status(400).json({ error: valCI.error });
+        }
+
+        if (!correo || !password || !finalNombre || !finalTelefono) {
         return res.status(400).json({ error: 'Nombre, teléfono/WhatsApp, correo y contraseña son obligatorios.' });
     }
 
@@ -162,18 +230,19 @@ const registrarCliente = async (req, res) => {
 
 // PUT /api/auth/cambiar-password — Cambiar contraseña (primer login obligatorio o perfil)
 const cambiarPassword = async (req, res) => {
-    const { nueva_password, password_actual } = req.body;
+    const nueva = req.body.nueva_password || req.body.nuevaPassword;
+    const actual = req.body.password_actual || req.body.passwordActual;
     const id_usuario = req.usuario?.id_usuario;
 
     if (!id_usuario) {
         return res.status(403).json({ error: 'Solo los usuarios del sistema pueden cambiar su contraseña por esta vía.' });
     }
 
-    if (!nueva_password || nueva_password.trim().length < 6) {
+    if (!nueva || String(nueva).trim().length < 6) {
         return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres.' });
     }
 
-    if (nueva_password.trim() === '123456') {
+    if (String(nueva).trim() === '123456' || String(nueva).trim() === '12345678') {
         return res.status(400).json({ error: 'Por seguridad, la nueva contraseña no puede ser la contraseña temporal por defecto.' });
     }
 
@@ -183,15 +252,15 @@ const cambiarPassword = async (req, res) => {
             return res.status(404).json({ error: 'Usuario no encontrado.' });
         }
 
-        // Si no es primer inicio de sesión y envió password_actual, validarla
-        if (!user.debe_cambiar_password && password_actual) {
-            const valida = await bcrypt.compare(password_actual, user.password_hash);
+        // Si se envió la contraseña actual, validarla
+        if (actual && user.password_hash) {
+            const valida = await bcrypt.compare(String(actual).trim(), user.password_hash);
             if (!valida) {
-                return res.status(400).json({ error: 'La contraseña actual no es correcta.' });
+                return res.status(400).json({ error: 'La contraseña actual ingresada es incorrecta.' });
             }
         }
 
-        const actualizado = await UsuarioModel.cambiarPassword(id_usuario, nueva_password.trim());
+        const actualizado = await UsuarioModel.cambiarPassword(id_usuario, String(nueva).trim());
         return res.json({
             mensaje: 'Contraseña actualizada exitosamente.',
             usuario: {

@@ -1,3 +1,4 @@
+const { validarTelefono, validarTextoAlfabetico, validarCI, validarEmail } = require('../middlewares/dataValidator');
 const ClienteModel = require('../models/ClienteModel');
 const UsuarioModel = require('../models/UsuarioModel');
 const db = require('../config/db');
@@ -54,8 +55,51 @@ const crearCliente = async (req, res) => {
             contrato
         } = req.body;
 
+        
         const isInstitucional = Number(id_tipo_cliente) === 2 || 
                                 (tipo_cliente && (tipo_cliente.toLowerCase() === 'institucional' || tipo_cliente.toLowerCase() === 'institucion'));
+
+        // VALIDACION DEFENSIVA CLIENTE
+        if (!isInstitucional) {
+            const valNom = validarTextoAlfabetico(nombre || (nombre_completo ? nombre_completo.split(' ')[0] : ''), 'nombre', true);
+            if (!valNom.valido) return res.status(400).json({ error: valNom.error });
+
+            if (apellido) {
+                const valApe = validarTextoAlfabetico(apellido, 'apellido', false);
+                if (!valApe.valido) return res.status(400).json({ error: valApe.error });
+            }
+
+            const telPersona = telefono_whatsapp || telefono;
+            if (telPersona) {
+                const valTel = validarTelefono(telPersona, 'teléfono / WhatsApp', false);
+                if (!valTel.valido) return res.status(400).json({ error: valTel.error });
+            }
+
+            if (carnet_identidad) {
+                const valCI = validarCI(carnet_identidad, 'carnet de identidad', false);
+                if (!valCI.valido) return res.status(400).json({ error: valCI.error });
+            }
+        } else {
+            if (nombre_contacto) {
+                const valNomC = validarTextoAlfabetico(nombre_contacto, 'persona de contacto', false);
+                if (!valNomC.valido) return res.status(400).json({ error: valNomC.error });
+            }
+            const telInst = telefono_contacto || telefono;
+            if (telInst) {
+                const valTelInst = validarTelefono(telInst, 'teléfono de contacto', false);
+                if (!valTelInst.valido) return res.status(400).json({ error: valTelInst.error });
+            }
+            if (nit) {
+                const valNit = validarCI(nit, 'NIT', false);
+                if (!valNit.valido) return res.status(400).json({ error: valNit.error });
+            }
+        }
+
+        const mailCliente = correo_electronico || correo;
+        if (mailCliente) {
+            const valMail = validarEmail(mailCliente, 'correo electrónico', false);
+            if (!valMail.valido) return res.status(400).json({ error: valMail.error });
+        }
 
         const contacto = nombre_contacto || req.body.persona_contacto || '';
         const telContacto = telefono_contacto || telefono || telefono_whatsapp || '';
@@ -124,6 +168,34 @@ const crearCliente = async (req, res) => {
 const actualizarCliente = async (req, res) => {
     try {
         const { id } = req.params;
+        // VALIDACION DEFENSIVA ACTUALIZAR CLIENTE
+        if (req.body.nombre) {
+            const v = validarTextoAlfabetico(req.body.nombre, 'nombre', false);
+            if (!v.valido) return res.status(400).json({ error: v.error });
+        }
+        if (req.body.apellido) {
+            const v = validarTextoAlfabetico(req.body.apellido, 'apellido', false);
+            if (!v.valido) return res.status(400).json({ error: v.error });
+        }
+        const telAct = req.body.telefono || req.body.telefono_whatsapp || req.body.telefono_contacto;
+        if (telAct) {
+            const v = validarTelefono(telAct, 'teléfono', false);
+            if (!v.valido) return res.status(400).json({ error: v.error });
+        }
+        if (req.body.carnet_identidad) {
+            const v = validarCI(req.body.carnet_identidad, 'carnet de identidad', false);
+            if (!v.valido) return res.status(400).json({ error: v.error });
+        }
+        if (req.body.nit) {
+            const v = validarCI(req.body.nit, 'NIT', false);
+            if (!v.valido) return res.status(400).json({ error: v.error });
+        }
+        const mailAct = req.body.correo || req.body.correo_electronico;
+        if (mailAct) {
+            const v = validarEmail(mailAct, 'correo electrónico', false);
+            if (!v.valido) return res.status(400).json({ error: v.error });
+        }
+
         const cliente = await ClienteModel.actualizar(id, req.body);
 
         if (!cliente) {
@@ -174,10 +246,11 @@ const obtenerMiPerfil = async (req, res) => {
             let medidas = null;
             if (cliente) {
                 const medidasRes = await db.query(
-                    `SELECT ma.*, p.fecha_inicio as fecha_toma, pr.tipo_prenda
+                    `SELECT ma.*, p.fecha_inicio as fecha_toma, tp.nombre_tipo as tipo_prenda
                      FROM pedidos p
                      JOIN detalle_pedido dp ON p.id_pedido = dp.id_pedido
                      JOIN prendas pr ON dp.id_prenda = pr.id_prenda
+                     LEFT JOIN tipos_prenda tp ON pr.id_tipo_prenda = tp.id_tipo_prenda
                      JOIN medidas_anatomicas ma ON dp.id_detalle = ma.id_detalle
                      WHERE p.id_cliente = $1
                      ORDER BY p.fecha_inicio DESC, ma.id_medida_anatomica DESC
@@ -205,7 +278,34 @@ const obtenerMiPerfil = async (req, res) => {
     }
 };
 
+// PUT /api/clientes/:id/reset-password — Restablecer contraseña de cliente (Exclusivo Admin)
+const resetPasswordCliente = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { password } = req.body;
+        const passFinal = (password && String(password).trim().length > 0) ? String(password).trim() : '0986067862';
+
+        if (passFinal.length < 6) {
+            return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres.' });
+        }
+
+        const exito = await ClienteModel.resetPassword(id, passFinal);
+        if (!exito) {
+            return res.status(404).json({ error: 'Cliente no encontrado.' });
+        }
+
+        return res.json({
+            mensaje: `Contraseña restablecida exitosamente. La nueva clave es: ${passFinal}`,
+            nueva_password: passFinal
+        });
+    } catch (error) {
+        console.error('Error al restablecer contraseña de cliente:', error);
+        return res.status(500).json({ error: 'Error interno del servidor al restablecer contraseña.' });
+    }
+};
+
 module.exports = {
+    resetPasswordCliente,
     listarClientes,
     obtenerCliente,
     crearCliente,

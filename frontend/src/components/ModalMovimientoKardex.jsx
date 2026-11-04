@@ -1,3 +1,4 @@
+import { filterPositiveDecimal } from '../utils/validators';
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 
@@ -157,7 +158,7 @@ const ModalMovimientoKardex = ({ isOpen, onClose, onSuccess }) => {
                                 min="0.01"
                                 placeholder="Ej: 5.0"
                                 value={cantidad}
-                                onChange={(e) => setCantidad(e.target.value)}
+                                onChange={(e) => setCantidad(filterPositiveDecimal(e.target.value))}
                                 required
                                 style={{ width: '100%', padding: '0.7rem', borderRadius: '6px', border: '1px solid var(--color-borde)', boxSizing: 'border-box' }}
                             />

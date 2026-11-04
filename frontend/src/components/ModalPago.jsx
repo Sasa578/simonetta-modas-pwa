@@ -1,3 +1,4 @@
+import { filterPositiveDecimal } from '../utils/validators';
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 
@@ -154,7 +155,7 @@ const ModalPago = ({ isOpen, onClose, onSuccess, pedido }) => {
                                     max={saldoPendiente}
                                     placeholder={`Máx: ${saldoPendiente.toFixed(2)}`}
                                     value={montoAbono}
-                                    onChange={(e) => setMontoAbono(e.target.value)}
+                                    onChange={(e) => setMontoAbono(filterPositiveDecimal(e.target.value))}
                                     required
                                     style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid var(--color-borde)', boxSizing: 'border-box' }}
                                 />

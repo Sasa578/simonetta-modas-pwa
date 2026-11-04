@@ -129,7 +129,7 @@ const enviarNotaVentaEmail = async (req, res) => {
             }
         }
 
-        const pdfBuffer = await generarBufferNotaVenta(datos);
+        const bufferPdf = await generarBufferNotaVenta(datos);
         const correoDestino = req.body?.correo_destino || datos.correo || datos.cliente_correo;
 
         if (!correoDestino) {

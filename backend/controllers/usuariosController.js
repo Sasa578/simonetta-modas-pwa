@@ -1,3 +1,4 @@
+const { validarTelefono, validarTextoAlfabetico, validarCI, validarEmail } = require('../middlewares/dataValidator');
 const UsuarioModel = require('../models/UsuarioModel');
 
 // GET /api/usuarios — Listar todos (solo Admin)
@@ -16,6 +17,28 @@ const crearUsuario = async (req, res) => {
     try {
         const { correo, correo_electronico, password, id_rol, nombre, apellido, nombre_completo, carnet_identidad, telefono, fecha_nacimiento } = req.body;
         const email = correo_electronico || correo;
+        // VALIDACION DEFENSIVA USUARIO
+        const vNom = validarTextoAlfabetico(nombre || (nombre_completo ? nombre_completo.split(' ')[0] : ''), 'nombre', true);
+        if (!vNom.valido) return res.status(400).json({ error: vNom.error });
+
+        if (apellido) {
+            const vApe = validarTextoAlfabetico(apellido, 'apellido', false);
+            if (!vApe.valido) return res.status(400).json({ error: vApe.error });
+        }
+
+        if (telefono) {
+            const vTel = validarTelefono(telefono, 'teléfono', false);
+            if (!vTel.valido) return res.status(400).json({ error: vTel.error });
+        }
+
+        if (carnet_identidad) {
+            const vCI = validarCI(carnet_identidad, 'carnet de identidad', false);
+            if (!vCI.valido) return res.status(400).json({ error: vCI.error });
+        }
+
+        const vMail = validarEmail(email, 'correo electrónico', true);
+        if (!vMail.valido) return res.status(400).json({ error: vMail.error });
+
         
         if (!email || !id_rol) {
             return res.status(400).json({ error: 'Correo electrónico y rol son obligatorios.' });

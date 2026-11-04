@@ -5,11 +5,14 @@ const db = require('../../config/db');
 describe('PedidoModel & Módulo 2 (Integration)', () => {
     let testPedidoId;
     let testClienteId;
+    let testCostureraId;
 
     beforeAll(async () => {
         // Obtener un cliente existente
         const res = await db.query('SELECT id_cliente FROM clientes LIMIT 1');
         testClienteId = res.rows[0].id_cliente;
+        const costRes = await db.query("SELECT u.id_usuario FROM usuarios u JOIN roles r ON u.id_rol = r.id_rol WHERE r.nombre_rol = 'Costurera' LIMIT 1");
+        testCostureraId = costRes.rows[0]?.id_usuario || 1;
     });
 
     afterAll(async () => {
@@ -32,6 +35,7 @@ describe('PedidoModel & Módulo 2 (Integration)', () => {
         const pedido = await PedidoModel.crearPedido(
             {
                 id_cliente: testClienteId,
+                id_costurera: testCostureraId,
                 fecha_entrega: new Date(Date.now() + 10 * 86400000).toISOString().split('T')[0],
                 fecha_prueba: new Date(Date.now() + 5 * 86400000).toISOString().split('T')[0],
                 costo_total: 850.00,

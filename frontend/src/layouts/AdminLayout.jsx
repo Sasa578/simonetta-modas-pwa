@@ -39,7 +39,7 @@ const AdminLayout = () => {
                             <div key={u.id_usuario} className="usuario-mini">
                                 <div className="usuario-avatar">{u.correo?.charAt(0).toUpperCase()}</div>
                                 <div className="usuario-detalle">
-                                    <span className="usuario-nombre">{u.correo?.split('@')[0]}</span>
+                                    <span className="usuario-nombre">{u.nombre_completo || u.correo?.split('@')[0]}</span>
                                     <span className="usuario-rol">{u.nombre_rol}</span>
                                 </div>
                             </div>
@@ -58,13 +58,12 @@ const AdminLayout = () => {
                     <NavLink to="/admin/reportes" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Reportes</NavLink>
                     <NavLink to="/admin/clientes" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Clientes</NavLink>
                     <NavLink to="/admin/usuarios" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Usuarios</NavLink>
-                    <NavLink to="/admin/pruebas" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Pruebas API</NavLink>
                 </nav>
                 <div className="topbar-perfil">
                     <div className="perfil-avatar">{usuario?.correo?.charAt(0).toUpperCase() || 'A'}</div>
                     <div className="perfil-info">
-                        <span className="perfil-nombre">{usuario?.correo || 'Admin'}</span>
-                        <span className="perfil-rol">{usuario?.rol || 'Admin'}</span>
+                        <span className="perfil-nombre">{usuario?.nombre_completo || usuario?.correo || 'Admin'}</span>
+                        <span className="perfil-rol">{usuario?.rol || 'Administradora'}</span>
                     </div>
                 </div>
             </header>

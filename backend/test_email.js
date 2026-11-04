@@ -1,3 +1,4 @@
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 require('dotenv').config();
 const { verificarConexionTransporter, obtenerTransporter } = require('./utils/emailService');
 const { generarBufferReporteTaller } = require('./utils/pdfGenerator');

@@ -21,14 +21,14 @@ import MobileLayout from './layouts/MobileLayout';
 
 const RutaProtegida = ({ children }) => {
     const { usuario, cargando } = useAuth();
-    if (cargando) return <div className="pantalla-carga">Cargando...</div>;
+    if (cargando) return <div className="pantalla-carga">Cargando Simonetta Modas...</div>;
     return usuario ? children : <Navigate to="/login" replace />;
 };
 
 const RootRedirect = () => {
     const { usuario } = useAuth();
     if (!usuario) return <Navigate to="/login" replace />;
-    if (usuario.rol === 'Admin') return <Navigate to="/admin" replace />;
+    if (usuario.rol === 'Admin' || usuario.rol === 'Administradora' || usuario.rol === 'Administrador') return <Navigate to="/admin" replace />;
     if (usuario.rol === 'Secretaria') return <Navigate to="/secretaria" replace />;
     if (usuario.rol === 'Cliente') return <Navigate to="/cliente" replace />;
     return <Navigate to="/mobile" replace />;
@@ -69,6 +69,7 @@ const App = () => (
                     <Route index element={<MobileDashboard />} />
                     <Route path="perfil" element={<MobilePerfil />} />
                 </Route>
+                <Route path="/taller" element={<Navigate to="/mobile" replace />} />
 
                 {/* CLIENTE */}
                 <Route path="/cliente" element={<RutaProtegida><ClienteDashboard /></RutaProtegida>} />

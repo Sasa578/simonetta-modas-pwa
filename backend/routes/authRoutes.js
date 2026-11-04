@@ -11,6 +11,7 @@ router.post('/register', registrarCliente);
 
 // PUT /api/auth/cambiar-password — Cambio de contraseña (primer login o perfil)
 router.put('/cambiar-password', verificarToken, cambiarPassword);
+router.put('/cambiar-password-inicial', verificarToken, cambiarPassword);
 
 // GET /api/auth/roles — Listar roles
 router.get('/roles', listarRoles);

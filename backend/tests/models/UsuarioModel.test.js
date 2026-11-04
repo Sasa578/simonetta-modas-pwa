@@ -6,9 +6,15 @@ describe('UsuarioModel (Integration)', () => {
     let testUserId;
     const testEmail = 'test_jest_user@simonetta.com';
 
+    beforeAll(async () => {
+        await db.query("DELETE FROM datos_usuario WHERE id_usuario IN (SELECT id_usuario FROM usuarios WHERE correo_electronico LIKE 'test_%')");
+        await db.query("DELETE FROM usuarios WHERE correo_electronico LIKE 'test_%'");
+    });
+
     afterAll(async () => {
         // Limpiar base de datos
         if (testUserId) {
+            await db.query('DELETE FROM datos_usuario WHERE id_usuario = $1', [testUserId]);
             await db.query('DELETE FROM usuarios WHERE id_usuario = $1', [testUserId]);
         }
     });

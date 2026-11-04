@@ -1,3 +1,4 @@
+import { filterLetters, filterPhone, filterCI, isValidEmail, isValidPhone } from '../utils/validators';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
@@ -22,6 +23,16 @@ const Register = () => {
         e.preventDefault();
         setError('');
         
+        
+        // VALIDACION REGISTRO
+        if (formData.telefono_whatsapp && !isValidPhone(formData.telefono_whatsapp)) {
+            setError('El teléfono / WhatsApp debe tener al menos 7 dígitos válidos.');
+            return;
+        }
+        if (formData.correo && !isValidEmail(formData.correo)) {
+            setError('El formato del correo electrónico no es válido.');
+            return;
+        }
         if (formData.password !== confirmPassword) {
             setError('Las contraseñas no coinciden.');
             return;
@@ -30,7 +41,11 @@ const Register = () => {
         setCargando(true);
 
         try {
-            await api.post('/auth/register', formData);
+            await api.post('/auth/register', {
+                ...formData,
+                id_tipo_cliente: 1, // Persona Natural por defecto
+                tipo_cliente: 'Persona Natural'
+            });
             // Registro exitoso, redirigimos a login
             navigate('/login');
         } catch (err) {
@@ -58,7 +73,7 @@ const Register = () => {
                             <input
                                 type="text"
                                 value={formData.nombre}
-                                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                                onChange={(e) => setFormData({ ...formData, nombre: filterLetters(e.target.value) })}
                                 placeholder="María"
                                 required
                             />
@@ -68,7 +83,7 @@ const Register = () => {
                             <input
                                 type="text"
                                 value={formData.apellido}
-                                onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
+                                onChange={(e) => setFormData({ ...formData, apellido: filterLetters(e.target.value) })}
                                 placeholder="Pérez Rojas"
                                 required
                             />
@@ -80,7 +95,7 @@ const Register = () => {
                         <input
                             type="text"
                             value={formData.carnet_identidad}
-                            onChange={(e) => setFormData({ ...formData, carnet_identidad: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, carnet_identidad: filterCI(e.target.value) })}
                             placeholder="1234567"
                             required
                         />
@@ -91,7 +106,7 @@ const Register = () => {
                         <input
                             type="tel"
                             value={formData.telefono_whatsapp}
-                            onChange={(e) => setFormData({ ...formData, telefono_whatsapp: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, telefono_whatsapp: filterPhone(e.target.value) })}
                             placeholder="60012345"
                             required
                         />

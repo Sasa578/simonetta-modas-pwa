@@ -14,6 +14,7 @@ const kardexRoutes = require('./routes/kardexRoutes');
 const reportesRoutes = require('./routes/reportesRoutes');
 const notasVentaRoutes = require('./routes/notasVentaRoutes');
 const testsRoutes = require('./routes/testsRoutes');
+const catalogosRoutes = require('./routes/catalogosRoutes');
 
 const app = express();
 const PUERTO = process.env.PUERTO || 3000;
@@ -35,6 +36,7 @@ app.use('/api/notas-venta', notasVentaRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/citas', citasRoutes);
 app.use('/api/tests', testsRoutes);
+app.use('/api/catalogos', catalogosRoutes);
 
 // --- Ruta de salud ---
 app.get('/api/salud', (req, res) => {

@@ -1,3 +1,4 @@
+import { filterPositiveDecimal } from '../utils/validators';
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 
@@ -65,7 +66,8 @@ const ModalMedidas = ({ isOpen, onClose, onSuccess, cliente }) => {
     if (!isOpen || !cliente) return null;
 
     const handleMedidaChange = (key, value) => {
-        setMedidas((prev) => ({ ...prev, [key]: value }));
+        const cleanVal = key === 'fecha_toma' ? value : filterPositiveDecimal(value);
+        setMedidas((prev) => ({ ...prev, [key]: cleanVal }));
     };
 
     const handleRegistrarMedidas = async (e) => {
